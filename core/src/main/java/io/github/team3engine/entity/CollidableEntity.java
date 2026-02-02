@@ -3,7 +3,7 @@ package io.github.team3engine.entity;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
-public abstract class CollidableEntity extends Entity {
+public abstract class CollidableEntity extends Entity implements Collidable {
     protected Vector2 velocity;
     protected Rectangle hitbox;
     protected float speed;
@@ -35,7 +35,8 @@ public abstract class CollidableEntity extends Entity {
         hitbox.setPosition(position.x, position.y);
     }
 
-    public abstract void onCollision(CollidableEntity other);
+    @Override
+    public abstract void onCollision(Collidable other);
 
     @Override
     public void update(float dt) {

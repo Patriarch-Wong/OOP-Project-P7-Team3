@@ -3,7 +3,7 @@ package io.github.team3engine.entity;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-public abstract class Entity {
+public abstract class Entity implements Updatable, Renderable, Identifiable {
     private String id;
     private boolean active;
     private boolean destroyed;
@@ -55,8 +55,16 @@ public abstract class Entity {
         this.position.set(x, y);
     }
 
+    public float getRotation() {
+        return rotation;
+    }
+
     public void setRotation(float rotation) {
         this.rotation = rotation;
+    }
+
+    public Vector2 getScale() {
+        return scale;
     }
 
     public void setScale(float x, float y) {

@@ -3,7 +3,7 @@ package io.github.team3engine.entity;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
-public class EntityManager {
+public class EntityManager implements IEntityManager {
     private Array<Entity> entities;
     private Array<Entity> pendingAdd;
     private Array<Entity> pendingRemove;
@@ -30,7 +30,7 @@ public class EntityManager {
                 return e;
             }
         }
-        // Check pending adds if requseted before update
+        // Check pending adds if requested before update
         for (Entity e : pendingAdd) {
             if (e.getId().equals(id)) {
                 return e;
