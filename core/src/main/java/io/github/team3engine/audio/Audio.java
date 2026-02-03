@@ -1,4 +1,4 @@
-package io.github.team3engine.entity;
+package io.github.team3engine.audio;
 
 public abstract class Audio {
     protected String id;

@@ -2,6 +2,9 @@ package io.github.team3engine.entity;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import io.github.team3engine.interfaces.Identifiable;
+import io.github.team3engine.interfaces.Renderable;
+import io.github.team3engine.interfaces.Updatable;
 
 public abstract class Entity implements Updatable, Renderable, Identifiable {
     private String id;

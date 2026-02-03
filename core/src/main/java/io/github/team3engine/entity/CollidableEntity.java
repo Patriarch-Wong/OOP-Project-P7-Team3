@@ -2,6 +2,7 @@ package io.github.team3engine.entity;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import io.github.team3engine.interfaces.Collidable;
 
 public abstract class CollidableEntity extends Entity implements Collidable {
     protected Vector2 velocity;

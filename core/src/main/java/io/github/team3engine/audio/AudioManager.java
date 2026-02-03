@@ -1,4 +1,4 @@
-package io.github.team3engine.entity;
+package io.github.team3engine.audio;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
