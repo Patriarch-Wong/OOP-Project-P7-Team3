@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import io.github.team3engine.entity.AudioManager;
+import io.github.team3engine.audio.AudioManager;
 
 
 public class Main extends ApplicationAdapter {
