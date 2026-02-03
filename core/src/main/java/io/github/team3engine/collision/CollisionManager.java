@@ -10,100 +10,94 @@ import java.util.Map;
 
 public class CollisionManager {
 
-    private boolean collisionMatrix = true;
-    private final Map<CollidableEntity, Integer> collisionLayers = new HashMap<>();
+    private boolean enabled = true;
+    private final Map<CollidableEntity, Integer> layers = new HashMap<>();
 
     public CollisionManager() { }
 
-    public void setCollisionMatrixEnabled(boolean enabled) {
-        this.collisionMatrix = enabled;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
-    public boolean isCollisionMatrixEnabled() {
-        return collisionMatrix;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void setLayer(CollidableEntity entity, int layer) {
+    public void register(CollidableEntity entity) {
+        register(entity, 0);
+    }
+
+    public void register(CollidableEntity entity, int layer) {
         if (entity == null) return;
-        collisionLayers.put(entity, layer);
+        layers.put(entity, layer);
     }
 
-    public void removeEntity(CollidableEntity entity) {
-        collisionLayers.remove(entity);
+    public void unregister(CollidableEntity entity) {
+        layers.remove(entity);
     }
 
     public int getLayer(CollidableEntity entity) {
-        return collisionLayers.getOrDefault(entity, 0);
+        return layers.getOrDefault(entity, 0);
     }
 
-    public List<CollidableEntity> getRegisteredEntities() {
-        return new ArrayList<>(collisionLayers.keySet());
-    }
+    public Array<CollidableEntity[]> checkCollisions() {
+        Array<CollidableEntity[]> pairs = new Array<>();
 
-    public Array<CollidableEntity> checkCollisions() {
-        Array<CollidableEntity> colliding = new Array<>();
-
-        if (!collisionMatrix) {
-            return colliding;
+        if (!enabled) {
+            return pairs;
         }
 
-        List<CollidableEntity> entities = getRegisteredEntities();
-        for (int i = 0; i < entities.size(); i++) {
-            for (int j = i + 1; j < entities.size(); j++) {
-                CollidableEntity a = entities.get(i);
-                CollidableEntity b = entities.get(j);
+        List<CollidableEntity> list = new ArrayList<>(layers.keySet());
 
-                if (!layersCanCollide(a, b)) continue;
+        for (int i = 0; i < list.size(); i++) {
+            for (int j = i + 1; j < list.size(); j++) {
+                CollidableEntity a = list.get(i);
+                CollidableEntity b = list.get(j);
 
-                if (aabb(a, b)) {
-                    if (!colliding.contains(a, true)) colliding.add(a);
-                    if (!colliding.contains(b, true)) colliding.add(b);
+                if (skipEntity(a) || skipEntity(b)) continue;
+                if (getLayer(a) != getLayer(b)) continue;
+
+                if (aabbOverlap(a, b)) {
+                    pairs.add(new CollidableEntity[]{a, b});
                 }
             }
         }
-        return colliding;
+
+        return pairs;
     }
 
-    public Array<CollidableEntity> resolveCollsion() {
-        Array<CollidableEntity> colliding = new Array<>();
+    public Array<CollidableEntity[]> resolveCollisions() {
+        Array<CollidableEntity[]> pairs = checkCollisions();
 
-        if (!collisionMatrix) {
-            return colliding;
-        }
+        for (CollidableEntity[] pair : pairs) {
+            if (pair == null || pair.length < 2) continue;
 
-        List<CollidableEntity> entities = getRegisteredEntities();
-        for (int i = 0; i < entities.size(); i++) {
-            for (int j = i + 1; j < entities.size(); j++) {
-                CollidableEntity a = entities.get(i);
-                CollidableEntity b = entities.get(j);
+            CollidableEntity a = pair[0];
+            CollidableEntity b = pair[1];
 
-                if (!layersCanCollide(a, b)) continue;
+            try {
+                a.onCollision(b);
+            } catch (Exception e) {
+                System.err.println("Exception in onCollision for entity " + a.getId() + ": " + e.getMessage());
+            }
 
-                if (aabb(a, b)) {
-                    try {
-                        a.onCollision(b);
-                    } catch (Exception ignored) {}
-
-                    try {
-                        b.onCollision(a);
-                    } catch (Exception ignored) {}
-
-                    if (!colliding.contains(a, true)) colliding.add(a);
-                    if (!colliding.contains(b, true)) colliding.add(b);
-                }
+            try {
+                b.onCollision(a);
+            } catch (Exception e) {
+                System.err.println("Exception in onCollision for entity " + b.getId() + ": " + e.getMessage());
             }
         }
-        return colliding;
+
+        return pairs;
     }
 
-    private boolean layersCanCollide(CollidableEntity a, CollidableEntity b) {
-        return getLayer(a) == getLayer(b);
+    private boolean skipEntity(CollidableEntity e) {
+        return e == null || e.isDestroyed() || !e.isActive();
     }
 
-    private static boolean aabb(CollidableEntity a, CollidableEntity b) {
-        if (a == null || b == null || a.getHitbox() == null || b.getHitbox() == null) {
-            return false;
-        }
+    private boolean aabbOverlap(CollidableEntity a, CollidableEntity b) {
+        if (a == null || b == null) return false;
+        if (a.getHitbox() == null || b.getHitbox() == null) return false;
         return a.getHitbox().overlaps(b.getHitbox());
     }
 }
