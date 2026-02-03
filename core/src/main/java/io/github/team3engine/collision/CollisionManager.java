@@ -1,67 +1,109 @@
-package com.game.collision;
+package io.github.team3engine.collision;
 
-import com.game.entity.CollidableEntity;
+import com.badlogic.gdx.utils.Array;
+import io.github.team3engine.entity.CollidableEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Performs broad + narrow AABB collision detection.
- * collisionMatrix can be extended later to filter by layer tags.
- */
 public class CollisionManager {
 
-    /** layer-name → enabled flag (extensible per-layer toggle) */
-    private final Map<String, Boolean> collisionMatrix;
+    private boolean collisionMatrix = true;
+    private final Map<CollidableEntity, Integer> collisionLayers = new HashMap<>();
 
-    public CollisionManager() {
-        collisionMatrix = new HashMap<>();
+    public CollisionManager() { }
+
+    public void setCollisionMatrixEnabled(boolean enabled) {
+        this.collisionMatrix = enabled;
     }
 
-    // ── layer helpers ─────────────────────────
-    public void setLayerEnabled(String layer, boolean enabled) {
-        collisionMatrix.put(layer, enabled);
-    }
-    public boolean isLayerEnabled(String layer) {
-        return collisionMatrix.getOrDefault(layer, true);
+    public boolean isCollisionMatrixEnabled() {
+        return collisionMatrix;
     }
 
-    // ── detection ─────────────────────────────
-    /**
-     * Returns every pair of entities whose hitboxes currently overlap.
-     */
-    public List<CollidableEntity[]> checkCollisions(List<CollidableEntity> entities) {
-        List<CollidableEntity[]> pairs = new ArrayList<>();
+    public void setLayer(CollidableEntity entity, int layer) {
+        if (entity == null) return;
+        collisionLayers.put(entity, layer);
+    }
 
+    public void removeEntity(CollidableEntity entity) {
+        collisionLayers.remove(entity);
+    }
+
+    public int getLayer(CollidableEntity entity) {
+        return collisionLayers.getOrDefault(entity, 0);
+    }
+
+    public List<CollidableEntity> getRegisteredEntities() {
+        return new ArrayList<>(collisionLayers.keySet());
+    }
+
+    public Array<CollidableEntity> checkCollisions() {
+        Array<CollidableEntity> colliding = new Array<>();
+
+        if (!collisionMatrix) {
+            return colliding;
+        }
+
+        List<CollidableEntity> entities = getRegisteredEntities();
         for (int i = 0; i < entities.size(); i++) {
             for (int j = i + 1; j < entities.size(); j++) {
                 CollidableEntity a = entities.get(i);
                 CollidableEntity b = entities.get(j);
 
+                if (!layersCanCollide(a, b)) continue;
+
                 if (aabb(a, b)) {
-                    pairs.add(new CollidableEntity[]{a, b});
+                    if (!colliding.contains(a, true)) colliding.add(a);
+                    if (!colliding.contains(b, true)) colliding.add(b);
                 }
             }
         }
-        return pairs;
+        return colliding;
     }
 
-    /**
-     * Detects collisions and immediately dispatches onCollision to both entities.
-     */
-    public List<CollidableEntity[]> resolveCollisions(List<CollidableEntity> entities) {
-        List<CollidableEntity[]> pairs = checkCollisions(entities);
-        for (CollidableEntity[] pair : pairs) {
-            pair[0].onCollision(pair[1]);
-            pair[1].onCollision(pair[0]);
+    public Array<CollidableEntity> resolveCollsion() {
+        Array<CollidableEntity> colliding = new Array<>();
+
+        if (!collisionMatrix) {
+            return colliding;
         }
-        return pairs;
+
+        List<CollidableEntity> entities = getRegisteredEntities();
+        for (int i = 0; i < entities.size(); i++) {
+            for (int j = i + 1; j < entities.size(); j++) {
+                CollidableEntity a = entities.get(i);
+                CollidableEntity b = entities.get(j);
+
+                if (!layersCanCollide(a, b)) continue;
+
+                if (aabb(a, b)) {
+                    try {
+                        a.onCollision(b);
+                    } catch (Exception ignored) {}
+
+                    try {
+                        b.onCollision(a);
+                    } catch (Exception ignored) {}
+
+                    if (!colliding.contains(a, true)) colliding.add(a);
+                    if (!colliding.contains(b, true)) colliding.add(b);
+                }
+            }
+        }
+        return colliding;
     }
 
-    // ── AABB math ─────────────────────────────
+    private boolean layersCanCollide(CollidableEntity a, CollidableEntity b) {
+        return getLayer(a) == getLayer(b);
+    }
+
     private static boolean aabb(CollidableEntity a, CollidableEntity b) {
+        if (a == null || b == null || a.getHitbox() == null || b.getHitbox() == null) {
+            return false;
+        }
         return a.getHitbox().overlaps(b.getHitbox());
     }
 }
