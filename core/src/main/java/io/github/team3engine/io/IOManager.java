@@ -1,0 +1,139 @@
+package io.github.team3engine.io;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.badlogic.gdx.InputProcessor;
+
+public class IOManager implements InputProcessor {
+    private List<InputListener> inputListeners = new ArrayList<>();
+    private Map<String, List<Runnable>> eventCallbacks = new HashMap<String, List<Runnable>>();
+    private boolean isActive; // useed when not taking input(eg paused)
+
+    public IOManager() {
+        setActive(true); // enable by default
+    }
+
+    public void addInputListener(InputListener l) {
+        inputListeners.add(l);
+    }
+
+    public void removeInputListener(InputListener l) {
+        inputListeners.remove(l);
+    }
+
+    // register callbacks for each event
+    public void registerEvent(String eventName, Runnable callback) {
+        eventCallbacks
+                .computeIfAbsent(eventName, k -> new ArrayList<>())
+                .add(callback);
+    }
+
+    // when an event happens, run all the callbacks linked to that event
+    public void broadcast(String eventName) {
+        List<Runnable> callbacks = eventCallbacks.get(eventName);
+        if (callbacks == null) 
+            return;
+
+        for (Runnable r : callbacks) {
+            r.run();
+        }
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+    
+    public void update(float deltaTime) {
+        for (InputListener listener : inputListeners) {
+            listener.update(deltaTime);
+        }
+    }
+
+    /*
+     * ============================
+     * LibGDX InputProcessor
+     * ============================
+     */
+
+    @Override
+    public boolean keyDown(int keycode) {
+        if (!isActive)
+            return false;
+
+        for (InputListener listener : inputListeners) {
+            if (listener.isEnabled() && listener.onKey(keycode, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        if (!isActive)
+            return false;
+
+        for (InputListener listener : inputListeners) {
+            if (listener.isEnabled() && listener.onKey(keycode, false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int x, int y, int pointer, int button) {
+        if (!isActive)
+            return false;
+
+        for (InputListener listener : inputListeners) {
+            if (listener.isEnabled() && listener.onClick(x, y, button)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+     * ============================
+     * Unused InputProcessor methods
+     * ============================
+     */
+
+    @Override
+    public boolean touchUp(int x, int y, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int x, int y, int pointer) {
+        return false;
+    }
+
+    @Override
+    public boolean touchCancelled(int x, int y, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int x, int y) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+}
