@@ -12,6 +12,18 @@ public class AudioManager {
     private float musicVolume = 1.0f;
     private float sfxVolume = 1.0f;
     private boolean isMuted = false;
+    
+    public float getMasterVolume() {
+        return this.masterVolume;
+    }
+    
+    public float getMusicVolume() {
+        return this.musicVolume;
+    }
+
+    public float getSFXVolume() {
+        return this.sfxVolume;
+    }
 
     // Library for SFX and reference for current background music
     private Map<String, Sound> soundLibrary = new HashMap<>();
@@ -55,6 +67,7 @@ public class AudioManager {
         this.masterVolume = volume;
         updateMusicVolume();
     }
+    
 
     public void setMusicVolume(float volume) {
         this.musicVolume = volume;
