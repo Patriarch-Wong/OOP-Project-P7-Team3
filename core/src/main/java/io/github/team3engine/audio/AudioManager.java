@@ -13,6 +13,14 @@ public class AudioManager {
     private float sfxVolume = 1.0f;
     private boolean isMuted = false;
     
+    public void loadGameSounds() {
+        findClip("walk.mp3");
+        findClip("jump.mp3");
+        findClip("collide.mp3");
+        findClip("victory.mp3");
+        findClip("bullet_hit.mp3");
+    }
+    
     public float getMasterVolume() {
         return this.masterVolume;
     }
