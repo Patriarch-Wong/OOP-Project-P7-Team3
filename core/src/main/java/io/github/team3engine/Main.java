@@ -48,10 +48,7 @@ public class Main extends ApplicationAdapter {
 
         // 1. Audio Setup
         audioManager = new AudioManager();
-        audioManager.findClip("walk.mp3");
-        audioManager.findClip("jump.mp3");
-        audioManager.findClip("collide.mp3");
-        audioManager.findClip("victory.mp3");
+        audioManager.loadGameSounds();
         audioManager.playMusic("title.mp3", true);
 
         // 2. Entity & Movement Setup
