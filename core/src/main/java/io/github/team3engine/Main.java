@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.team3engine.audio.AudioManager;
 import io.github.team3engine.collision.CollisionManager;
@@ -158,7 +159,20 @@ public class Main extends ApplicationAdapter {
             entityManager.updateAll(deltaTime);
 
             collisionManager.update(deltaTime);
-            collisionManager.resolveCollisions();
+            Array<CollidableEntity[]> collisionPairs = collisionManager.resolveCollisions();
+
+            // If player is jumping, not moving horizontally, and collides with a platform, make them fall
+            for (CollidableEntity[] pair : collisionPairs) {
+                if (pair == null || pair.length < 2) continue;
+                CollidableEntity a = pair[0], b = pair[1];
+                if (a != player && b != player) continue;
+                CollidableEntity other = (a == player) ? b : a;
+                if (!(other instanceof Platform)) continue;
+                if (movementManager.isJumping() && !movementManager.isMovingHorizontally()) {
+                    movementManager.startFalling();
+                    break;
+                }
+            }
 
             // Ground detection after resolve: only set grounded when circle has actually landed
             // (bottom at or just below platform top), not when still above — avoids slowing down in mid-air.
