@@ -3,7 +3,7 @@ package io.github.team3engine.entity;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
-public class EntityManager implements IEntityManager {
+public class EntityManager {
     private Array<Entity> entities;
     private Array<Entity> pendingAdd;
     private Array<Entity> pendingRemove;

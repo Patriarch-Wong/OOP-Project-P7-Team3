@@ -1,6 +1,7 @@
 package io.github.team3engine.collision;
 
 import com.badlogic.gdx.utils.Array;
+import io.github.team3engine.audio.AudioManager;
 import io.github.team3engine.entity.CollidableEntity;
 
 import java.util.ArrayList;
@@ -10,10 +11,17 @@ import java.util.Map;
 
 public class CollisionManager {
 
+    private static final String COLLIDE_SFX = "collide.mp3";
+
     private boolean enabled = true;
     private final Map<CollidableEntity, Integer> layers = new HashMap<>();
+    private AudioManager audioManager;
 
     public CollisionManager() { }
+
+    public void setAudioManager(AudioManager audioManager) {
+        this.audioManager = audioManager;
+    }
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
@@ -74,6 +82,10 @@ public class CollisionManager {
 
             CollidableEntity a = pair[0];
             CollidableEntity b = pair[1];
+
+            if (audioManager != null) {
+                audioManager.play(COLLIDE_SFX);
+            }
 
             try {
                 a.onCollision(b);
