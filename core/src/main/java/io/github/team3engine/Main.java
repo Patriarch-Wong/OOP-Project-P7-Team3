@@ -64,11 +64,25 @@ public class Main extends ApplicationAdapter {
         Bucket bucket = new Bucket("bucket", Gdx.graphics.getWidth() / 2f, 20f);
         entityManager.addEntity(bucket);
 
+        //Initialize Bullet
+        float bulletX = Gdx.graphics.getWidth() * 0.5f;
+        float bulletY = Gdx.graphics.getHeight() * 0.75f;
+        Bullet singleBullet = new Bullet("bullet_single", bulletX, bulletY, null, audioManager);
+        singleBullet.setVelocity(0f, 0f);
+        entityManager.addEntity(singleBullet);
+
+        //Initialize Platform
+        Texture platformTex = new Texture(Gdx.files.internal("platform.png"));
+        Platform p = new Platform("platform_1", 100f, 150f, 300f, 24f, platformTex);
+        entityManager.addEntity(p);
+
         // 3. Collision Setup
         collisionManager = new CollisionManager();
         collisionManager.setAudioManager(audioManager);
         collisionManager.register(player);
         collisionManager.register(bucket);
+        collisionManager.register(singleBullet);
+        collisionManager.register(p);
 
         // 4. UI Setup
         uiManager = new UIManager(audioManager);
