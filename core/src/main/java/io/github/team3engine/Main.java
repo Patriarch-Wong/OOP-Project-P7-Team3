@@ -71,10 +71,26 @@ public class Main extends ApplicationAdapter {
         singleBullet.setVelocity(0f, 0f);
         entityManager.addEntity(singleBullet);
 
-        //Initialize Platform
+        // Initialize platforms from layout (19x12 grid; scale to screen pixels)
+        float gw = Gdx.graphics.getWidth();
+        float gh = Gdx.graphics.getHeight();
+        float scaleX = gw / 19f;
+        float scaleY = gh / 12f;
         Texture platformTex = new Texture(Gdx.files.internal("platform.png"));
-        Platform p = new Platform("platform_1", 100f, 150f, 300f, 24f, platformTex);
-        entityManager.addEntity(p);
+
+        // Platform 1: bottom-left (grid 1,1 size 8x1)
+        Platform p1 = new Platform("platform_1", 1f * scaleX, 1f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
+        entityManager.addEntity(p1);
+
+        // Platform 2: middle (grid 6,5 size 8x1)
+        Platform p2 = new Platform("platform_2", 6f * scaleX, 5f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
+        entityManager.addEntity(p2);
+
+        // Platform 3: top-right L = horizontal (11,9 size 8x1) + vertical (11,8 size 1x1)
+        Platform p3h = new Platform("platform_3_h", 11f * scaleX, 9f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
+        Platform p3v = new Platform("platform_3_v", 11f * scaleX, 8f * scaleY, 1f * scaleX, 1f * scaleY, platformTex);
+        entityManager.addEntity(p3h);
+        entityManager.addEntity(p3v);
 
         // 3. Collision Setup
         collisionManager = new CollisionManager();
@@ -82,7 +98,10 @@ public class Main extends ApplicationAdapter {
         collisionManager.register(player);
         collisionManager.register(bucket);
         collisionManager.register(singleBullet);
-        collisionManager.register(p);
+        collisionManager.register(p1);
+        collisionManager.register(p2);
+        collisionManager.register(p3h);
+        collisionManager.register(p3v);
 
         // 4. UI Setup
         uiManager = new UIManager(audioManager);
