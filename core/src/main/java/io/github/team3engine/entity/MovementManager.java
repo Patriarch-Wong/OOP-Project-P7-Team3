@@ -10,15 +10,15 @@ public class MovementManager {
     private final float FOOTSTEP_INTERVAL = 0.35f; // Adjust this to match walk speed
 
     // Movement configuration
-    private float maxSpeed = 1000.0f;
-    private float acceleration = 50.0f;
+    private float maxSpeed = 350f;
+    private float acceleration = 120f;
     private float jumpForce = 100.0f;
-    private float gravity = -50.0f;
+    private float gravity = -300.0f;
     private float jumpCooldownDuration = 0.6f;
 
-    // State
-    private float velocityX = 30f;
-    private float velocityY = 30f;
+    // State (start at rest so input responds immediately)
+    private float velocityX = 0f;
+    private float velocityY = 0f;
     private boolean isGrounded = true;
     private boolean movementEnabled = true;
     private float jumpCooldownRemaining = 0f;

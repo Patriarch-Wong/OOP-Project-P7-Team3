@@ -89,10 +89,10 @@ public class CollisionManager {
             if (pair == null || pair.length < 2) continue;
 
             // Trigger audio only once per "set" of collisions in this frame
-            if (audioManager != null && soundTimer <= 0) {
-                audioManager.play(COLLIDE_SFX);
-                soundTimer = SOUND_COOLDOWN; 
-            }
+            // if (audioManager != null && soundTimer <= 0) {
+            //     audioManager.play(COLLIDE_SFX);
+            //     soundTimer = SOUND_COOLDOWN; 
+            // }
 
             // Logic for individual entity reactions
             pair[0].onCollision(pair[1]);
