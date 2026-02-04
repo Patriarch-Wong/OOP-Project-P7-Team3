@@ -9,6 +9,8 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.team3engine.audio.AudioManager;
 import io.github.team3engine.collision.CollisionManager;
 import io.github.team3engine.entity.*;
+import io.github.team3engine.io.IOManager;
+import io.github.team3engine.io.PlayerInput;
 
 public class Main extends ApplicationAdapter {
     // Managers
@@ -17,6 +19,8 @@ public class Main extends ApplicationAdapter {
     private EntityManager entityManager;
     private CollisionManager collisionManager;
     private MovementManager movementManager;
+    private IOManager ioManager;
+    private PlayerInput playerInput;
 
     // Input & State
     private MovementInput movementInput;
@@ -24,10 +28,23 @@ public class Main extends ApplicationAdapter {
     private Texture image;
     private boolean isPaused = false;
 
+    private Circle player;
+
+    // Footstep logic
+    private float footstepTimer = 0;
+    private final float FOOTSTEP_INTERVAL = 0.4f;
+    private boolean wasMoving = false;
+
     @Override
     public void create() {
         batch = new SpriteBatch();
         image = new Texture("libgdx.png");
+
+        // IO Manager
+        ioManager = new IOManager();
+        playerInput = new PlayerInput(player);
+        ioManager.addInputListener(playerInput);
+        Gdx.input.setInputProcessor(ioManager);
 
         // 1. Audio Setup
         audioManager = new AudioManager();
@@ -41,10 +58,10 @@ public class Main extends ApplicationAdapter {
         movementInput = new MovementInput();
         movementManager = new MovementManager(audioManager); // Manager handles sfx!
 
-        Circle player = new Circle("player", Gdx.graphics.getWidth()/2f, Gdx.graphics.getHeight()/2f, 30f);
+        player = new Circle("player_circle", Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 30f, playerInput, ioManager);
         entityManager.addEntity(player);
 
-        Bucket bucket = new Bucket("bucket", Gdx.graphics.getWidth()/2f, 20f);
+        Bucket bucket = new Bucket("bucket", Gdx.graphics.getWidth() / 2f, 20f);
         entityManager.addEntity(bucket);
 
         // 3. Collision Setup
@@ -55,26 +72,42 @@ public class Main extends ApplicationAdapter {
 
         // 4. UI Setup
         uiManager = new UIManager(audioManager);
+
+        // setup eventlisteners (output)
+
+        ioManager.registerEvent("PLAYER_MOVING", () -> { // smthcan happen here
+            float dt = Gdx.graphics.getDeltaTime();
+
+            footstepTimer += dt;
+            if (!wasMoving) {
+                footstepTimer = FOOTSTEP_INTERVAL;
+                wasMoving = true;
+            }
+            if (footstepTimer >= FOOTSTEP_INTERVAL) {
+                audioManager.play("walk.mp3");
+                footstepTimer = 0f;
+            }
+        });
     }
 
     @Override
     public void render() {
         float deltaTime = Gdx.graphics.getDeltaTime();
-        
+
         // Handle Pause Toggle
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isPaused = !isPaused;
-            uiManager.toggleMenu(isPaused); 
+            uiManager.toggleMenu(isPaused);
         }
 
         // Logic Update
         if (!isPaused) {
-        	
+
             movementInput.update(); // Poll keys
             movementManager.applyMovement(movementInput, deltaTime); // Move & Play SFX
-            
+
             entityManager.updateAll(deltaTime);
-            collisionManager.update(delta);
+            collisionManager.update(deltaTime);
             collisionManager.resolveCollisions();
         }
 
