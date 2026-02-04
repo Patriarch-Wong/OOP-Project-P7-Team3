@@ -1,7 +1,9 @@
 package io.github.team3engine.io;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 import io.github.team3engine.TextureObject;
 import io.github.team3engine.entity.MovementInput;
@@ -17,13 +19,12 @@ public class PlayerInput extends InputListener {
 =======
 import io.github.team3engine.entity.Circle;
 
+=======
+>>>>>>> 75eee3648a2037e0aeadec5daee96721855f8e38
 public class PlayerInput extends InputListener {
-    private Circle player;
-    private boolean leftHeld;
-    private boolean rightHeld;
-    private boolean upHeld;
-    private boolean downHeld;
+    private boolean leftHeld, rightHeld, upHeld, downHeld;
 
+<<<<<<< HEAD
     public PlayerInput(Circle player) {
         this.player = player;
         setActive(true); // enable by default
@@ -86,10 +87,16 @@ public class PlayerInput extends InputListener {
         // button is left click, right click, middle click etc
         // x and y is the coordinates
         return false;
+=======
+    // This must be empty to match "new PlayerInput()" in Main.java
+    public PlayerInput() {
+        setActive(true);
+>>>>>>> 75eee3648a2037e0aeadec5daee96721855f8e38
     }
 
     @Override
     public void update(float deltaTime) {
+<<<<<<< HEAD
         // if (leftHeld) {
         // bucket.setX(bucket.getX() - deltaTime * bucket.getSpeed());
         // }
@@ -97,12 +104,19 @@ public class PlayerInput extends InputListener {
         // if (rightHeld) {
         // bucket.setX(bucket.getX() + deltaTime * bucket.getSpeed());
         // }
+=======
+        leftHeld  = Gdx.input.isKeyPressed(Keys.A) || Gdx.input.isKeyPressed(Keys.LEFT);
+        rightHeld = Gdx.input.isKeyPressed(Keys.D) || Gdx.input.isKeyPressed(Keys.RIGHT);
+        upHeld    = Gdx.input.isKeyPressed(Keys.W) || Gdx.input.isKeyPressed(Keys.UP);
+        downHeld  = Gdx.input.isKeyPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.DOWN);
+>>>>>>> 75eee3648a2037e0aeadec5daee96721855f8e38
     }
 
-    public boolean isLeftHeld() {
-        return leftHeld;
+    public void reset() {
+        leftHeld = rightHeld = upHeld = downHeld = false;
     }
 
+<<<<<<< HEAD
     public boolean isRightHeld() {
         return rightHeld;
     }
@@ -115,3 +129,12 @@ public class PlayerInput extends InputListener {
         return downHeld;
     }
 }
+=======
+    public boolean isLeftHeld() { return leftHeld; }
+    public boolean isRightHeld() { return rightHeld; }
+    public boolean isUpHeld() { return upHeld; }
+    public boolean isDownHeld() { return downHeld; }
+    
+    @Override public boolean onKey(int keycode, boolean pressed) { return false; }
+}
+>>>>>>> 75eee3648a2037e0aeadec5daee96721855f8e38
