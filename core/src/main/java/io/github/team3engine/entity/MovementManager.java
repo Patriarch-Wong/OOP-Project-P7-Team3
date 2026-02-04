@@ -14,12 +14,14 @@ public class MovementManager {
     private float acceleration = 50.0f;
     private float jumpForce = 100.0f;
     private float gravity = -50.0f;
+    private float jumpCooldownDuration = 0.6f;
 
     // State
     private float velocityX = 30f;
     private float velocityY = 30f;
     private boolean isGrounded = true;
     private boolean movementEnabled = true;
+    private float jumpCooldownRemaining = 0f;
 
     public MovementManager(AudioManager audioManager) {
         this.audioManager = audioManager;
@@ -49,11 +51,15 @@ public class MovementManager {
         // Clamp horizontal speed
         velocityX = clamp(velocityX, -maxSpeed, maxSpeed);
 
-        // Jump (discrete action)
-        if (input.jump && isGrounded) {
+        // Jump cooldown: tick down each frame
+        jumpCooldownRemaining -= deltaTime;
+        if (jumpCooldownRemaining < 0f) jumpCooldownRemaining = 0f;
+
+        // Jump (allowed when cooldown is ready; can jump mid-air after cooldown)
+        if (input.jump && jumpCooldownRemaining <= 0f) {
             velocityY = jumpForce;
+            jumpCooldownRemaining = jumpCooldownDuration;
             isGrounded = false;
-            // --- JUMP SOUND ---
             audioManager.play("jump.mp3");
         }
 
