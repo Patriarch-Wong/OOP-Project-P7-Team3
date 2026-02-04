@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import io.github.team3engine.interfaces.Collidable;
+import io.github.team3engine.io.IOManager;
+import io.github.team3engine.io.PlayerInput;
 
 /**
  * A collidable entity with a circular shape.
@@ -20,6 +22,8 @@ public class Circle extends CollidableEntity {
     protected final com.badlogic.gdx.math.Circle circle;
     protected final ShapeRenderer shapeRenderer;
     protected Color color;
+    private PlayerInput playerInput;
+    private IOManager io;
 
     public Circle(String id, float radius) {
         super(id);
@@ -30,8 +34,10 @@ public class Circle extends CollidableEntity {
         updateHitbox();
     }
 
-    public Circle(String id, float x, float y, float radius) {
+    public Circle(String id, float x, float y, float radius, PlayerInput playerInput, IOManager io) {
         this(id, radius);
+        this.playerInput = playerInput;
+        this.io = io;
         setPos(x, y);
         updateHitbox();
     }
@@ -82,12 +88,29 @@ public class Circle extends CollidableEntity {
     public void update(float dt) {
         float vx = 0f;
         float vy = 0f;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) vx -= moveSpeed;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) vx += moveSpeed;
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) vy -= moveSpeed;
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) vy += moveSpeed;
+        boolean moving = false;
+        if (playerInput.isLeftHeld()) {
+            vx -= moveSpeed;
+            moving = true;
+        }
+        if (playerInput.isRightHeld()) {
+            vx += moveSpeed;
+            moving = true;
+        }
+        if (playerInput.isUpHeld()) {
+            vy += moveSpeed;
+            moving = true;
+        }
+        if (playerInput.isDownHeld()) {
+            vy -= moveSpeed;
+            moving = true;
+        }
+
         setVelocity(vx, vy);
         super.update(dt);
+        if (moving) {
+            io.broadcast("PLAYER_MOVING");
+        }
     }
 
     @Override

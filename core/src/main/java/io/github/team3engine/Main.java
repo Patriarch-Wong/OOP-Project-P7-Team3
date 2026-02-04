@@ -69,7 +69,7 @@ public class Main extends ApplicationAdapter {
 
         // Logic Update
         if (!isPaused) {
-        	float delta = Gdx.graphics.getDeltaTime();
+        	
             movementInput.update(); // Poll keys
             movementManager.applyMovement(movementInput, deltaTime); // Move & Play SFX
             
