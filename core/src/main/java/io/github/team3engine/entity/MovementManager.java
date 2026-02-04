@@ -1,6 +1,13 @@
 package io.github.team3engine.entity;
 
+import io.github.team3engine.audio.AudioManager; // You'll need this import
+
 public class MovementManager {
+
+    // Audio Reference
+    private AudioManager audioManager;
+    private float footstepTimer = 0;
+    private final float FOOTSTEP_INTERVAL = 0.35f; // Adjust this to match walk speed
 
     // Movement configuration
     private float maxSpeed = 5.0f;
@@ -14,6 +21,11 @@ public class MovementManager {
     private boolean isGrounded = true;
     private boolean movementEnabled = true;
 
+    // Add a constructor to receive the AudioManager
+    public MovementManager(AudioManager audioManager) {
+        this.audioManager = audioManager;
+    }
+
     public void applyMovement(MovementInput input, float deltaTime) {
         if (!movementEnabled) {
             return;
@@ -22,6 +34,18 @@ public class MovementManager {
         // Horizontal movement (player-controlled)
         velocityX += input.movementAxis * acceleration * deltaTime;
 
+        // --- FOOTSTEP SOUND LOGIC ---
+        // Play sound if moving on ground and input is being pressed
+        if (isGrounded && Math.abs(input.movementAxis) > 0.1f) {
+            footstepTimer += deltaTime;
+            if (footstepTimer >= FOOTSTEP_INTERVAL) {
+                audioManager.play("walk.mp3");
+                footstepTimer = 0;
+            }
+        } else {
+            footstepTimer = FOOTSTEP_INTERVAL; // Reset so next step plays instantly
+        }
+
         // Clamp horizontal speed
         velocityX = clamp(velocityX, -maxSpeed, maxSpeed);
 
@@ -29,6 +53,8 @@ public class MovementManager {
         if (input.jump && isGrounded) {
             velocityY = jumpForce;
             isGrounded = false;
+            // --- JUMP SOUND ---
+            audioManager.play("jump.mp3");
         }
 
         // Gravity (always applies)

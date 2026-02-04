@@ -12,10 +12,18 @@ import java.util.Map;
 public class CollisionManager {
 
     private static final String COLLIDE_SFX = "collide.mp3";
+    private static final float SOUND_COOLDOWN = 0.5f;
 
     private boolean enabled = true;
     private final Map<CollidableEntity, Integer> layers = new HashMap<>();
     private AudioManager audioManager;
+    private float soundTimer = 0; // Tracks elapsed time
+    
+    public void update(float deltaTime) {
+        if (soundTimer > 0) {
+            soundTimer -= deltaTime;
+        }
+    }
 
     public CollisionManager() { }
 
@@ -80,24 +88,15 @@ public class CollisionManager {
         for (CollidableEntity[] pair : pairs) {
             if (pair == null || pair.length < 2) continue;
 
-            CollidableEntity a = pair[0];
-            CollidableEntity b = pair[1];
-
-            if (audioManager != null) {
+            // Trigger audio only once per "set" of collisions in this frame
+            if (audioManager != null && soundTimer <= 0) {
                 audioManager.play(COLLIDE_SFX);
+                soundTimer = SOUND_COOLDOWN; 
             }
 
-            try {
-                a.onCollision(b);
-            } catch (Exception e) {
-                System.err.println("Exception in onCollision for entity " + a.getId() + ": " + e.getMessage());
-            }
-
-            try {
-                b.onCollision(a);
-            } catch (Exception e) {
-                System.err.println("Exception in onCollision for entity " + b.getId() + ": " + e.getMessage());
-            }
+            // Logic for individual entity reactions
+            pair[0].onCollision(pair[1]);
+            pair[1].onCollision(pair[0]);
         }
 
         return pairs;
