@@ -74,12 +74,18 @@ public class Main extends ApplicationAdapter {
         singleBullet.setVelocity(0f, 0f);
         entityManager.addEntity(singleBullet);
 
+        //Initiallize Platform
+        Texture platformTex = new Texture(Gdx.files.internal("platform.png"));
+        Platform p = new Platform("platform_1", 100f, 150f, 300f, 24f, platformTex);
+        entityManager.addEntity(p);
+
         // 4. Collision Setup
         collisionManager = new CollisionManager();
         collisionManager.setAudioManager(audioManager);
         collisionManager.register(player);
         collisionManager.register(bucket);
         collisionManager.register(singleBullet);
+        collisionManager.register(p);
 
         // 5. UI Setup
         uiManager = new UIManager(audioManager);
