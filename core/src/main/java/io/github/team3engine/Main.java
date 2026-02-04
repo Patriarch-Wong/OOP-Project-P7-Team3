@@ -75,7 +75,7 @@ public class Main extends ApplicationAdapter {
         collisionManager.setAudioManager(audioManager);
         collisionManager.register(player);
         collisionManager.register(bucket);
-         collisionManager.register(singleBullet);
+        collisionManager.register(singleBullet);
 
         // 4. UI Setup
         uiManager = new UIManager(audioManager);
