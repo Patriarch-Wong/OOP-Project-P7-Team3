@@ -11,6 +11,7 @@ public class MovementManager {
 
     // Movement configuration
     private float maxSpeed = 350f;
+    private float maxFallSpeed = -600f;
     private float acceleration = 120f;
     private float jumpForce = 100.0f;
     private float gravity = -300.0f;
@@ -56,7 +57,7 @@ public class MovementManager {
         if (jumpCooldownRemaining < 0f) jumpCooldownRemaining = 0f;
 
         // Jump (allowed when cooldown is ready; can jump mid-air after cooldown)
-        if (input.jump && jumpCooldownRemaining <= 0f) {
+        if (input.jump && isGrounded && jumpCooldownRemaining <= 0f) {
             velocityY = jumpForce;
             jumpCooldownRemaining = jumpCooldownDuration;
             isGrounded = false;
@@ -65,6 +66,7 @@ public class MovementManager {
 
         // Gravity (always applies)
         velocityY += gravity * deltaTime;
+        velocityY = Math.max(velocityY, maxFallSpeed);
 
         entity.getPos().x += velocityX * deltaTime; //check if supposed to be get rather than set
         entity.getPos().y += velocityY * deltaTime; 
