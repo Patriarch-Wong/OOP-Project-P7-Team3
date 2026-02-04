@@ -51,6 +51,7 @@ public class Main extends ApplicationAdapter {
         audioManager.findClip("walk.mp3");
         audioManager.findClip("jump.mp3");
         audioManager.findClip("collide.mp3");
+        audioManager.findClip("victory.mp3");
         audioManager.playMusic("title.mp3", true);
 
         // 2. Entity & Movement Setup
@@ -104,7 +105,7 @@ public class Main extends ApplicationAdapter {
         collisionManager.register(p3v);
 
         // Initialize WinBox
-        WinBox winBox = new WinBox("win_box", 50f);
+        WinBox winBox = new WinBox("win_box", 50f, ioManager, audioManager);
         entityManager.addEntity(winBox);
         collisionManager.register(winBox);
 
