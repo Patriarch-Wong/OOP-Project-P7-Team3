@@ -14,8 +14,9 @@ public class MovementManager {
     private boolean isGrounded = true;
     private boolean movementEnabled = true;
 
-    public void applyMovement(MovementInput input, float deltaTime) {
-        if (!movementEnabled) {
+    // CHANGE signature
+    public void applyMovement(Entity entity, MovementInput input, float deltaTime) {
+        if (!movementEnabled) { // if not supposed to move
             return;
         }
 
@@ -33,6 +34,10 @@ public class MovementManager {
 
         // Gravity (always applies)
         velocityY += gravity * deltaTime;
+
+        entity.getPos().x += velocityX * deltaTime; //check if supposed to be get rather than set
+        entity.getPos().y += velocityY * deltaTime; 
+        
     }
 
     public void setGrounded(boolean grounded) {

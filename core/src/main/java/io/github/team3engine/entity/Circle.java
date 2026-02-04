@@ -20,10 +20,13 @@ public class Circle extends CollidableEntity {
     protected final com.badlogic.gdx.math.Circle circle;
     protected final ShapeRenderer shapeRenderer;
     protected Color color;
+    protected final MovementInput movementInput;
 
     public Circle(String id, float radius) {
         super(id);
         this.radius = radius;
+        this.movementInput = new MovementInput();
+
         this.circle = new com.badlogic.gdx.math.Circle(position.x, position.y, radius);
         this.shapeRenderer = new ShapeRenderer();
         this.color = new Color(1f, 1f, 1f, 1f);
@@ -78,16 +81,26 @@ public class Circle extends CollidableEntity {
         this.moveSpeed = moveSpeed;
     }
 
+    public MovementInput getMovementInput() {
+        return movementInput;
+    }
+
     @Override
     public void update(float dt) {
-        float vx = 0f;
-        float vy = 0f;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) vx -= moveSpeed;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) vx += moveSpeed;
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) vy -= moveSpeed;
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) vy += moveSpeed;
-        setVelocity(vx, vy);
-        super.update(dt);
+        
+        movementInput.movementAxis = 0f;
+        movementInput.jump = false;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A))
+            movementInput.movementAxis = -1f;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D))
+            movementInput.movementAxis = 1f;
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
+            movementInput.jump = true;
+
+        
     }
 
     @Override
