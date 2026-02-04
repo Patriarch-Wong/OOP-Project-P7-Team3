@@ -51,6 +51,7 @@ public class Main extends ApplicationAdapter {
         audioManager.findClip("walk.mp3");
         audioManager.findClip("jump.mp3");
         audioManager.findClip("collide.mp3");
+        audioManager.findClip("victory.mp3");
         audioManager.playMusic("title.mp3", true);
 
         // 2. Entity & Movement Setup
@@ -106,7 +107,7 @@ public class Main extends ApplicationAdapter {
         collisionManager.register(p3v);
 
         // Initialize WinBox
-        WinBox winBox = new WinBox("win_box", 50f);
+        WinBox winBox = new WinBox("win_box", 50f, ioManager, audioManager);
         entityManager.addEntity(winBox);
         collisionManager.register(winBox);
 
@@ -162,14 +163,19 @@ public class Main extends ApplicationAdapter {
             collisionManager.update(deltaTime);
             collisionManager.resolveCollisions();
 
+<<<<<<< HEAD
             // Ground detection after resolve: only set grounded when resting on surface
             // (circle bottom
             // near platform top), so we don't zero velocity while still overlapping and
             // cause sticking.
+=======
+            // Ground detection after resolve: only set grounded when circle has actually landed
+            // (bottom at or just below platform top), not when still above — avoids slowing down in mid-air.
+>>>>>>> 19fa9d7f8ae0b3a7add4a214395861a79c8e382a
             boolean isOnFloor = player.getPos().y <= player.getRadius() + 1f;
             boolean isOnPlatform = false;
             float circleBottom = player.getPos().y - player.getRadius();
-            float surfaceTolerance = 8f;
+            float sinkTolerance = 3f; // only "on platform" when at or just below surface, not above
 
             for (Entity e : entityManager.getAll()) {
                 if (e instanceof Platform) {
@@ -178,11 +184,9 @@ public class Main extends ApplicationAdapter {
                     float platformLeft = platform.getPos().x;
                     float platformRight = platform.getPos().x + platform.getWidth();
                     float circleCenterX = player.getPos().x;
-                    boolean onSurface = circleBottom <= platformTop + surfaceTolerance
-                            && circleBottom >= platformTop - surfaceTolerance;
-                    boolean overPlatform = circleCenterX >= platformLeft - player.getRadius()
-                            && circleCenterX <= platformRight + player.getRadius();
-                    if (onSurface && overPlatform) {
+                    boolean landed = circleBottom <= platformTop + sinkTolerance && circleBottom >= platformTop - sinkTolerance;
+                    boolean overPlatform = circleCenterX >= platformLeft - player.getRadius() && circleCenterX <= platformRight + player.getRadius();
+                    if (landed && overPlatform) {
                         isOnPlatform = true;
                         break;
                     }
