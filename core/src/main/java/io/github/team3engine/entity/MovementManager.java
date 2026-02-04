@@ -93,8 +93,10 @@ public class MovementManager {
 
     public void setGrounded(boolean grounded) {
         this.isGrounded = grounded;
-        if (grounded) {
-            velocityY = 0;
+        // Only zero downward velocity when landing; don't zero upward velocity so we don't fight
+        // collision resolution (platform pushing entity up) and cause sticking/jitter.
+        if (grounded && velocityY < 0f) {
+            velocityY = 0f;
         }
     }
 
