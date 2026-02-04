@@ -11,6 +11,8 @@ import io.github.team3engine.collision.CollisionManager;
 import io.github.team3engine.entity.Bucket;
 import io.github.team3engine.entity.Circle;
 import io.github.team3engine.entity.EntityManager;
+import io.github.team3engine.io.IOManager;
+import io.github.team3engine.io.PlayerInput;
 import io.github.team3engine.UIManager;
 
 public class Main extends ApplicationAdapter {
@@ -19,20 +21,31 @@ public class Main extends ApplicationAdapter {
     private UIManager uiManager;
     private EntityManager entityManager;
     private CollisionManager collisionManager;
+    private IOManager ioManager;
+    private PlayerInput playerInput;
 
     // Game Assets/State
     private SpriteBatch batch;
     private Texture image;
     private boolean isPaused = false;
-    
+    private Circle circle;
+
     // Footstep logic
     private float footstepTimer = 0;
-    private final float FOOTSTEP_INTERVAL = 0.2f;
+    private final float FOOTSTEP_INTERVAL = 0.4f;
+
+    private boolean wasMoving = false;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         image = new Texture("libgdx.png");
+
+        // IO Manager
+        ioManager = new IOManager();
+        playerInput = new PlayerInput(circle);
+        ioManager.addInputListener(playerInput);
+        Gdx.input.setInputProcessor(ioManager);
 
         // 1. Initialize Audio
         audioManager = new AudioManager();
@@ -47,7 +60,7 @@ public class Main extends ApplicationAdapter {
         entityManager = new EntityManager();
         float cx = Gdx.graphics.getWidth() * 0.5f;
         float cy = Gdx.graphics.getHeight() * 0.5f;
-        Circle circle = new Circle("player_circle", cx, cy, 30f);
+        circle = new Circle("player_circle", cx, cy, 30f, playerInput, ioManager);
         circle.setColor(0.2f, 0.6f, 1f, 1f);
         entityManager.addEntity(circle);
 
@@ -63,12 +76,28 @@ public class Main extends ApplicationAdapter {
 
         // 4. Initialize UI (Passing the audioManager so they can communicate)
         uiManager = new UIManager(audioManager);
+
+        // setup eventlisteners (output)
+
+        ioManager.registerEvent("PLAYER_MOVING", () -> { // smthcan happen here
+            float dt = Gdx.graphics.getDeltaTime();
+
+            footstepTimer += dt;
+            if (!wasMoving) {
+                footstepTimer = FOOTSTEP_INTERVAL;
+                wasMoving = true;
+            }
+            if (footstepTimer >= FOOTSTEP_INTERVAL) {
+                audioManager.play("walk.mp3");
+                footstepTimer = 0f;
+            }
+        });
     }
 
     @Override
     public void render() {
         float deltaTime = Gdx.graphics.getDeltaTime();
-        
+
         // 1. Handle Input for Pausing
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isPaused = !isPaused;
@@ -113,15 +142,16 @@ public class Main extends ApplicationAdapter {
         }
 
         // Movement / Footsteps
-        if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.D)) {
-            footstepTimer += deltaTime;
-            if (footstepTimer >= FOOTSTEP_INTERVAL) {
-                audioManager.play("walk.mp3");
-                footstepTimer = 0;
-            }
-        } else {
-            footstepTimer = FOOTSTEP_INTERVAL; 
-        }
+        // if (Gdx.input.isKeyPressed(Input.Keys.A) ||
+        // Gdx.input.isKeyPressed(Input.Keys.D)) {
+        // footstepTimer += deltaTime;
+        // if (footstepTimer >= FOOTSTEP_INTERVAL) {
+        // audioManager.play("walk.mp3");
+        // footstepTimer = 0;
+        // }
+        // } else {
+        // footstepTimer = FOOTSTEP_INTERVAL;
+        // }
     }
 
     @Override
