@@ -103,6 +103,11 @@ public class Main extends ApplicationAdapter {
         collisionManager.register(p3h);
         collisionManager.register(p3v);
 
+        // Initialize WinBox
+        WinBox winBox = new WinBox("win_box", 50f);
+        entityManager.addEntity(winBox);
+        collisionManager.register(winBox);
+
         // 4. UI Setup
         uiManager = new UIManager(audioManager);
 
@@ -120,6 +125,11 @@ public class Main extends ApplicationAdapter {
                 audioManager.play("walk.mp3");
                 footstepTimer = 0f;
             }
+        });
+
+        ioManager.registerEvent("PLAYER_WIN", () -> { 
+            // scenemanager change scenes
+            System.out.println("u win");
         });
     }
 

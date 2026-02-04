@@ -113,6 +113,12 @@ public class Circle extends CollidableEntity {
 
     @Override
     public void onCollision(Collidable other) {
-        // Override in subclasses for custom behavior (e.g. bounce, damage)
+        if (other instanceof CollidableEntity) {
+            CollidableEntity entity = (CollidableEntity) other;
+            String collidedEntityId = entity.getId();
+            if (collidedEntityId.equals("win_box")) {
+                io.broadcast("PLAYER_WIN");
+            }
+        }
     }
 }
