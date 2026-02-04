@@ -48,10 +48,7 @@ public class Main extends ApplicationAdapter {
 
         // 1. Audio Setup
         audioManager = new AudioManager();
-        audioManager.findClip("walk.mp3");
-        audioManager.findClip("jump.mp3");
-        audioManager.findClip("collide.mp3");
-        audioManager.findClip("victory.mp3");
+        audioManager.loadGameSounds();
         audioManager.playMusic("title.mp3", true);
 
         // 2. Entity & Movement Setup
@@ -59,13 +56,14 @@ public class Main extends ApplicationAdapter {
         movementInput = new MovementInput();
         movementManager = new MovementManager(audioManager); // Manager handles sfx!
 
-        player = new Circle("player_circle", Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 30f, playerInput, ioManager);
+        player = new Circle("player_circle", Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 30f,
+                playerInput, ioManager);
         entityManager.addEntity(player);
 
         Bucket bucket = new Bucket("bucket", Gdx.graphics.getWidth() / 2f, 20f);
         entityManager.addEntity(bucket);
 
-        //Initialize Bullet
+        // Initialize Bullet
         float bulletX = Gdx.graphics.getWidth() * 0.5f;
         float bulletY = Gdx.graphics.getHeight() * 0.75f;
         Bullet singleBullet = new Bullet("bullet_single", bulletX, bulletY, null, audioManager);
@@ -87,7 +85,8 @@ public class Main extends ApplicationAdapter {
         Platform p2 = new Platform("platform_2", 6f * scaleX, 5f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p2);
 
-        // Platform 3: top-right L = horizontal (11,9 size 8x1) + vertical (11,8 size 1x1)
+        // Platform 3: top-right L = horizontal (11,9 size 8x1) + vertical (11,8 size
+        // 1x1)
         Platform p3h = new Platform("platform_3_h", 11f * scaleX, 9f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
         Platform p3v = new Platform("platform_3_v", 11f * scaleX, 8f * scaleY, 1f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p3h);
@@ -128,13 +127,16 @@ public class Main extends ApplicationAdapter {
             }
         });
 
-        ioManager.registerEvent("PLAYER_WIN", () -> { 
+        ioManager.registerEvent("PLAYER_WIN", () -> {
             // scenemanager change scenes
             System.out.println("u win");
         });
     }
 
-    /** Max delta per frame to avoid huge physics steps (e.g. after alt-tab) and tunneling through platforms. */
+    /**
+     * Max delta per frame to avoid huge physics steps (e.g. after alt-tab) and
+     * tunneling through platforms.
+     */
     private static final float MAX_DELTA = 0.1f;
 
     @Override
@@ -186,8 +188,13 @@ public class Main extends ApplicationAdapter {
             } else {
                 movementManager.setGrounded(false);
             }
+            boolean hitCeiling = touchesCeiling(player, entityManager);
 
-            //System.out.println("IS GROUNDED: " + movementManager.getGrounded());
+            if (hitCeiling) {
+                movementManager.hitCeiling(); // or setVelocityY(0)
+            }
+
+            // System.out.println("IS GROUNDED: " + movementManager.getGrounded());
         }
 
         // Rendering
@@ -200,6 +207,33 @@ public class Main extends ApplicationAdapter {
         // UI is always drawn last so it's on top
         uiManager.update(deltaTime);
         uiManager.draw();
+    }
+
+    private boolean touchesCeiling(Circle player, EntityManager entityManager) {
+        float circleTop = player.getPos().y + player.getRadius();
+        float tolerance = 6f;
+
+        for (Entity e : entityManager.getAll()) {
+            if (e instanceof Platform) {
+                Platform platform = (Platform) e;
+
+                float platformBottom = platform.getPos().y;
+                float platformLeft = platform.getPos().x;
+                float platformRight = platform.getPos().x + platform.getWidth();
+                float circleX = player.getPos().x;
+
+                boolean underPlatform = circleTop >= platformBottom - tolerance &&
+                        circleTop <= platformBottom + tolerance;
+
+                boolean horizontallyAligned = circleX >= platformLeft - player.getRadius() &&
+                        circleX <= platformRight + player.getRadius();
+
+                if (underPlatform && horizontallyAligned) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

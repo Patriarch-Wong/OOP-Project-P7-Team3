@@ -93,7 +93,8 @@ public class MovementManager {
 
     public void setGrounded(boolean grounded) {
         this.isGrounded = grounded;
-        // Only zero downward velocity when landing; don't zero upward velocity so we don't fight
+        // Only zero downward velocity when landing; don't zero upward velocity so we
+        // don't fight
         // collision resolution (platform pushing entity up) and cause sticking/jitter.
         if (grounded && velocityY < 0f) {
             velocityY = 0f;
@@ -107,6 +108,11 @@ public class MovementManager {
     public void disableMovement() {
         movementEnabled = false;
         velocityX = 0;
+    }
+
+    public void hitCeiling() {
+        if (velocityY > 0)
+            velocityY = 0;
     }
 
     // Utility (private, not part of UML)
