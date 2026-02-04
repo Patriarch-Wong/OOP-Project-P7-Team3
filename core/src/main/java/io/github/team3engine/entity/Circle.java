@@ -1,7 +1,6 @@
 package io.github.team3engine.entity;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -22,17 +21,12 @@ public class Circle extends CollidableEntity {
     protected final com.badlogic.gdx.math.Circle circle;
     protected final ShapeRenderer shapeRenderer;
     protected Color color;
-<<<<<<< HEAD
-    protected final MovementInput movementInput;
-=======
     private PlayerInput playerInput;
     private IOManager io;
->>>>>>> d71daa833706035f1adfd90aa8e7ac0a05932a3c
 
     public Circle(String id, float radius) {
         super(id);
         this.radius = radius;
-        this.movementInput = new MovementInput();
 
         this.circle = new com.badlogic.gdx.math.Circle(position.x, position.y, radius);
         this.shapeRenderer = new ShapeRenderer();
@@ -90,26 +84,14 @@ public class Circle extends CollidableEntity {
         this.moveSpeed = moveSpeed;
     }
 
-    public MovementInput getMovementInput() {
-        return movementInput;
-    }
-
     @Override
     public void update(float dt) {
-        
-        movementInput.movementAxis = 0f;
-        movementInput.jump = false;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A))
-            movementInput.movementAxis = -1f;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D))
-            movementInput.movementAxis = 1f;
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
-            movementInput.jump = true;
-
-        
+        // Keep circle on screen (border clamp)
+        float w = Gdx.graphics.getWidth();
+        float h = Gdx.graphics.getHeight();
+        position.x = Math.max(radius, Math.min(w - radius, position.x));
+        position.y = Math.max(radius, Math.min(h - radius, position.y));
+        updateHitbox();
     }
 
     @Override

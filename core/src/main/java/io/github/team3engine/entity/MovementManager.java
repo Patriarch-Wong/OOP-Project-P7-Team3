@@ -10,16 +10,20 @@ public class MovementManager {
     private final float FOOTSTEP_INTERVAL = 0.35f; // Adjust this to match walk speed
 
     // Movement configuration
-    private float maxSpeed = 5.0f;
-    private float acceleration = 20.0f;
-    private float jumpForce = 8.0f;
-    private float gravity = -20.0f;
+    private float maxSpeed = 1000.0f;
+    private float acceleration = 50.0f;
+    private float jumpForce = 100.0f;
+    private float gravity = -50.0f;
 
     // State
-    private float velocityX = 0.0f;
-    private float velocityY = 0.0f;
+    private float velocityX = 30f;
+    private float velocityY = 30f;
     private boolean isGrounded = true;
     private boolean movementEnabled = true;
+
+    public MovementManager(AudioManager audioManager) {
+        this.audioManager = audioManager;
+    }
 
     // CHANGE signature
     public void applyMovement(Entity entity, MovementInput input, float deltaTime) {

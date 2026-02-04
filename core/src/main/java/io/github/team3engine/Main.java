@@ -42,7 +42,7 @@ public class Main extends ApplicationAdapter {
 
         // IO Manager
         ioManager = new IOManager();
-        playerInput = new PlayerInput(player);
+        playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
 
@@ -104,9 +104,15 @@ public class Main extends ApplicationAdapter {
         if (!isPaused) {
 
             movementInput.update(); // Poll keys
-            movementManager.applyMovement(movementInput, deltaTime); // Move & Play SFX
+            movementManager.applyMovement(player, movementInput, deltaTime); // Move & Play SFX
 
             entityManager.updateAll(deltaTime);
+
+            // Ground detection: player landed when at bottom of screen (Circle clamps y >= radius)
+            if (player.getPos().y <= player.getRadius() + 1f) {
+                movementManager.setGrounded(true);
+            }
+
             collisionManager.update(deltaTime);
             collisionManager.resolveCollisions();
         }
