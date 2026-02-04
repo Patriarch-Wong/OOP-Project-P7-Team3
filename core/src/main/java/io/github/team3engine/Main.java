@@ -104,9 +104,12 @@ public class Main extends ApplicationAdapter {
         });
     }
 
+    /** Max delta per frame to avoid huge physics steps (e.g. after alt-tab) and tunneling through platforms. */
+    private static final float MAX_DELTA = 0.1f;
+
     @Override
     public void render() {
-        float deltaTime = Gdx.graphics.getDeltaTime();
+        float deltaTime = Math.min(Gdx.graphics.getDeltaTime(), MAX_DELTA);
 
         // Handle Pause Toggle
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
