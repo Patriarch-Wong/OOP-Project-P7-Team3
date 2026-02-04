@@ -10,11 +10,13 @@ public class MovementManager {
     private final float FOOTSTEP_INTERVAL = 0.35f; // Adjust this to match walk speed
 
     // Movement configuration
-    private float maxSpeed = 350f;
+    private float maxSpeed = 300f;
     private float maxFallSpeed = -600f;
-    private float acceleration = 120f;
-    private float jumpForce = 100.0f;
-    private float gravity = -300.0f;
+    private float acceleration = 700f;
+    private float deceleration = 700f;
+
+    private float jumpForce = 450.0f;
+    private float gravity = -900.0f;
     private float jumpCooldownDuration = 0.6f;
 
     // State (start at rest so input responds immediately)
@@ -35,7 +37,22 @@ public class MovementManager {
         }
 
         // Horizontal movement (player-controlled)
-        velocityX += input.movementAxis * acceleration * deltaTime;
+        // velocityX += input.movementAxis * acceleration * deltaTime;
+        if (Math.abs(input.movementAxis) > 0.01f) {
+            // Accelerate when input is held
+            velocityX += input.movementAxis * acceleration * deltaTime;
+        } else {
+            // Decelerate when no input
+            if (velocityX > 0) {
+                velocityX -= deceleration * deltaTime;
+                if (velocityX < 0)
+                    velocityX = 0;
+            } else if (velocityX < 0) {
+                velocityX += deceleration * deltaTime;
+                if (velocityX > 0)
+                    velocityX = 0;
+            }
+        }
 
         // --- FOOTSTEP SOUND LOGIC ---
         // Play sound if moving on ground and input is being pressed
@@ -54,7 +71,8 @@ public class MovementManager {
 
         // Jump cooldown: tick down each frame
         jumpCooldownRemaining -= deltaTime;
-        if (jumpCooldownRemaining < 0f) jumpCooldownRemaining = 0f;
+        if (jumpCooldownRemaining < 0f)
+            jumpCooldownRemaining = 0f;
 
         // Jump (allowed when cooldown is ready; can jump mid-air after cooldown)
         if (input.jump && isGrounded && jumpCooldownRemaining <= 0f) {
@@ -68,9 +86,9 @@ public class MovementManager {
         velocityY += gravity * deltaTime;
         velocityY = Math.max(velocityY, maxFallSpeed);
 
-        entity.getPos().x += velocityX * deltaTime; //check if supposed to be get rather than set
-        entity.getPos().y += velocityY * deltaTime; 
-        
+        entity.getPos().x += velocityX * deltaTime; // check if supposed to be get rather than set
+        entity.getPos().y += velocityY * deltaTime;
+
     }
 
     public void setGrounded(boolean grounded) {
