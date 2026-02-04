@@ -163,15 +163,8 @@ public class Main extends ApplicationAdapter {
             collisionManager.update(deltaTime);
             collisionManager.resolveCollisions();
 
-<<<<<<< HEAD
-            // Ground detection after resolve: only set grounded when resting on surface
-            // (circle bottom
-            // near platform top), so we don't zero velocity while still overlapping and
-            // cause sticking.
-=======
             // Ground detection after resolve: only set grounded when circle has actually landed
             // (bottom at or just below platform top), not when still above — avoids slowing down in mid-air.
->>>>>>> 19fa9d7f8ae0b3a7add4a214395861a79c8e382a
             boolean isOnFloor = player.getPos().y <= player.getRadius() + 1f;
             boolean isOnPlatform = false;
             float circleBottom = player.getPos().y - player.getRadius();
