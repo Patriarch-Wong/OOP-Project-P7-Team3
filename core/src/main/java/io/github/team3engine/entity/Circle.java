@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import io.github.team3engine.interfaces.Collidable;
+import io.github.team3engine.io.IOManager;
+import io.github.team3engine.io.PlayerInput;
 
 /**
  * A collidable entity with a circular shape.
@@ -20,7 +22,12 @@ public class Circle extends CollidableEntity {
     protected final com.badlogic.gdx.math.Circle circle;
     protected final ShapeRenderer shapeRenderer;
     protected Color color;
+<<<<<<< HEAD
     protected final MovementInput movementInput;
+=======
+    private PlayerInput playerInput;
+    private IOManager io;
+>>>>>>> d71daa833706035f1adfd90aa8e7ac0a05932a3c
 
     public Circle(String id, float radius) {
         super(id);
@@ -33,8 +40,10 @@ public class Circle extends CollidableEntity {
         updateHitbox();
     }
 
-    public Circle(String id, float x, float y, float radius) {
+    public Circle(String id, float x, float y, float radius, PlayerInput playerInput, IOManager io) {
         this(id, radius);
+        this.playerInput = playerInput;
+        this.io = io;
         setPos(x, y);
         updateHitbox();
     }
