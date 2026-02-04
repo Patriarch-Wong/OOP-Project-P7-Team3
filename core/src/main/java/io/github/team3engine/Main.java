@@ -40,59 +40,44 @@ public class Main extends ApplicationAdapter {
         batch = new SpriteBatch();
         image = new Texture("libgdx.png");
 
-        // 1. IO System Setup
+        // IO Manager
         ioManager = new IOManager();
-        playerInput = new PlayerInput(); // Fixed: Removed 'player' from constructor
+        playerInput = new PlayerInput(player);
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
 
-        // 2. Audio Setup
+        // 1. Audio Setup
         audioManager = new AudioManager();
         audioManager.findClip("walk.mp3");
         audioManager.findClip("jump.mp3");
         audioManager.findClip("collide.mp3");
         audioManager.playMusic("title.mp3", true);
 
-        // 3. Entity & Movement Setup
+        // 2. Entity & Movement Setup
         entityManager = new EntityManager();
         movementInput = new MovementInput();
-        movementManager = new MovementManager(audioManager); 
+        movementManager = new MovementManager(audioManager); // Manager handles sfx!
 
-        // Initialize Player with correct dependencies
         player = new Circle("player_circle", Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 30f, playerInput, ioManager);
-        player.setColor(0.2f, 0.6f, 1f, 1f);
         entityManager.addEntity(player);
 
-        // Initialize Bucket
         Bucket bucket = new Bucket("bucket", Gdx.graphics.getWidth() / 2f, 20f);
         entityManager.addEntity(bucket);
 
-        // Initialize Bullet (Ensure Bullet.java exists in entity package)
-        float bulletX = Gdx.graphics.getWidth() * 0.5f;
-        float bulletY = Gdx.graphics.getHeight() * 0.75f;
-        Bullet singleBullet = new Bullet("bullet_single", bulletX, bulletY, null, audioManager);
-        singleBullet.setVelocity(0f, 0f);
-        entityManager.addEntity(singleBullet);
-
-        //Initiallize Platform
-        Texture platformTex = new Texture(Gdx.files.internal("platform.png"));
-        Platform p = new Platform("platform_1", 100f, 150f, 300f, 24f, platformTex);
-        entityManager.addEntity(p);
-
-        // 4. Collision Setup
+        // 3. Collision Setup
         collisionManager = new CollisionManager();
         collisionManager.setAudioManager(audioManager);
         collisionManager.register(player);
         collisionManager.register(bucket);
-        collisionManager.register(singleBullet);
-        collisionManager.register(p);
 
-        // 5. UI Setup
+        // 4. UI Setup
         uiManager = new UIManager(audioManager);
 
-        // Register the movement event to bridge Circle's update to the walking sound
-        ioManager.registerEvent("PLAYER_MOVING", () -> {
+        // setup eventlisteners (output)
+
+        ioManager.registerEvent("PLAYER_MOVING", () -> { // smthcan happen here
             float dt = Gdx.graphics.getDeltaTime();
+
             footstepTimer += dt;
             if (!wasMoving) {
                 footstepTimer = FOOTSTEP_INTERVAL;
@@ -113,27 +98,14 @@ public class Main extends ApplicationAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isPaused = !isPaused;
             uiManager.toggleMenu(isPaused);
-            
-            // Critical: Toggle the input manager's activity
-            ioManager.setActive(!isPaused);
-            
-            // Clear movement flags on state change
-            if (!isPaused) {
-                playerInput.reset();
-                wasMoving = false;
-            }
         }
 
         // Logic Update
         if (!isPaused) {
-            // Update inputs
-            ioManager.update(deltaTime);
-            movementInput.update(); 
-            
-            // Movement manager applies logic and sfx
-            movementManager.applyMovement(movementInput, deltaTime); 
 
-            // Standard entity and collision updates
+            movementInput.update(); // Poll keys
+            movementManager.applyMovement(movementInput, deltaTime); // Move & Play SFX
+
             entityManager.updateAll(deltaTime);
             collisionManager.update(deltaTime);
             collisionManager.resolveCollisions();
@@ -146,7 +118,7 @@ public class Main extends ApplicationAdapter {
         entityManager.renderAll(batch);
         batch.end();
 
-        // UI draw call (always after game world)
+        // UI is always drawn last so it's on top
         uiManager.update(deltaTime);
         uiManager.draw();
     }
