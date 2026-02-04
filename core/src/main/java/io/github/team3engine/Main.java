@@ -155,28 +155,37 @@ public class Main extends ApplicationAdapter {
 
             entityManager.updateAll(deltaTime);
 
-            // Ground detection: player landed when at bottom of screen (Circle clamps y >= radius)
-            // or when standing on a platform
+            collisionManager.update(deltaTime);
+            collisionManager.resolveCollisions();
+
+            // Ground detection after resolve: only set grounded when circle has actually landed
+            // (bottom at or just below platform top), not when still above — avoids slowing down in mid-air.
             boolean isOnFloor = player.getPos().y <= player.getRadius() + 1f;
             boolean isOnPlatform = false;
-            
+            float circleBottom = player.getPos().y - player.getRadius();
+            float sinkTolerance = 3f; // only "on platform" when at or just below surface, not above
+
             for (Entity e : entityManager.getAll()) {
                 if (e instanceof Platform) {
                     Platform platform = (Platform) e;
-                    if (player.getHitbox().overlaps(platform.getHitbox()) &&
-                        player.getPos().y + player.getRadius() >= platform.getPos().y + platform.getHeight() - 5f) {
+                    float platformTop = platform.getPos().y + platform.getHeight();
+                    float platformLeft = platform.getPos().x;
+                    float platformRight = platform.getPos().x + platform.getWidth();
+                    float circleCenterX = player.getPos().x;
+                    boolean landed = circleBottom <= platformTop + sinkTolerance && circleBottom >= platformTop - sinkTolerance;
+                    boolean overPlatform = circleCenterX >= platformLeft - player.getRadius() && circleCenterX <= platformRight + player.getRadius();
+                    if (landed && overPlatform) {
                         isOnPlatform = true;
                         break;
                     }
                 }
             }
-            
+
             if (isOnFloor || isOnPlatform) {
                 movementManager.setGrounded(true);
+            } else {
+                movementManager.setGrounded(false);
             }
-
-            collisionManager.update(deltaTime);
-            collisionManager.resolveCollisions();
 
             //System.out.println("IS GROUNDED: " + movementManager.getGrounded());
         }
