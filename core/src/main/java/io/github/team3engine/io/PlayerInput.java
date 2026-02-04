@@ -3,7 +3,6 @@ package io.github.team3engine.io;
 import com.badlogic.gdx.Input.Keys;
 
 import io.github.team3engine.entity.Circle;
-import io.github.team3engine.entity.Player;
 
 public class PlayerInput extends InputListener {
     private Circle player;
