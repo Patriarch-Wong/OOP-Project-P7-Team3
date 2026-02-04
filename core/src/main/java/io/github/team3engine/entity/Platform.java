@@ -67,6 +67,14 @@ public class Platform extends CollidableEntity {
         this(id, x, y, width, height, (String) null);
     }
 
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
     @Override
     protected void updateHitbox() {
         // Platform hitbox is bottom-left anchored at position

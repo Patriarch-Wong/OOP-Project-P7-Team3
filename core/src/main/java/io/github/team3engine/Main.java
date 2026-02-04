@@ -58,20 +58,22 @@ public class Main extends ApplicationAdapter {
         movementInput = new MovementInput();
         movementManager = new MovementManager(audioManager); // Manager handles sfx!
 
-        player = new Circle("player_circle", Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 30f, playerInput, ioManager);
+        player = new Circle("player_circle", Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 30f,
+                playerInput, ioManager);
+        player.setMovementManager(movementManager);
         entityManager.addEntity(player);
 
         Bucket bucket = new Bucket("bucket", Gdx.graphics.getWidth() / 2f, 20f);
         entityManager.addEntity(bucket);
 
-        //Initialize Bullet
+        // Initialize Bullet
         float bulletX = Gdx.graphics.getWidth() * 0.5f;
         float bulletY = Gdx.graphics.getHeight() * 0.75f;
         Bullet singleBullet = new Bullet("bullet_single", bulletX, bulletY, null, audioManager);
         singleBullet.setVelocity(0f, 0f);
         entityManager.addEntity(singleBullet);
 
-        //Initialize Platform
+        // Initialize Platform
         Texture platformTex = new Texture(Gdx.files.internal("platform.png"));
         Platform p = new Platform("platform_1", 100f, 150f, 300f, 24f, platformTex);
         entityManager.addEntity(p);
@@ -118,17 +120,23 @@ public class Main extends ApplicationAdapter {
         if (!isPaused) {
 
             movementInput.update(); // Poll keys
+
+            // Ground detection: bottom of screen OR platform (checked via collisions)
+            // Reset first, then check screen bottom, then collisions will update if on
+            // platform
+            if (player.getPos().y <= player.getRadius() + 1f || player.isPlayerGrounded()) {
+                movementManager.setGrounded(true);
+            } else {
+                movementManager.setGrounded(false);
+            }
+
             movementManager.applyMovement(player, movementInput, deltaTime); // Move & Play SFX
 
             entityManager.updateAll(deltaTime);
 
-            // Ground detection: player landed when at bottom of screen (Circle clamps y >= radius)
-            if (player.getPos().y <= player.getRadius() + 1f) {
-                movementManager.setGrounded(true);
-            }
-
             collisionManager.update(deltaTime);
-            collisionManager.resolveCollisions();
+            collisionManager.resolveCollisions(); // This will call Circle.onCollision() to set grounded if on platform
+
         }
 
         // Rendering

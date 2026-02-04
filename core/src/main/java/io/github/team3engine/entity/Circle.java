@@ -23,6 +23,7 @@ public class Circle extends CollidableEntity {
     protected Color color;
     private PlayerInput playerInput;
     private IOManager io;
+    private MovementManager movementManager;
 
     public Circle(String id, float radius) {
         super(id);
@@ -84,6 +85,10 @@ public class Circle extends CollidableEntity {
         this.moveSpeed = moveSpeed;
     }
 
+    public void setMovementManager(MovementManager movementManager) {
+        this.movementManager = movementManager;
+    }
+
     @Override
     public void update(float dt) {
         // Keep circle on screen (border clamp)
@@ -111,8 +116,29 @@ public class Circle extends CollidableEntity {
         shapeRenderer.dispose();
     }
 
+    private boolean grounded;
     @Override
     public void onCollision(Collidable other) {
-        // Override in subclasses for custom behavior (e.g. bounce, damage)
+        // Detect if landing on a platform
+        if (other instanceof Platform && movementManager != null) {
+            Platform platform = (Platform) other;
+
+            // Check if circle is on top of platform (circle's bottom is near platform's
+            // top)
+            float circleCenterY = this.getPos().y;
+            float circleBotY = circleCenterY - radius;
+            float platformTopY = platform.getPos().y + platform.getHeight();
+
+            // If circle's bottom is on/near platform's top and moving downward or
+            // stationary
+            if (circleBotY <= platformTopY + 2f && this.getVelocity().y <= 0) {
+                movementManager.setGrounded(true);
+                grounded = true;
+            }
+        }
+    }
+
+    public boolean isPlayerGrounded() {
+        return grounded;
     }
 }
