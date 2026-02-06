@@ -101,18 +101,18 @@ public class MovementManager {
         }
     }
 
-    /** True when moving upward (e.g. during a jump). */
-    public boolean isJumping() {
+    /** True when vertical velocity is upward. */
+    public boolean isMovingUpward() {
         return velocityY > 1f;
     }
 
-    /** True when moving left or right with meaningful speed. */
-    public boolean isMovingHorizontally() {
+    /** True when horizontal speed is above threshold. */
+    public boolean hasHorizontalMotion() {
         return Math.abs(velocityX) > 5f;
     }
 
-    /** Cancel upward motion so gravity makes the entity fall (e.g. after hitting something while jumping with no horizontal movement). */
-    public void startFalling() {
+    /** Set vertical velocity to zero (upward motion canceled). */
+    public void cancelUpwardVelocity() {
         velocityY = 0f;
     }
 

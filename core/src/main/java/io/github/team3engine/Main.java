@@ -178,15 +178,15 @@ public class Main extends ApplicationAdapter {
             collisionManager.update(deltaTime);
             Array<CollidableEntity[]> collisionPairs = collisionManager.resolveCollisions();
 
-            // If player is jumping, not moving horizontally, and collides with a platform, make them fall
+            // When moving only upward and colliding with a platform, cancel upward velocity so the entity falls
             for (CollidableEntity[] pair : collisionPairs) {
                 if (pair == null || pair.length < 2) continue;
                 CollidableEntity a = pair[0], b = pair[1];
                 if (a != player && b != player) continue;
                 CollidableEntity other = (a == player) ? b : a;
                 if (!(other instanceof Platform)) continue;
-                if (movementManager.isJumping() && !movementManager.isMovingHorizontally()) {
-                    movementManager.startFalling();
+                if (movementManager.isMovingUpward() && !movementManager.hasHorizontalMotion()) {
+                    movementManager.cancelUpwardVelocity();
                     break;
                 }
             }
