@@ -12,6 +12,8 @@ import io.github.team3engine.collision.CollisionManager;
 import io.github.team3engine.entity.*;
 import io.github.team3engine.io.IOManager;
 import io.github.team3engine.io.PlayerInput;
+import io.github.team3engine.scene.SceneManager;
+import io.github.team3engine.scene.ScreenType;
 
 public class Main extends ApplicationAdapter {
     // Managers
@@ -22,6 +24,7 @@ public class Main extends ApplicationAdapter {
     private MovementManager movementManager;
     private IOManager ioManager;
     private PlayerInput playerInput;
+    private SceneManager sceneManager;
 
     // Input & State
     private MovementInput movementInput;
@@ -112,6 +115,10 @@ public class Main extends ApplicationAdapter {
         // 4. UI Setup
         uiManager = new UIManager(audioManager);
 
+        // 5. Scene Setup
+        sceneManager = SceneManager.getInstance();
+        sceneManager.init(batch);
+
         // setup eventlisteners (output)
 
         ioManager.registerEvent("PLAYER_MOVING", () -> { // smthcan happen here
@@ -129,7 +136,7 @@ public class Main extends ApplicationAdapter {
         });
 
         ioManager.registerEvent("PLAYER_WIN", () -> {
-            // scenemanager change scenes
+            sceneManager.setScreen(ScreenType.WIN_SCREEN);
             System.out.println("u win");
         });
     }
@@ -144,10 +151,20 @@ public class Main extends ApplicationAdapter {
     public void render() {
         float deltaTime = Math.min(Gdx.graphics.getDeltaTime(), MAX_DELTA);
 
+        if (sceneManager.getCurrentScreenType() == ScreenType.PAUSE_SCREEN) {
+            return;
+        }
+
         // Handle Pause Toggle
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isPaused = !isPaused;
             uiManager.toggleMenu(isPaused);
+            if (isPaused) {
+                sceneManager.setScreen(ScreenType.PAUSE_SCREEN);  // Pause
+            } else {
+                sceneManager.setScreen(ScreenType.SCREEN_1);  // Resume
+            }
+            return;
         }
 
         // Logic Update
@@ -256,5 +273,6 @@ public class Main extends ApplicationAdapter {
         image.dispose();
         entityManager.disposeAll();
         uiManager.dispose();
+        sceneManager.disposeAll();
     }
 }

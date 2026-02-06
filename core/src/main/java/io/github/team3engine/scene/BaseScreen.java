@@ -21,7 +21,7 @@ public abstract class BaseScreen implements Screen {
         this.batch = batch;
         this.stage = new Stage(new ScreenViewport(), batch);
         this.font = new BitmapFont();
-        font.setColor(Color.WHITE);
+        font.setColor(Color.BLUE);
     }
 
     @Override public void show() { Gdx.input.setInputProcessor(stage); }
