@@ -8,6 +8,10 @@ import io.github.team3engine.audio.AudioManager;
 import io.github.team3engine.io.IOManager;
 import io.github.team3engine.scene.SceneManager;
 import io.github.team3engine.scene.SceneType;
+import io.github.team3engine.scene.Scene1;
+import io.github.team3engine.scene.Scene2;
+import io.github.team3engine.scene.PauseScene;
+import io.github.team3engine.scene.WinScene;
 
 /**
  * Entry point: initializes the engine and uses SceneManager to swap and render the current scene.
@@ -33,7 +37,21 @@ public class Main extends ApplicationAdapter {
         SceneManager sceneManager = gameEngine.getSceneManager();
 
         uiManager = new UIManager(audioManager);
-        sceneManager.init(gameEngine, batch);
+
+        // Register scenes (game-specific); generic SceneManager only holds by id.
+        sceneManager.registerScene(SceneType.SCENE_1.name(), new Scene1(gameEngine, batch));
+        sceneManager.registerScene(SceneType.SCENE_2.name(), new Scene2(gameEngine, batch));
+        sceneManager.registerScene(SceneType.PAUSE_SCENE.name(), new PauseScene(gameEngine, batch));
+        sceneManager.registerScene(SceneType.WIN_SCENE.name(), new WinScene(gameEngine, batch));
+        sceneManager.setScene(SceneType.SCENE_1.name());
+
+        // Win condition: switch between Scene1 and Scene2. Defer to end of frame to avoid changing scene mid-render.
+        ioManager.registerEvent("PLAYER_WIN", () -> {
+            String next = SceneType.SCENE_1.name().equals(sceneManager.getCurrentSceneId())
+                ? SceneType.SCENE_2.name()
+                : SceneType.SCENE_1.name();
+            Gdx.app.postRunnable(() -> sceneManager.setScene(next));
+        });
 
         Gdx.input.setInputProcessor(ioManager);
 
@@ -69,7 +87,9 @@ public class Main extends ApplicationAdapter {
             return;
         }
 
-        sceneManager.getCurrentScene().render(deltaTime);
+        if (sceneManager.getCurrentScene() != null) {
+            sceneManager.getCurrentScene().render(deltaTime);
+        }
 
         if (isPaused) {
             uiManager.update(deltaTime);

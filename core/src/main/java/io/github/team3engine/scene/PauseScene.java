@@ -11,7 +11,7 @@ public class PauseScene extends BaseScene {
         stage.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                SceneManager.getInstance().setScene(SceneType.PAUSE_SCENE);
+                SceneManager.getInstance().setScene(SceneType.PAUSE_SCENE.name());
                 return true;
             }
         });

@@ -1,17 +1,18 @@
 package io.github.team3engine.scene;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import io.github.team3engine.GameEngine;
-
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Generic scene manager for the game engine. Holds scenes by string id,
+ * manages the current scene, and handles show/hide on transition. Game-specific
+ * scene creation and event wiring belong in the game (e.g. Main), not here.
+ */
 public class SceneManager {
     private static SceneManager instance;
 
-    private SceneType currentSceneType;
-    private final Map<SceneType, BaseScene> scenes = new HashMap<>();
+    private String currentSceneId;
+    private final Map<String, BaseScene> scenes = new HashMap<>();
     private boolean paused = false;
 
     private SceneManager() {}
@@ -21,40 +22,46 @@ public class SceneManager {
         return instance;
     }
 
-    public void init(GameEngine engine, SpriteBatch batch) {
-        scenes.put(SceneType.SCENE_1, new Scene1(engine, batch));
-        scenes.put(SceneType.SCENE_2, new Scene2(engine, batch));
-        scenes.put(SceneType.PAUSE_SCENE, new PauseScene(engine, batch));
-        scenes.put(SceneType.WIN_SCENE, new WinScene(engine, batch));
-        this.currentSceneType = SceneType.SCENE_1;
-        getCurrentScene().show();
-
-        // Win condition toggles between Scene1 and Scene2. Defer switch to end of frame
-        // so we don't change scene mid-render (which would dispose entities while still in use).
-        engine.getIOManager().registerEvent("PLAYER_WIN", () -> {
-            final SceneType next = (currentSceneType == SceneType.SCENE_1) ? SceneType.SCENE_2 : SceneType.SCENE_1;
-            Gdx.app.postRunnable(() -> setScene(next));
-        });
+    /**
+     * Registers a scene under the given id. Does not switch to it.
+     */
+    public void registerScene(String id, BaseScene scene) {
+        if (id == null || scene == null) return;
+        scenes.put(id, scene);
     }
 
-    public BaseScene getCurrentScene() {
-        return scenes.get(currentSceneType);
+    /**
+     * Unregisters a scene by id. If it is the current scene, current is cleared (caller should set another).
+     */
+    public void unregisterScene(String id) {
+        scenes.remove(id);
+        if (id != null && id.equals(currentSceneId)) {
+            currentSceneId = null;
+        }
     }
 
-    public void setScene(SceneType type) {
+    /**
+     * Sets the current scene by id. Hides the previous scene and shows the new one.
+     * The scene must already be registered.
+     */
+    public void setScene(String id) {
         BaseScene current = getCurrentScene();
         if (current != null) {
             current.hide();
         }
-        this.currentSceneType = type;
+        this.currentSceneId = id;
         BaseScene next = getCurrentScene();
         if (next != null) {
             next.show();
         }
     }
 
-    public SceneType getCurrentSceneType() {
-        return currentSceneType;
+    public BaseScene getCurrentScene() {
+        return currentSceneId == null ? null : scenes.get(currentSceneId);
+    }
+
+    public String getCurrentSceneId() {
+        return currentSceneId;
     }
 
     public void setPaused(boolean paused) {
@@ -72,5 +79,6 @@ public class SceneManager {
             }
         }
         scenes.clear();
+        currentSceneId = null;
     }
 }
