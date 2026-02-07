@@ -6,18 +6,18 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import io.github.team3engine.GameEngine;
 
-public abstract class BaseScreen implements Screen {
-    protected final Game game;
+public abstract class BaseScene implements Screen {
+    protected final GameEngine engine;
     protected final SpriteBatch batch;
     protected final Stage stage;
     protected final BitmapFont font;
 
-    public BaseScreen(Game game, SpriteBatch batch) {
-        this.game = game;
+    public BaseScene(GameEngine engine, SpriteBatch batch) {
+        this.engine = engine;
         this.batch = batch;
         this.stage = new Stage(new ScreenViewport(), batch);
         this.font = new BitmapFont();

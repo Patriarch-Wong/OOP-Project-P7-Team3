@@ -1,17 +1,17 @@
 package io.github.team3engine.scene;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import io.github.team3engine.GameEngine;
 
-public class Screen2 extends BaseScreen {
-    public Screen2(Game game, SpriteBatch batch) {
-        super(game, batch);
+public class PauseScene extends BaseScene {
+    public PauseScene(GameEngine engine, SpriteBatch batch) {
+        super(engine, batch);
         stage.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                SceneManager.getInstance().setScreen(ScreenType.SCREEN_1);
+                SceneManager.getInstance().setScene(SceneType.PAUSE_SCENE);
                 return true;
             }
         });
@@ -19,7 +19,7 @@ public class Screen2 extends BaseScreen {
 
     @Override
     protected void renderUI() {
-        font.draw(batch, "Good luck!", 100, 400);
+        font.draw(batch, "PAUSE!", 100, 400);
+        font.draw(batch, "...Take a break. We all need one.", 200, 350);
     }
 }
-

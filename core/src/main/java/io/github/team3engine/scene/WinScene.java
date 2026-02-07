@@ -1,17 +1,17 @@
 package io.github.team3engine.scene;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import io.github.team3engine.GameEngine;
 
-public class Screen1 extends BaseScreen {
-    public Screen1(Game game, SpriteBatch batch) {
-        super(game, batch);
+public class WinScene extends BaseScene {
+    public WinScene(GameEngine engine, SpriteBatch batch) {
+        super(engine, batch);
         stage.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                SceneManager.getInstance().setScreen(ScreenType.SCREEN_2);
+                SceneManager.getInstance().setScene(SceneType.WIN_SCENE);
                 return true;
             }
         });
@@ -19,8 +19,6 @@ public class Screen1 extends BaseScreen {
 
     @Override
     protected void renderUI() {
-        font.draw(batch, "SCREEN 1 - TAP ANYWHERE", 100, 400);
-        font.draw(batch, "SceneManager WORKS!", 100, 350);
+        font.draw(batch, "Congrats! You won!", 100, 400);
     }
 }
-
