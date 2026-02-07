@@ -111,4 +111,17 @@ public class AudioManager {
         }
         return soundLibrary.get(name);
     }
+
+    /** Release all loaded sounds and music. Call when shutting down to avoid native leaks. */
+    public void dispose() {
+        if (currentMusic != null) {
+            currentMusic.stop();
+            currentMusic.dispose();
+            currentMusic = null;
+        }
+        for (Sound sound : soundLibrary.values()) {
+            if (sound != null) sound.dispose();
+        }
+        soundLibrary.clear();
+    }
 }

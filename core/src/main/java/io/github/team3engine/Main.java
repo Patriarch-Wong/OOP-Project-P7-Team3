@@ -10,6 +10,9 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.team3engine.audio.AudioManager;
 import io.github.team3engine.collision.CollisionManager;
 import io.github.team3engine.entity.*;
+import io.github.team3engine.interfaces.Collidable;
+import io.github.team3engine.interfaces.Renderable;
+import io.github.team3engine.interfaces.Updatable;
 import io.github.team3engine.io.IOManager;
 import io.github.team3engine.io.PlayerInput;
 import io.github.team3engine.scene.SceneManager;
@@ -23,6 +26,8 @@ public class Main extends ApplicationAdapter {
 
     private SpriteBatch batch;
     private Texture image;
+    /** Shared platform texture; must be disposed in dispose() (Platforms do not own it). */
+    private Texture platformTex;
     private UIManager uiManager;
     private Circle player;
     private MovementInput movementInput;
@@ -34,6 +39,11 @@ public class Main extends ApplicationAdapter {
     private boolean wasMoving = false;
 
     private static final float MAX_DELTA = 0.1f;
+
+    /** Updatables run each frame when game is not paused (entity manager, collision manager, etc.). */
+    private Array<Updatable> gameUpdatables;
+    /** Renderables drawn each frame (entity manager, etc.). */
+    private Array<Renderable> gameRenderables;
 
     @Override
     public void create() {
@@ -75,7 +85,7 @@ public class Main extends ApplicationAdapter {
         float gh = Gdx.graphics.getHeight();
         float scaleX = gw / 19f;
         float scaleY = gh / 12f;
-        Texture platformTex = new Texture(Gdx.files.internal("platform.png"));
+        platformTex = new Texture(Gdx.files.internal("platform.png"));
 
         Platform p1 = new Platform("platform_1", 1f * scaleX, 1f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p1);
@@ -97,6 +107,13 @@ public class Main extends ApplicationAdapter {
         WinBox winBox = new WinBox("win_box", 50f, ioManager, audioManager);
         entityManager.addEntity(winBox);
         collisionManager.register(winBox);
+
+        gameUpdatables = new Array<>();
+        gameUpdatables.add(entityManager);
+        gameUpdatables.add(collisionManager);
+
+        gameRenderables = new Array<>();
+        gameRenderables.add(entityManager);
 
         uiManager = new UIManager(audioManager);
         sceneManager.init(batch);
@@ -145,7 +162,9 @@ public class Main extends ApplicationAdapter {
             ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
             batch.begin();
             batch.draw(image, 140, 210);
-            entityManager.renderAll(batch);
+            for (int i = 0; i < gameRenderables.size; i++) {
+                gameRenderables.get(i).render(batch);
+            }
             batch.end();
             uiManager.update(deltaTime);
             uiManager.draw();
@@ -155,15 +174,16 @@ public class Main extends ApplicationAdapter {
         if (!isPaused) {
             movementInput.update();
             movementManager.applyMovement(player, movementInput, deltaTime);
-            entityManager.updateAll(deltaTime);
-            collisionManager.update(deltaTime);
-            Array<CollidableEntity[]> collisionPairs = collisionManager.resolveCollisions();
+            for (int i = 0; i < gameUpdatables.size; i++) {
+                gameUpdatables.get(i).update(deltaTime);
+            }
+            Array<Collidable[]> collisionPairs = collisionManager.resolveCollisions();
 
-            for (CollidableEntity[] pair : collisionPairs) {
+            for (Collidable[] pair : collisionPairs) {
                 if (pair == null || pair.length < 2) continue;
-                CollidableEntity a = pair[0], b = pair[1];
+                Collidable a = pair[0], b = pair[1];
                 if (a != player && b != player) continue;
-                CollidableEntity other = (a == player) ? b : a;
+                Collidable other = (a == player) ? b : a;
                 if (!(other instanceof Platform)) continue;
                 if (movementManager.isMovingUpward() && !movementManager.hasHorizontalMotion()) {
                     movementManager.cancelUpwardVelocity();
@@ -206,7 +226,9 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         batch.begin();
         batch.draw(image, 140, 210);
-        entityManager.renderAll(batch);
+        for (int i = 0; i < gameRenderables.size; i++) {
+            gameRenderables.get(i).render(batch);
+        }
         batch.end();
         uiManager.update(deltaTime);
         uiManager.draw();
@@ -232,9 +254,11 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void dispose() {
+        Gdx.input.setInputProcessor(null);
+        if (gameEngine != null) gameEngine.dispose();
+        if (platformTex != null) platformTex.dispose();
         if (batch != null) batch.dispose();
         if (image != null) image.dispose();
         if (uiManager != null) uiManager.dispose();
-        if (gameEngine != null) gameEngine.dispose();
     }
 }

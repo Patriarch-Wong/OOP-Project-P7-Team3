@@ -2,8 +2,10 @@ package io.github.team3engine.entity;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
+import io.github.team3engine.interfaces.Renderable;
+import io.github.team3engine.interfaces.Updatable;
 
-public class EntityManager {
+public class EntityManager implements Renderable, Updatable {
     private Array<Entity> entities;
     private Array<Entity> pendingAdd;
     private Array<Entity> pendingRemove;
@@ -63,6 +65,11 @@ public class EntityManager {
         return nonCollidables;
     }
 
+    @Override
+    public void update(float dt) {
+        updateAll(dt);
+    }
+
     public void updateAll(float dt) {
         flushPendingAdds();
         flushPendingRemovals();
@@ -78,6 +85,11 @@ public class EntityManager {
 
         // Clean up destroyed entities after update
         purgeDestroyed();
+    }
+
+    @Override
+    public void render(SpriteBatch batch) {
+        renderAll(batch);
     }
 
     public void renderAll(SpriteBatch batch) {
@@ -114,6 +126,9 @@ public class EntityManager {
 
     public void disposeAll() {
         for (Entity e : entities) {
+            e.dispose();
+        }
+        for (Entity e : pendingAdd) {
             e.dispose();
         }
         entities.clear();

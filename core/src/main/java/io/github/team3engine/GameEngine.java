@@ -39,11 +39,14 @@ public class GameEngine {
     public void stop() {}
 
     /**
-     * Dispose managers owned by the engine (entities, scene).
+     * Dispose managers owned by the engine (entities, scene, audio, IO, collision).
      */
     public void dispose() {
+        if (ioManager != null) ioManager.dispose();
         if (entityManager != null) entityManager.disposeAll();
+        if (collisionManager != null) collisionManager.clear();
         if (sceneManager != null) sceneManager.disposeAll();
+        if (audioManager != null) audioManager.dispose();
     }
 
     public SceneManager getSceneManager() { return sceneManager; }

@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.badlogic.gdx.InputProcessor;
+import io.github.team3engine.interfaces.Updatable;
 
-public class IOManager implements InputProcessor {
+public class IOManager implements InputProcessor, Updatable {
     private List<InputListener> inputListeners = new ArrayList<>();
     private Map<String, List<Runnable>> eventCallbacks = new HashMap<String, List<Runnable>>();
     private boolean isActive; // useed when not taking input(eg paused)
@@ -22,6 +23,12 @@ public class IOManager implements InputProcessor {
 
     public void removeInputListener(InputListener l) {
         inputListeners.remove(l);
+    }
+
+    /** Clear all listeners and event callbacks to break references and avoid leaks on shutdown. */
+    public void dispose() {
+        inputListeners.clear();
+        eventCallbacks.clear();
     }
 
     // register callbacks for each event
@@ -49,7 +56,8 @@ public class IOManager implements InputProcessor {
     public void setActive(boolean active) {
         this.isActive = active;
     }
-    
+
+    @Override
     public void update(float deltaTime) {
         for (InputListener listener : inputListeners) {
             listener.update(deltaTime);
