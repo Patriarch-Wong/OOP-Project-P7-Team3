@@ -8,7 +8,7 @@ import io.github.team3engine.GameEngine;
 public class PauseScene extends BaseScene {
     public PauseScene(GameEngine engine, SpriteBatch batch) {
         super(engine, batch);
-        stage.addListener(new InputListener() {
+        getStage().addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 SceneManager.getInstance().setScene(SceneType.PAUSE_SCENE.name());

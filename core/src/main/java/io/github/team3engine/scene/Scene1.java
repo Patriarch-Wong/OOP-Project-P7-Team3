@@ -1,10 +1,10 @@
 package io.github.team3engine.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.team3engine.audio.AudioManager;
 import io.github.team3engine.collision.CollisionManager;
 import io.github.team3engine.entity.*;
@@ -30,9 +30,12 @@ public class Scene1 extends BaseScene {
     }
 
     @Override
-    public void show() {
-        Gdx.input.setInputProcessor(engine.getIOManager());
+    protected InputProcessor getInputProcessorForScene() {
+        return engine.getIOManager();
+    }
 
+    @Override
+    protected void onShow() {
         IOManager ioManager = engine.getIOManager();
         AudioManager audioManager = engine.getAudioManager();
         EntityManager entityManager = engine.getEntityManager();
@@ -94,7 +97,7 @@ public class Scene1 extends BaseScene {
     }
 
     @Override
-    public void hide() {
+    protected void onHide() {
         engine.getEntityManager().disposeAll();
         engine.getCollisionManager().clear();
         if (image != null) {
@@ -170,7 +173,7 @@ public class Scene1 extends BaseScene {
             }
         }
 
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+        clearScreen(0.15f, 0.15f, 0.2f, 1f);
         batch.begin();
         if (image != null) {
             batch.draw(image, 140, 210);
@@ -179,10 +182,7 @@ public class Scene1 extends BaseScene {
             gameRenderables.get(i).render(batch);
         }
         batch.end();
-
-        batch.begin();
-        renderUI();
-        batch.end();
+        drawStageAndUI(delta);
     }
 
     private boolean touchesCeiling(Circle player, EntityManager entityManager) {

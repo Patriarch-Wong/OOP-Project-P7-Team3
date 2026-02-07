@@ -8,7 +8,7 @@ import io.github.team3engine.GameEngine;
 public class WinScene extends BaseScene {
     public WinScene(GameEngine engine, SpriteBatch batch) {
         super(engine, batch);
-        stage.addListener(new InputListener() {
+        getStage().addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 SceneManager.getInstance().setScene(SceneType.WIN_SCENE.name());
