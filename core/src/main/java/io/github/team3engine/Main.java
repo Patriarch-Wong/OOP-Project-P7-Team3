@@ -151,11 +151,7 @@ public class Main extends ApplicationAdapter {
     public void render() {
         float deltaTime = Math.min(Gdx.graphics.getDeltaTime(), MAX_DELTA);
 
-        if (sceneManager.getCurrentScreenType() == ScreenType.PAUSE_SCREEN) {
-            return;
-        }
-
-        // Handle Pause Toggle
+        // Handle Pause Toggle first so ESC works even when already paused
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isPaused = !isPaused;
             uiManager.toggleMenu(isPaused);
@@ -163,7 +159,20 @@ public class Main extends ApplicationAdapter {
                 sceneManager.setScreen(ScreenType.PAUSE_SCREEN);  // Pause
             } else {
                 sceneManager.setScreen(ScreenType.SCREEN_1);  // Resume
+                Gdx.input.setInputProcessor(ioManager);  // Restore game input after unpause
             }
+            return;
+        }
+
+        // When on pause screen, skip game logic but fall through to rendering so the menu is drawn
+        if (sceneManager.getCurrentScreenType() == ScreenType.PAUSE_SCREEN) {
+            ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+            batch.begin();
+            batch.draw(image, 140, 210);
+            entityManager.renderAll(batch);
+            batch.end();
+            uiManager.update(deltaTime);
+            uiManager.draw();
             return;
         }
 
