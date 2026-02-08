@@ -41,6 +41,7 @@ public class EntityManager implements Renderable, Updatable {
         return null;
     }
 
+    /** Returns the internal entity list. Callers must not add/remove; iterate or read only. */
     public Array<Entity> getAll() {
         return entities;
     }

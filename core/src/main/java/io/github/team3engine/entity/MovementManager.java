@@ -86,8 +86,7 @@ public class MovementManager {
         velocityY += gravity * deltaTime;
         velocityY = Math.max(velocityY, maxFallSpeed);
 
-        entity.getPos().x += velocityX * deltaTime; // check if supposed to be get rather than set
-        entity.getPos().y += velocityY * deltaTime;
+        entity.setPos(entity.getX() + velocityX * deltaTime, entity.getY() + velocityY * deltaTime);
 
     }
 

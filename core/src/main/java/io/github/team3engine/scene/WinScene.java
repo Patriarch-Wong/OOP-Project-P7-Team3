@@ -11,7 +11,7 @@ public class WinScene extends BaseScene {
         getStage().addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                SceneManager.getInstance().setScene(SceneType.WIN_SCENE.name());
+                engine.getSceneManager().setScene(SceneType.WIN_SCENE.name());
                 return true;
             }
         });

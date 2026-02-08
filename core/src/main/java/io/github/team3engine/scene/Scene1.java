@@ -121,7 +121,7 @@ public class Scene1 extends BaseScene {
         MovementManager movementManager = engine.getMovementManager();
         CollisionManager collisionManager = engine.getCollisionManager();
 
-        if (!SceneManager.getInstance().isPaused() && player != null) {
+        if (!engine.getSceneManager().isPaused() && player != null) {
             movementInput.update();
             movementManager.applyMovement(player, movementInput, deltaTime);
             for (int i = 0; i < gameUpdatables.size; i++) {
@@ -141,18 +141,18 @@ public class Scene1 extends BaseScene {
                 }
             }
 
-            boolean isOnFloor = player.getPos().y <= player.getRadius() + 1f;
+            boolean isOnFloor = player.getY() <= player.getRadius() + 1f;
             boolean isOnPlatform = false;
-            float circleBottom = player.getPos().y - player.getRadius();
+            float circleBottom = player.getY() - player.getRadius();
             float sinkTolerance = 3f;
 
             for (Entity e : entityManager.getAll()) {
                 if (e instanceof Platform) {
                     Platform platform = (Platform) e;
-                    float platformTop = platform.getPos().y + platform.getHeight();
-                    float platformLeft = platform.getPos().x;
-                    float platformRight = platform.getPos().x + platform.getWidth();
-                    float circleCenterX = player.getPos().x;
+                    float platformTop = platform.getY() + platform.getHeight();
+                    float platformLeft = platform.getX();
+                    float platformRight = platform.getX() + platform.getWidth();
+                    float circleCenterX = player.getX();
                     boolean landed = circleBottom <= platformTop + sinkTolerance && circleBottom >= platformTop - sinkTolerance;
                     boolean overPlatform = circleCenterX >= platformLeft - player.getRadius() && circleCenterX <= platformRight + player.getRadius();
                     if (landed && overPlatform) {
@@ -186,15 +186,15 @@ public class Scene1 extends BaseScene {
     }
 
     private boolean touchesCeiling(Circle player, EntityManager entityManager) {
-        float circleTop = player.getPos().y + player.getRadius();
+        float circleTop = player.getY() + player.getRadius();
         float tolerance = 6f;
         for (Entity e : entityManager.getAll()) {
             if (e instanceof Platform) {
                 Platform platform = (Platform) e;
-                float platformBottom = platform.getPos().y;
-                float platformLeft = platform.getPos().x;
-                float platformRight = platform.getPos().x + platform.getWidth();
-                float circleX = player.getPos().x;
+                float platformBottom = platform.getY();
+                float platformLeft = platform.getX();
+                float platformRight = platform.getX() + platform.getWidth();
+                float circleX = player.getX();
                 boolean underPlatform = circleTop >= platformBottom - tolerance && circleTop <= platformBottom + tolerance;
                 boolean horizontallyAligned = circleX >= platformLeft - player.getRadius() && circleX <= platformRight + player.getRadius();
                 if (underPlatform && horizontallyAligned) return true;
