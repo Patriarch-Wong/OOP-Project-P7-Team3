@@ -1,11 +1,11 @@
 package io.github.team3engine;
 
-import io.github.team3engine.audio.AudioManager;
-import io.github.team3engine.collision.CollisionManager;
-import io.github.team3engine.entity.EntityManager;
-import io.github.team3engine.entity.MovementManager;
-import io.github.team3engine.io.IOManager;
-import io.github.team3engine.scene.SceneManager;
+import io.github.team3engine.engine.audio.AudioManager;
+import io.github.team3engine.engine.collision.CollisionManager;
+import io.github.team3engine.engine.entity.EntityManager;
+import io.github.team3engine.engine.entity.MovementManager;
+import io.github.team3engine.engine.io.IOManager;
+import io.github.team3engine.engine.scene.SceneManager;
 
 /**
  * Holds all managers for the game engine. Main (or other scenes) creates the world
@@ -30,7 +30,6 @@ public class GameEngine {
         entityManager = new EntityManager();
         movementManager = new MovementManager(audioManager);
         collisionManager = new CollisionManager();
-        collisionManager.setAudioManager(audioManager);
         sceneManager = SceneManager.getInstance();
     }
 

@@ -4,12 +4,13 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import io.github.team3engine.audio.AudioManager;
-import io.github.team3engine.io.IOManager;
-import io.github.team3engine.scene.SceneManager;
-import io.github.team3engine.scene.SceneType;
-import io.github.team3engine.scene.Scene1;
-import io.github.team3engine.scene.Scene2;
+import io.github.team3engine.engine.audio.AudioManager;
+import io.github.team3engine.engine.UIManager;
+import io.github.team3engine.engine.io.IOManager;
+import io.github.team3engine.engine.scene.SceneManager;
+import io.github.team3engine.engine.scene.SceneType;
+import io.github.team3engine.game.scenes.Scene1;
+import io.github.team3engine.game.scenes.Scene2;
 
 /**
  * Entry point: initializes the engine and uses SceneManager to swap and render the current scene.
