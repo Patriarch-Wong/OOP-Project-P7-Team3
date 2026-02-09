@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.github.team3engine.GameEngine;
 
 /**
  * Base for all scenes: optional Stage (lazy), shared batch/font, and template
@@ -17,17 +16,15 @@ import io.github.team3engine.GameEngine;
  * override onShow/onHide and getInputProcessorForScene() to customize behavior.
  */
 public abstract class BaseScene implements Screen {
-    protected final GameEngine engine;
     protected final SpriteBatch batch;
     protected final BitmapFont font;
 
     private Stage stage;
 
-    public BaseScene(GameEngine engine, SpriteBatch batch) {
-        this.engine = engine;
+    public BaseScene(SpriteBatch batch) {
         this.batch = batch;
         this.font = new BitmapFont();
-        font.setColor(Color.BLUE);
+        font.setColor(Color.WHITE);
     }
 
     /**
@@ -48,8 +45,8 @@ public abstract class BaseScene implements Screen {
 
     @Override
     public void show() {
-        onShow();
         Gdx.input.setInputProcessor(getInputProcessorForScene());
+        onShow();
     }
 
     /** Override for scene-specific setup (e.g. add stage listeners, create entities). */
@@ -68,13 +65,14 @@ public abstract class BaseScene implements Screen {
     @Override
     public void resume() {}
 
-    @Override
     public void hide() {
         onHide();
     }
 
     /** Override for scene-specific cleanup (e.g. clear entities, dispose textures). */
     protected void onHide() {}
+
+    protected void update(float delta) {}
 
     /** Clears the screen to the given color. Use from render() when overriding. */
     protected final void clearScreen(float r, float g, float b, float a) {

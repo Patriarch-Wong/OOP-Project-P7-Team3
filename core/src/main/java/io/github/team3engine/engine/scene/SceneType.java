@@ -5,4 +5,5 @@ public enum SceneType {
     SCENE_2,
     PAUSE_SCENE,
     WIN_SCENE,
+    MAIN_MENU_SCENE
 }

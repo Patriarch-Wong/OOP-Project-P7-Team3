@@ -2,11 +2,13 @@ package io.github.team3engine.game.scenes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
+import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.entity.MovementManager;
@@ -15,56 +17,68 @@ import io.github.team3engine.engine.interfaces.Renderable;
 import io.github.team3engine.engine.interfaces.Updatable;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
+import io.github.team3engine.engine.scene.SceneManager;
+import io.github.team3engine.engine.scene.SceneType;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.inputs.PlayerInput;
-import io.github.team3engine.GameEngine;
 
 public class Scene1 extends BaseScene {
-    private static final float MAX_DELTA = 0.1f;
+    private static final float MAX_DELTA = 0.07f;
 
     private Texture image;
     private Texture platformTex;
     private Circle player;
     private MovementInput movementInput;
-    private Array<Updatable> gameUpdatables;
-    private Array<Renderable> gameRenderables;
 
-    public Scene1(GameEngine engine, SpriteBatch batch) {
-        super(engine, batch);
+    private final SceneManager sceneManager;
+    private final IOManager ioManager;
+    private final AudioManager audioManager;
+
+    // managers owned by Scene1
+    private EntityManager entityManager;
+    private CollisionManager collisionManager;
+    private MovementManager movementManager;
+
+    private PlayerInput playerInput;
+
+    public Scene1(SpriteBatch batch, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager) {
+        super(batch);
+        this.sceneManager = sceneManager;
+        this.ioManager = ioManager;
+        this.audioManager = audioManager;
     }
 
     @Override
     protected InputProcessor getInputProcessorForScene() {
-        return engine.getIOManager();
+        return ioManager;
     }
 
     @Override
     protected void onShow() {
-        IOManager ioManager = engine.getIOManager();
-        AudioManager audioManager = engine.getAudioManager();
-        EntityManager entityManager = engine.getEntityManager();
-        CollisionManager collisionManager = engine.getCollisionManager();
-
-        PlayerInput playerInput = new PlayerInput();
+        playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
+        Gdx.input.setInputProcessor(ioManager);
 
-        movementInput = new MovementInput();
+        entityManager = new EntityManager();
+        collisionManager = new CollisionManager();
+        movementManager = new MovementManager();
+        movementInput = new MovementInput(movementManager, ioManager, playerInput);
 
-        player = new Circle("player_circle", Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 30f,
-                playerInput, ioManager);
-        entityManager.addEntity(player);
+        float gw = Gdx.graphics.getWidth();
+        float gh = Gdx.graphics.getHeight();
 
-        Bucket bucket = new Bucket("bucket", Gdx.graphics.getWidth() / 2f, 20f);
+        Bucket bucket = new Bucket("bucket", gw / 2f, 20f);
         entityManager.addEntity(bucket);
 
-        float bulletX = Gdx.graphics.getWidth() * 0.5f;
-        float bulletY = Gdx.graphics.getHeight() * 0.75f;
+        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, playerInput, ioManager);
+        entityManager.addEntity(player);
+
+        float bulletX = gw * 0.5f;
+        float bulletY = gh * 0.75f;
         Bullet singleBullet = new Bullet("bullet_single", bulletX, bulletY, null, audioManager);
         singleBullet.setVelocity(0f, 0f);
         entityManager.addEntity(singleBullet);
 
-        float gw = Gdx.graphics.getWidth();
-        float gh = Gdx.graphics.getHeight();
         float scaleX = gw / 19f;
         float scaleY = gh / 12f;
         platformTex = new Texture(Gdx.files.internal("platform.png"));
@@ -78,6 +92,9 @@ public class Scene1 extends BaseScene {
         entityManager.addEntity(p3h);
         entityManager.addEntity(p3v);
 
+        WinBox winBox = new WinBox("win_box", 50f);
+        entityManager.addEntity(winBox);
+
         collisionManager.register(player);
         collisionManager.register(bucket);
         collisionManager.register(singleBullet);
@@ -85,25 +102,19 @@ public class Scene1 extends BaseScene {
         collisionManager.register(p2);
         collisionManager.register(p3h);
         collisionManager.register(p3v);
-
-        WinBox winBox = new WinBox("win_box", 50f, ioManager, audioManager);
-        entityManager.addEntity(winBox);
         collisionManager.register(winBox);
 
-        gameUpdatables = new Array<>();
-        gameUpdatables.add(entityManager);
-        gameUpdatables.add(collisionManager);
-
-        gameRenderables = new Array<>();
-        gameRenderables.add(entityManager);
-
         image = new Texture("libgdx.png");
+
+        // region register events
+
     }
 
     @Override
     protected void onHide() {
-        engine.getEntityManager().disposeAll();
-        engine.getCollisionManager().clear();
+        entityManager.disposeAll();
+        collisionManager.clear();
+        ioManager.removeInputListener(playerInput);
         if (image != null) {
             image.dispose();
             image = null;
@@ -112,99 +123,99 @@ public class Scene1 extends BaseScene {
             platformTex.dispose();
             platformTex = null;
         }
-        player = null;
-        movementInput = null;
-        gameUpdatables = null;
-        gameRenderables = null;
     }
 
     @Override
     public void render(float delta) {
-        float deltaTime = Math.min(delta, MAX_DELTA);
-        EntityManager entityManager = engine.getEntityManager();
-        MovementManager movementManager = engine.getMovementManager();
-        CollisionManager collisionManager = engine.getCollisionManager();
+        delta = Math.min(delta, MAX_DELTA);
+        update(delta);
+        
+        // clearScreen(0.15f, 0.15f, 0.2f, 1f);
+        Gdx.gl.glClearColor(0.15f, 0.15f, 0.4f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if (!engine.getSceneManager().isPaused() && player != null) {
-            movementInput.update();
-            movementManager.applyMovement(player, movementInput, deltaTime);
-            for (int i = 0; i < gameUpdatables.size; i++) {
-                gameUpdatables.get(i).update(deltaTime);
-            }
-            Array<Collidable[]> collisionPairs = collisionManager.resolveCollisions();
-
-            for (Collidable[] pair : collisionPairs) {
-                if (pair == null || pair.length < 2) continue;
-                Collidable a = pair[0], b = pair[1];
-                if (a != player && b != player) continue;
-                Collidable other = (a == player) ? b : a;
-                if (!(other instanceof Platform)) continue;
-                if (movementManager.isMovingUpward() && !movementManager.hasHorizontalMotion()) {
-                    movementManager.cancelUpwardVelocity();
-                    break;
-                }
-            }
-
-            boolean isOnFloor = player.getY() <= player.getRadius() + 1f;
-            boolean isOnPlatform = false;
-            float circleBottom = player.getY() - player.getRadius();
-            float sinkTolerance = 3f;
-
-            for (Entity e : entityManager.getAll()) {
-                if (e instanceof Platform) {
-                    Platform platform = (Platform) e;
-                    float platformTop = platform.getY() + platform.getHeight();
-                    float platformLeft = platform.getX();
-                    float platformRight = platform.getX() + platform.getWidth();
-                    float circleCenterX = player.getX();
-                    boolean landed = circleBottom <= platformTop + sinkTolerance && circleBottom >= platformTop - sinkTolerance;
-                    boolean overPlatform = circleCenterX >= platformLeft - player.getRadius() && circleCenterX <= platformRight + player.getRadius();
-                    if (landed && overPlatform) {
-                        isOnPlatform = true;
-                        break;
-                    }
-                }
-            }
-
-            if (isOnFloor || isOnPlatform) {
-                movementManager.setGrounded(true);
-            } else {
-                movementManager.setGrounded(false);
-            }
-
-            if (touchesCeiling(player, entityManager)) {
-                movementManager.hitCeiling();
-            }
-        }
-
-        clearScreen(0.15f, 0.15f, 0.2f, 1f);
         batch.begin();
         if (image != null) {
             batch.draw(image, 140, 210);
         }
-        for (int i = 0; i < gameRenderables.size; i++) {
-            gameRenderables.get(i).render(batch);
-        }
+
+        entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
+
+        movementManager.applyMovement(player, movementInput, delta);
+
+        checkFallCondition();
+        checkGroundDetection();
     }
 
-    private boolean touchesCeiling(Circle player, EntityManager entityManager) {
-        float circleTop = player.getY() + player.getRadius();
-        float tolerance = 6f;
+    @Override
+    public void update(float delta) {
+        entityManager.updateAll(delta);
+        playerInput.update(delta);
+        movementInput.update();
+        collisionManager.update(delta);
+    }
+
+    // local methods
+    private void checkFallCondition() {
+        Array<Collidable[]> collisionPairs = collisionManager.resolveCollisions();
+        // If player is jumping, not moving horizontally, and collides with a platform, make them fall
+        for (Collidable[] pair : collisionPairs) {
+            if (pair == null || pair.length < 2)
+                continue;
+
+            Collidable a = pair[0], b = pair[1];
+
+            if (a != player && b != player)
+                continue;
+            Collidable other = (a == player) ? b : a;
+            if (!(other instanceof Platform))
+                continue;
+            if (movementManager.isMovingUpward() && player.getY()+player.getRadius() <= other.getHitbox().y + 2f) {
+                movementManager.cancelUpwardVelocity();
+                break;
+            }
+        }
+    }
+
+    private void checkGroundDetection() {
+        // Ground detection after resolve: only set grounded when circle has actually
+        // landed
+        // (bottom at or just below platform top), not when still above — avoids slowing
+        // down in mid-air.
+        boolean isOnFloor = player.getY() <= player.getRadius() + 1f;
+        boolean isOnPlatform = false;
+        float circleBottom = player.getY() - player.getRadius();
+        float sinkTolerance = 5f;  // Increased tolerance to handle landing better
+
         for (Entity e : entityManager.getAll()) {
             if (e instanceof Platform) {
                 Platform platform = (Platform) e;
-                float platformBottom = platform.getY();
+                float platformTop = platform.getY() + platform.getHeight();
                 float platformLeft = platform.getX();
                 float platformRight = platform.getX() + platform.getWidth();
-                float circleX = player.getX();
-                boolean underPlatform = circleTop >= platformBottom - tolerance && circleTop <= platformBottom + tolerance;
-                boolean horizontallyAligned = circleX >= platformLeft - player.getRadius() && circleX <= platformRight + player.getRadius();
-                if (underPlatform && horizontallyAligned) return true;
+                float circleCenterX = player.getX();
+                boolean landed = circleBottom <= platformTop + sinkTolerance
+                        && circleBottom >= platformTop - sinkTolerance;
+                boolean overPlatform = circleCenterX >= platformLeft - player.getRadius()
+                        && circleCenterX <= platformRight + player.getRadius();
+                if (landed && overPlatform) {
+                    isOnPlatform = true;
+                    break;
+                }
             }
         }
-        return false;
+
+        if (isOnFloor || isOnPlatform) {
+            movementManager.setGrounded(true);
+        } else {
+            movementManager.setGrounded(false);
+        }
+
+        if (player.touchesCeiling(entityManager)) {
+            movementManager.hitCeiling();
+        }
     }
 
     @Override
@@ -212,4 +223,5 @@ public class Scene1 extends BaseScene {
         font.draw(batch, "SCENE 1 - Reach the green box!", 100, 400);
         font.draw(batch, "Win to go to Scene 2.", 100, 350);
     }
+
 }

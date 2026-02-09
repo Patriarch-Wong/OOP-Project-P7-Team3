@@ -11,7 +11,7 @@ public abstract class InputListener {
 
     public abstract void update(float deltaTime);
 
-    public boolean isEnabled() {
+    public boolean isActive() {
         return isActive;
     }
 

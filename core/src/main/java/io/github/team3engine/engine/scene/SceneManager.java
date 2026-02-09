@@ -11,8 +11,8 @@ import java.util.Map;
 public class SceneManager {
     private static SceneManager instance;
 
-    private String currentSceneId;
     private final Map<String, BaseScene> scenes = new HashMap<>();
+    private String currentSceneId;
     private boolean paused = false;
 
     private SceneManager() {}

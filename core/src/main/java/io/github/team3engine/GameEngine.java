@@ -28,7 +28,7 @@ public class GameEngine {
         audioManager = new AudioManager();
         ioManager = new IOManager();
         entityManager = new EntityManager();
-        movementManager = new MovementManager(audioManager);
+        movementManager = new MovementManager();
         collisionManager = new CollisionManager();
         sceneManager = SceneManager.getInstance();
     }

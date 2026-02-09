@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
+import io.github.team3engine.engine.entity.Entity;
+import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.game.inputs.PlayerInput;
@@ -105,6 +107,13 @@ public class Circle extends CollidableEntity {
         shapeRenderer.setColor(color);
         shapeRenderer.circle(position.x, position.y, radius);
         shapeRenderer.end();
+
+        // Debug: Draw hitbox outline
+        // shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        // shapeRenderer.setColor(0f, 1f, 0f, 1f); // Green outline for circle hitbox
+        // shapeRenderer.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        // shapeRenderer.end();
+        
         batch.begin();
     }
 
@@ -122,5 +131,32 @@ public class Circle extends CollidableEntity {
                 io.broadcast("PLAYER_WIN");
             }
         }
+    }
+
+    public boolean touchesCeiling(EntityManager entityManager) {
+        float circleTop = this.getPos().y + this.getRadius();
+        float tolerance = 6f;
+
+        for (Entity e : entityManager.getAll()) {
+            if (e instanceof Platform) {
+                Platform platform = (Platform) e;
+
+                float platformBottom = platform.getPos().y;
+                float platformLeft = platform.getPos().x;
+                float platformRight = platform.getPos().x + platform.getWidth();
+                float circleX = this.getPos().x;
+
+                boolean underPlatform = circleTop >= platformBottom - tolerance &&
+                        circleTop <= platformBottom + tolerance;
+
+                boolean horizontallyAligned = circleX >= platformLeft - this.getRadius() &&
+                        circleX <= platformRight + this.getRadius();
+
+                if (underPlatform && horizontallyAligned) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

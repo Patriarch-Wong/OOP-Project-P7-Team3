@@ -16,15 +16,9 @@ public class WinBox extends CollidableEntity {
     private final ShapeRenderer shapeRenderer;
     private Color color;
     
-    private final IOManager ioManager;
-    private final AudioManager audioManager;
-    private boolean hasWon = false; // Flag to prevent sound spamming
-
-    public WinBox(String id, float size, IOManager ioManager, AudioManager audioManager) {
+    public WinBox(String id, float size) {
         super(id);
         this.size = size;
-        this.ioManager = ioManager;
-        this.audioManager = audioManager;
         this.shapeRenderer = new ShapeRenderer();
         this.color = new Color(0.2f, 0.8f, 0.2f, 1f);
         
@@ -60,18 +54,6 @@ public class WinBox extends CollidableEntity {
         if (!(other instanceof Circle)) return;
 
         Circle player = (Circle) other;
-
-        // --- 1. THE SOUND & EVENT (Only once) ---
-        if (!hasWon) {
-            if (audioManager != null) {
-                audioManager.play("victory.mp3");
-            }
-            if (ioManager != null) {
-                ioManager.broadcast("PLAYER_WIN");
-            }
-            hasWon = true; 
-            System.out.println("Victory triggered!");
-        }
 
         // --- 2. THE PHYSICS (Every frame) ---
         // This part prevents the ball from bypassing/phasing through the box

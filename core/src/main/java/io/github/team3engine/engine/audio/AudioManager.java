@@ -9,7 +9,7 @@ import java.util.Map;
 public class AudioManager {
     // Volume levels (0.0 to 1.0)
     private float masterVolume = 1.0f;
-    private float musicVolume = 1.0f;
+    private float musicVolume = 0.3f;
     private float sfxVolume = 1.0f;
     private boolean isMuted = false;
     

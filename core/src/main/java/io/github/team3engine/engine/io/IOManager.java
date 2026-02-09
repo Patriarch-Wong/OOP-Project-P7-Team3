@@ -26,7 +26,10 @@ public class IOManager implements InputProcessor, Updatable {
         inputListeners.remove(l);
     }
 
-    /** Clear all listeners and event callbacks to break references and avoid leaks on shutdown. */
+    /**
+     * Clear all listeners and event callbacks to break references and avoid leaks
+     * on shutdown.
+     */
     public void dispose() {
         inputListeners.clear();
         eventCallbacks.clear();
@@ -39,10 +42,19 @@ public class IOManager implements InputProcessor, Updatable {
                 .add(callback);
     }
 
+    // clear all callbacks for a specific event
+    public void clearEvent(String eventName) {
+        eventCallbacks.remove(eventName);
+    }
+
+    public void clearAllEvents() {
+        eventCallbacks.clear();
+    }
+
     // when an event happens, run all the callbacks linked to that event
     public void broadcast(String eventName) {
         List<Runnable> callbacks = eventCallbacks.get(eventName);
-        if (callbacks == null) 
+        if (callbacks == null)
             return;
 
         for (Runnable r : callbacks) {
@@ -55,7 +67,16 @@ public class IOManager implements InputProcessor, Updatable {
     }
 
     public void setActive(boolean active) {
-        this.isActive = active;
+        for (InputListener listener : inputListeners) {
+            listener.setActive(active);
+        }
+        isActive = active;
+    }
+
+    public void toggleListener(InputListener listener) {
+        if (listener != null) {
+            listener.setActive(!listener.isActive());
+        }
     }
 
     @Override
@@ -73,11 +94,13 @@ public class IOManager implements InputProcessor, Updatable {
 
     @Override
     public boolean keyDown(int keycode) {
-        if (!isActive)
+        if (!isActive) {
+            System.out.println("IOManager inactive, ignoring keyDown for keycode: " + keycode);
             return false;
 
+        }
         for (InputListener listener : inputListeners) {
-            if (listener.isEnabled() && listener.onKey(keycode, true)) {
+            if (listener.isActive() && listener.onKey(keycode, true)) {
                 return true;
             }
         }
@@ -90,7 +113,7 @@ public class IOManager implements InputProcessor, Updatable {
             return false;
 
         for (InputListener listener : inputListeners) {
-            if (listener.isEnabled() && listener.onKey(keycode, false)) {
+            if (listener.isActive() && listener.onKey(keycode, false)) {
                 return true;
             }
         }
@@ -103,7 +126,7 @@ public class IOManager implements InputProcessor, Updatable {
             return false;
 
         for (InputListener listener : inputListeners) {
-            if (listener.isEnabled() && listener.onClick(x, y, button)) {
+            if (listener.isActive() && listener.onClick(x, y, button)) {
                 return true;
             }
         }

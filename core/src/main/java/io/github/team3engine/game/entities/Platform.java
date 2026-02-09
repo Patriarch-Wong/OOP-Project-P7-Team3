@@ -105,6 +105,15 @@ public class Platform extends CollidableEntity {
             shape.rect(position.x, position.y, width, height);
             shape.end();
         }
+
+        // Debug: Draw hitbox outline
+        // shape.setProjectionMatrix(batch.getProjectionMatrix());
+        // shape.setTransformMatrix(batch.getTransformMatrix());
+        // shape.begin(ShapeRenderer.ShapeType.Line);
+        // shape.setColor(1f, 0f, 0f, 1f); // Red outline
+        // shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        // shape.end();
+
         batch.begin();
     }
 
@@ -121,14 +130,17 @@ public class Platform extends CollidableEntity {
 
     @Override
     public void onCollision(Collidable other) {
-        if (!(other instanceof CollidableEntity)) return;
+        if (!(other instanceof CollidableEntity))
+            return;
 
         CollidableEntity ce = (CollidableEntity) other;
         Rectangle a = this.getHitbox();
         Rectangle b = ce.getHitbox();
 
-        if (a == null || b == null) return;
-        if (!a.overlaps(b)) return;
+        if (a == null || b == null)
+            return;
+        if (!a.overlaps(b))
+            return;
 
         // compute penetration amounts on each axis
         float aLeft = a.x;
@@ -144,7 +156,8 @@ public class Platform extends CollidableEntity {
         float overlapX = Math.min(aRight, bRight) - Math.max(aLeft, bLeft);
         float overlapY = Math.min(aTop, bTop) - Math.max(aBottom, bBottom);
 
-        if (overlapX <= 0 || overlapY <= 0) return; // no overlap
+        if (overlapX <= 0 || overlapY <= 0)
+            return; // no overlap
 
         // centers for direction
         float aCenterX = a.x + a.width * 0.5f;
@@ -154,17 +167,17 @@ public class Platform extends CollidableEntity {
 
         if (overlapX < overlapY) {
             // push along X
-            float dx = (bCenterX < aCenterX) ? -overlapX : overlapX;
+            float dx = (bCenterX < aCenterX) ? -overlapX * 1.1f : overlapX * 1.1f;
             ce.setPos(ce.getPos().x + dx, ce.getPos().y);
             ce.setVelocity(0f, ce.getVelocity().y);
         } else {
-            // push along Y
-            float dy = (bCenterY < aCenterY) ? -overlapY : overlapY;
+            // push along Y - add extra margin to ensure complete separation
+            float dy = (bCenterY < aCenterY) ? -overlapY * 1.05f : overlapY * 1.05f;
             ce.setPos(ce.getPos().x, ce.getPos().y + dy);
             ce.setVelocity(ce.getVelocity().x, 0f);
         }
 
         // Ensure hitbox is updated after resolving
-        this.updateHitbox();
+        ce.update(Gdx.graphics.getDeltaTime());
     }
 }

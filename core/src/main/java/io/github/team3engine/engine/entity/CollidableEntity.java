@@ -30,11 +30,12 @@ public abstract class CollidableEntity extends Entity implements Collidable {
         return hitbox;
     }
 
+    // Typically updates hitbox position to match entity position
+    // Assuming hitbox needs to be centered or at position
+    // For now, setting it to position.x, position.y
     protected void updateHitbox() {
-        // Typically updates hitbox position to match entity position
-        // Assuming hitbox needs to be centered or at position
-        // For now, setting it to position.x, position.y
         hitbox.setPosition(position.x, position.y);
+        System.out.println("Hitbox updated to position: " + position.x + ", " + position.y);
     }
 
     @Override
@@ -42,8 +43,6 @@ public abstract class CollidableEntity extends Entity implements Collidable {
 
     @Override
     public void update(float dt) {
-        // Basic movement based on velocity
-        position.mulAdd(velocity, dt);
         updateHitbox();
     }
 }
