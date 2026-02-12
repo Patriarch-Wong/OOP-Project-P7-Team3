@@ -4,37 +4,36 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.UIManager;
+import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.engine.scene.SceneType;
 import io.github.team3engine.game.scenes.*;
 
 /**
- * Entry point: initializes the engine and uses SceneManager to swap and render
- * the current scene.
+ * Entry point: initializes the GameEngine and uses its managers to register
+ * scenes, run the loop, and dispose. All manager access goes through the engine.
  */
 public class Main extends ApplicationAdapter {
+    private GameEngine engine;
     private SpriteBatch batch;
+    private UIManager uiManager;
     private boolean isPaused = false;
 
-    private AudioManager audioManager;
-    private SceneManager sceneManager;
-    private UIManager uiManager;
-    private IOManager ioManager;
-
-    // local variables
     private static final float FOOTSTEP_INTERVAL = 0.4f;
     private float footstepTimer = 0;
     private boolean wasMoving = false;
 
     @Override
     public void create() {
+        engine = new GameEngine();
+        engine.init();
+
         batch = new SpriteBatch();
-        audioManager = new AudioManager();
-        ioManager = new IOManager();
-        sceneManager = SceneManager.getInstance();
+        SceneManager sceneManager = engine.getSceneManager();
+        IOManager ioManager = engine.getIOManager();
+        AudioManager audioManager = engine.getAudioManager();
 
         uiManager = new UIManager(audioManager);
 
@@ -93,6 +92,8 @@ public class Main extends ApplicationAdapter {
     @Override
     public void render() {
         float deltaTime = Gdx.graphics.getDeltaTime();
+        SceneManager sceneManager = engine.getSceneManager();
+        IOManager ioManager = engine.getIOManager();
 
         if (sceneManager.getCurrentSceneId() != SceneType.MAIN_MENU_SCENE.name()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
@@ -121,11 +122,7 @@ public class Main extends ApplicationAdapter {
             batch.dispose();
         if (uiManager != null)
             uiManager.dispose();
-        if (sceneManager != null)
-            sceneManager.disposeAll();
-        if (audioManager != null)
-            audioManager.dispose();
-        if (ioManager != null)
-            ioManager.dispose();
+        if (engine != null)
+            engine.dispose();
     }
 }

@@ -1,6 +1,8 @@
 package io.github.team3engine.engine.io;
 
-public abstract class InputListener {
+import io.github.team3engine.engine.interfaces.Updatable;
+
+public abstract class InputListener implements Updatable {
     private boolean isActive;
 
     // called on key input

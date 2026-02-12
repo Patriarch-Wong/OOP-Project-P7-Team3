@@ -9,8 +9,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.audio.AudioManager;
+import io.github.team3engine.engine.interfaces.Updatable;
 
-public class UIManager {
+public class UIManager implements Updatable {
     private Stage stage;
     private Skin skin;
     private Table rootTable;
@@ -80,6 +81,7 @@ public class UIManager {
         }
     }
 
+    @Override
     public void update(float delta) {
         stage.act(delta);
     }

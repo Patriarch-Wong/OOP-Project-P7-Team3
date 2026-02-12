@@ -9,13 +9,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import io.github.team3engine.engine.interfaces.Updatable;
 
 /**
  * Base for all scenes: optional Stage (lazy), shared batch/font, and template
  * for render (clear → stage → UI). Subclasses implement renderUI() and can
  * override onShow/onHide and getInputProcessorForScene() to customize behavior.
  */
-public abstract class BaseScene implements Screen {
+public abstract class BaseScene implements Screen, Updatable {
     protected final SpriteBatch batch;
     protected final BitmapFont font;
 
@@ -72,7 +73,8 @@ public abstract class BaseScene implements Screen {
     /** Override for scene-specific cleanup (e.g. clear entities, dispose textures). */
     protected void onHide() {}
 
-    protected void update(float delta) {}
+    @Override
+    public void update(float delta) {}
 
     /** Clears the screen to the given color. Use from render() when overriding. */
     protected final void clearScreen(float r, float g, float b, float a) {
