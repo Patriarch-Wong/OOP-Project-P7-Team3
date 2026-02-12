@@ -1,15 +1,12 @@
 package io.github.team3engine.game.entities;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-
 import io.github.team3engine.engine.entity.MovementManager;
+import io.github.team3engine.engine.interfaces.IMovementInput;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.game.inputs.PlayerInput;
 
-public class MovementInput {
-	// assume data is already valid when using these values
-    public float movementAxis; // -1 is to go left direction, 1 is to go right direction
+public class MovementInput implements IMovementInput {
+    public float movementAxis;
     public boolean jump;
     private final MovementManager movementManager;
     private final IOManager io;
@@ -27,10 +24,9 @@ public class MovementInput {
     public void update() {
         movementAxis = 0;
 
-        // Horizontal movement logic
         if (playerInput.isLeftHeld()) {
             movementAxis -= 1;
-            if (movementManager.isGrounded()) 
+            if (movementManager.isGrounded())
                 io.broadcast("PLAYER_MOVING");
         }
         if (playerInput.isRightHeld()) {
@@ -39,12 +35,19 @@ public class MovementInput {
                 io.broadcast("PLAYER_MOVING");
         }
 
-        // Jump logic
         jump = playerInput.isSpaceHeld();
-        if (jump) {
-            if (movementManager.isGrounded() && movementManager.getJumpCooldownRemaining() <= 0f) {
-                io.broadcast("PLAYER_JUMP");
-            }
+        if (jump && movementManager.isGrounded() && movementManager.getJumpCooldownRemaining() <= 0f) {
+            io.broadcast("PLAYER_JUMP");
         }
+    }
+
+    @Override
+    public float getMovementAxis() {
+        return movementAxis;
+    }
+
+    @Override
+    public boolean isJump() {
+        return jump;
     }
 }

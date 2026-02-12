@@ -12,20 +12,47 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
 /**
- * Base for all scenes: optional Stage (lazy), shared batch/font, and template
- * for render (clear → stage → UI). Subclasses implement renderUI() and can
- * override onShow/onHide and getInputProcessorForScene() to customize behavior.
+ * Generic scene base for the engine. Any game can extend this to define its own
+ * scenes. Provides:
+ * <ul>
+ *   <li>Shared batch and font (subclasses may change {@link #font} color/size)</li>
+ *   <li>Optional lazy Stage for UI (only created if {@link #getStage()} is used)</li>
+ *   <li>Template render: clear screen (color from {@link #getClearColorR/G/B/A()}) → Stage (if any) → {@link #renderUI()}</li>
+ * </ul>
+ * Override as needed: {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
+ * {@link #update(float)}, or override {@link #render(float)} for a fully custom loop.
  */
 public abstract class BaseScene implements Screen, Updatable {
     protected final SpriteBatch batch;
     protected final BitmapFont font;
+    /** True if this scene owns the font and must dispose it. */
+    private final boolean ownFont;
 
     private Stage stage;
 
-    public BaseScene(SpriteBatch batch) {
+    /** Uses a shared font; caller must not dispose it. Pass null to create and own a font. */
+    public BaseScene(SpriteBatch batch, BitmapFont sharedFont) {
         this.batch = batch;
-        this.font = new BitmapFont();
-        font.setColor(Color.WHITE);
+        if (sharedFont != null) {
+            this.font = sharedFont;
+            this.ownFont = false;
+        } else {
+            this.font = new BitmapFont();
+            this.ownFont = true;
+        }
+        if (ownFont) {
+            this.font.setColor(getDefaultFontColor());
+        }
+    }
+
+    /** Creates and owns a BitmapFont (one per scene). Prefer {@link #BaseScene(SpriteBatch, BitmapFont)} with a shared font for lower memory. */
+    public BaseScene(SpriteBatch batch) {
+        this(batch, null);
+    }
+
+    /** Override to change the default font color (default: white). */
+    protected Color getDefaultFontColor() {
+        return Color.WHITE;
     }
 
     /**
@@ -46,6 +73,9 @@ public abstract class BaseScene implements Screen, Updatable {
 
     @Override
     public void show() {
+        if (!ownFont) {
+            font.setColor(getDefaultFontColor());
+        }
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
     }
@@ -76,13 +106,25 @@ public abstract class BaseScene implements Screen, Updatable {
     @Override
     public void update(float delta) {}
 
+    /** Override to change clear color (default: black). */
+    protected float getClearColorR() { return 0f; }
+    protected float getClearColorG() { return 0f; }
+    protected float getClearColorB() { return 0f; }
+    protected float getClearColorA() { return 1f; }
+
+    /** Clears the screen using {@link #getClearColorR/G/B/A()}. Use from render() when overriding. */
+    protected final void clearScreen() {
+        Gdx.gl.glClearColor(getClearColorR(), getClearColorG(), getClearColorB(), getClearColorA());
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    }
+
     /** Clears the screen to the given color. Use from render() when overriding. */
     protected final void clearScreen(float r, float g, float b, float a) {
         Gdx.gl.glClearColor(r, g, b, a);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
-    /** Draws stage (if created) then UI. Use when overriding render() to avoid duplicating batch/renderUI. */
+    /** Draws stage (if created) then calls {@link #renderUI()}. Use when overriding render() to avoid duplicating batch/renderUI. */
     protected final void drawStageAndUI(float delta) {
         if (stage != null) {
             stage.act(delta);
@@ -95,10 +137,11 @@ public abstract class BaseScene implements Screen, Updatable {
 
     @Override
     public void render(float delta) {
-        clearScreen(0, 0, 0, 1);
+        clearScreen();
         drawStageAndUI(delta);
     }
 
+    /** Draw this scene's UI with the batch already begun. Called from the default {@link #render(float)} after optional Stage. */
     protected abstract void renderUI();
 
     @Override
@@ -107,6 +150,8 @@ public abstract class BaseScene implements Screen, Updatable {
             stage.dispose();
             stage = null;
         }
-        font.dispose();
+        if (ownFont) {
+            font.dispose();
+        }
     }
 }

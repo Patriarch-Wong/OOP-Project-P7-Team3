@@ -1,7 +1,9 @@
 package io.github.team3engine.game.scenes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -21,8 +23,8 @@ public class MainMenuScene extends BaseScene {
     // UI
     private Skin skin;
 
-    public MainMenuScene(SpriteBatch batch, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager) {
-        super(batch);
+    public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager) {
+        super(batch, sharedFont);
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
@@ -91,11 +93,22 @@ public class MainMenuScene extends BaseScene {
     public void onHide() {
         ioManager.clearEvent("START_GAME");
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+        if (skin != null) {
+            skin.dispose();
+            skin = null;
+        }
+        Stage s = getStage();
+        if (s != null) {
+            s.clear();
+        }
     }
 
     @Override
     public void dispose() {
-        skin.dispose();
+        if (skin != null) {
+            skin.dispose();
+            skin = null;
+        }
         super.dispose();
     }
 }

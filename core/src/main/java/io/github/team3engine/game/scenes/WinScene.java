@@ -1,17 +1,17 @@
 package io.github.team3engine.game.scenes;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
-import io.github.team3engine.engine.scene.SceneType;
 
 public class WinScene extends BaseScene {
     private final SceneManager sceneManager;
 
-    public WinScene(SpriteBatch batch, SceneManager sceneManager) {
-        super(batch);
+    public WinScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager) {
+        super(batch, sharedFont);
         this.sceneManager = sceneManager;
         
         getStage().addListener(new InputListener() {

@@ -1,6 +1,6 @@
 package io.github.team3engine.engine.entity;
 
-import io.github.team3engine.game.entities.MovementInput;
+import io.github.team3engine.engine.interfaces.IMovementInput;
 
 public class MovementManager {
     // Movement configuration
@@ -20,17 +20,14 @@ public class MovementManager {
     private boolean movementEnabled = true;
     private float jumpCooldownRemaining = 0f;
 
-    // CHANGE signature
-    public void applyMovement(Entity entity, MovementInput input, float deltaTime) {
-        if (!movementEnabled) { // if not supposed to move
+    public void applyMovement(Entity entity, IMovementInput input, float deltaTime) {
+        if (!movementEnabled) {
             return;
         }
 
-        // Horizontal movement (player-controlled)
-        // velocityX += input.movementAxis * acceleration * deltaTime;
-        if (Math.abs(input.movementAxis) > 0.01f) {
-            // Accelerate when input is held
-            velocityX += input.movementAxis * acceleration * deltaTime;
+        float axis = input.getMovementAxis();
+        if (Math.abs(axis) > 0.01f) {
+            velocityX += axis * acceleration * deltaTime;
         } else {
             // Decelerate when no input
             if (velocityX > 0) {
@@ -52,8 +49,7 @@ public class MovementManager {
         if (jumpCooldownRemaining < 0f)
             jumpCooldownRemaining = 0f;
 
-        // Jump (allowed when cooldown is ready; can jump mid-air after cooldown)
-        if (input.jump && isGrounded && jumpCooldownRemaining <= 0f) {
+        if (input.isJump() && isGrounded && jumpCooldownRemaining <= 0f) {
             velocityY = jumpForce;
             jumpCooldownRemaining = jumpCooldownDuration;
             isGrounded = false;
@@ -113,6 +109,15 @@ public class MovementManager {
 
     public float getJumpCooldownRemaining() {
         return jumpCooldownRemaining;
+    }
+
+    /** Resets velocity and grounded state (e.g. when switching to a new scene reusing this manager). */
+    public void reset() {
+        velocityX = 0f;
+        velocityY = 0f;
+        isGrounded = true;
+        jumpCooldownRemaining = 0f;
+        movementEnabled = true;
     }
 
     // Utility (private, not part of UML)

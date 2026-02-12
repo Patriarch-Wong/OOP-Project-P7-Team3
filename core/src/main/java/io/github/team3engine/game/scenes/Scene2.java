@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
@@ -13,8 +14,6 @@ import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.entity.MovementManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Renderable;
-import io.github.team3engine.engine.interfaces.Updatable;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.*;
 import io.github.team3engine.game.entities.*;
@@ -30,25 +29,25 @@ public class Scene2 extends BaseScene {
     private Texture platformTex;
     private Circle player;
     private MovementInput movementInput;
-    private Array<Updatable> gameUpdatables;
-    private Array<Renderable> gameRenderables;
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
     private final AudioManager audioManager;
-
-    // managers owned by Scene2
-    private EntityManager entityManager;
-    private CollisionManager collisionManager;
-    private MovementManager movementManager;
+    private final EntityManager entityManager;
+    private final CollisionManager collisionManager;
+    private final MovementManager movementManager;
 
     private PlayerInput playerInput;
 
-    public Scene2(SpriteBatch batch, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager) {
-        super(batch);
+    public Scene2(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager,
+                  EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager) {
+        super(batch, sharedFont);
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
+        this.entityManager = entityManager;
+        this.collisionManager = collisionManager;
+        this.movementManager = movementManager;
     }
 
     @Override
@@ -58,13 +57,11 @@ public class Scene2 extends BaseScene {
 
     @Override
     protected void onShow() {
+        movementManager.reset();
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
 
-        entityManager = new EntityManager();
-        collisionManager = new CollisionManager();
-        movementManager = new MovementManager();
         movementInput = new MovementInput(movementManager, ioManager, playerInput);
 
         float gw = Gdx.graphics.getWidth();
@@ -116,13 +113,6 @@ public class Scene2 extends BaseScene {
         collisionManager.register(p3v);
         collisionManager.register(winBox);
 
-        gameUpdatables = new Array<>();
-        gameUpdatables.add(entityManager);
-        gameUpdatables.add(collisionManager);
-
-        gameRenderables = new Array<>();
-        gameRenderables.add(entityManager);
-
         image = new Texture("libgdx.png");
     }
 
@@ -130,7 +120,12 @@ public class Scene2 extends BaseScene {
     protected void onHide() {
         entityManager.disposeAll();
         collisionManager.clear();
-        ioManager.removeInputListener(playerInput);
+        if (playerInput != null) {
+            ioManager.removeInputListener(playerInput);
+            playerInput = null;
+        }
+        movementInput = null;
+        player = null;
         if (image != null) {
             image.dispose();
             image = null;

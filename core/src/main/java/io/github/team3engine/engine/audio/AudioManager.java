@@ -17,12 +17,14 @@ public class AudioManager {
     private Map<String, Audio> soundLibrary = new HashMap<>();
     private Audio currentMusic;
 
-    public void loadGameSounds() {
-        findAudio("walk.mp3");
-        findAudio("jump.mp3");
-        findAudio("collide.mp3");
-        findAudio("victory.mp3");
-        findAudio("bullet_hit.mp3");
+    /**
+     * Preload sounds by id. Which assets to load is decided by the game layer;
+     * call this with the sound ids your game uses (e.g. from Main).
+     */
+    public void preload(String... ids) {
+        for (String id : ids) {
+            findAudio(id);
+        }
     }
 
     // --- Getters

@@ -72,6 +72,26 @@ public class SceneManager {
         return paused;
     }
 
+    /**
+     * Updates the current scene (UML: SceneManager.update(deltaTime)).
+     */
+    public void update(float deltaTime) {
+        BaseScene current = getCurrentScene();
+        if (current != null) {
+            current.update(deltaTime);
+        }
+    }
+
+    /**
+     * Renders the current scene (UML: SceneManager.render()).
+     */
+    public void render(float delta) {
+        BaseScene current = getCurrentScene();
+        if (current != null) {
+            current.render(delta);
+        }
+    }
+
     public void disposeAll() {
         for (BaseScene scene : scenes.values()) {
             if (scene != null) {

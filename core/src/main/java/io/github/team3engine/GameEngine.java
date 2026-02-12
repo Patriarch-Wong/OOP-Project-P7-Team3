@@ -1,5 +1,7 @@
 package io.github.team3engine;
 
+import com.badlogic.gdx.Gdx;
+
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.entity.EntityManager;
@@ -8,8 +10,9 @@ import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.SceneManager;
 
 /**
- * Holds all managers for the game engine. Main (or other scenes) creates the world
- * and runs the loop using these managers via the getters.
+ * Generic central orchestrator of the game engine. Holds all core managers and
+ * provides init/start/stop and game loop update/render. Event wiring is done
+ * by the game layer (e.g. Main), not here.
  */
 public class GameEngine {
     private SceneManager sceneManager;
@@ -36,6 +39,22 @@ public class GameEngine {
     public void start() {}
 
     public void stop() {}
+
+    /**
+     * Update step of the game loop (UML: update(deltaTime)). Delegates to IOManager and SceneManager.
+     */
+    public void update(float deltaTime) {
+        if (ioManager != null) ioManager.update(deltaTime);
+        if (sceneManager != null) sceneManager.update(deltaTime);
+    }
+
+    /**
+     * Render step of the game loop. Delegates to SceneManager.
+     */
+    public void render() {
+        float delta = Gdx.graphics.getDeltaTime();
+        if (sceneManager != null) sceneManager.render(delta);
+    }
 
     /**
      * Dispose managers owned by the engine (entities, scene, audio, IO, collision).
