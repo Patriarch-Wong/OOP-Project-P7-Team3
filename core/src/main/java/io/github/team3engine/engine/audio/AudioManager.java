@@ -1,81 +1,40 @@
 package io.github.team3engine.engine.audio;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Manages the game's audio system. 
+ */
 public class AudioManager {
     // Volume levels (0.0 to 1.0)
     private float masterVolume = 1.0f;
     private float musicVolume = 0.3f;
     private float sfxVolume = 1.0f;
     private boolean isMuted = false;
-    
+
+    private Map<String, Audio> soundLibrary = new HashMap<>();
+    private Audio currentMusic;
+
     public void loadGameSounds() {
-        findClip("walk.mp3");
-        findClip("jump.mp3");
-        findClip("collide.mp3");
-        findClip("victory.mp3");
-        findClip("bullet_hit.mp3");
-    }
-    
-    public float getMasterVolume() {
-        return this.masterVolume;
-    }
-    
-    public float getMusicVolume() {
-        return this.musicVolume;
+        findAudio("walk.mp3");
+        findAudio("jump.mp3");
+        findAudio("collide.mp3");
+        findAudio("victory.mp3");
+        findAudio("bullet_hit.mp3");
     }
 
-    public float getSFXVolume() {
-        return this.sfxVolume;
-    }
+    // --- Getters
+    public float getMasterVolume() { return this.masterVolume; }
+    public float getMusicVolume() { return this.musicVolume; }
+    public float getSFXVolume() { return this.sfxVolume; }
 
-    // Library for SFX and reference for current background music
-    private Map<String, Sound> soundLibrary = new HashMap<>();
-    private Music currentMusic;
-
-    // + play(id: String): void
-    public void play(String id) {
-        Sound sound = findClip(id);
-        if (sound != null && !isMuted) {
-            // Plays sound at the specific SFX volume level
-            sound.play(sfxVolume * masterVolume);
-        }
-    }
-
-    // + playMusic(name: String, loop: boolean): void
-    public void playMusic(String name, boolean loop) {
-        if (currentMusic != null) {
-            currentMusic.stop();
-            currentMusic.dispose();
-        }
-
-        try {
-            currentMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/" + name));
-            currentMusic.setLooping(loop);
-            currentMusic.setVolume(isMuted ? 0 : musicVolume * masterVolume);
-            currentMusic.play();
-        } catch (Exception e) {
-            System.err.println("Error loading music: " + name);
-        }
-    }
-
-    // + stopMusic(): void
-    public void stopMusic() {
-        if (currentMusic != null) {
-            currentMusic.stop();
-        }
-    }
-
-    // Volume Setters
+    // --- Setters ---
     public void setMasterVolume(float volume) {
         this.masterVolume = volume;
         updateMusicVolume();
     }
-    
 
     public void setMusicVolume(float volume) {
         this.musicVolume = volume;
@@ -86,7 +45,35 @@ public class AudioManager {
         this.sfxVolume = volume;
     }
 
-    // + toggleMute(): void
+    // --- Core Logic ---
+    public void play(String id) {
+        Audio audio = findAudio(id);
+        if (audio != null && !isMuted) {
+            audio.setVolume(sfxVolume * masterVolume);
+            audio.play();
+        }
+    }
+
+    public void playMusic(String name, boolean loop) {
+        if (currentMusic != null) {
+            currentMusic.stop();
+        }
+        try {
+            com.badlogic.gdx.audio.Music rawMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/" + name));
+            MusicAudio musicWrap = new MusicAudio(name, rawMusic);
+            musicWrap.setLooping(loop);
+            currentMusic = musicWrap;
+            updateMusicVolume();
+            currentMusic.play();
+        } catch (Exception e) {
+            System.err.println("Error loading music: " + name);
+        }
+    }
+
+    public void stopMusic() {
+        if (currentMusic != null) currentMusic.stop();
+    }
+
     public void toggleMute() {
         this.isMuted = !isMuted;
         updateMusicVolume();
@@ -98,30 +85,52 @@ public class AudioManager {
         }
     }
 
-    // # findClip(name: String): Sound
-    public Sound findClip(String name) {
+    protected Audio findAudio(String name) {
         if (!soundLibrary.containsKey(name)) {
             try {
-                Sound newSound = Gdx.audio.newSound(Gdx.files.internal("audio/" + name));
-                soundLibrary.put(name, newSound);
+                com.badlogic.gdx.audio.Sound rawSound = Gdx.audio.newSound(Gdx.files.internal("audio/" + name));
+                soundLibrary.put(name, new SfxAudio(name, rawSound));
             } catch (Exception e) {
-                System.err.println("Could not load SFX: " + name + ". Check file format!");
+                System.err.println("Could not load SFX: " + name);
                 return null;
             }
         }
         return soundLibrary.get(name);
     }
 
-    /** Release all loaded sounds and music. Call when shutting down to avoid native leaks. */
     public void dispose() {
         if (currentMusic != null) {
             currentMusic.stop();
-            currentMusic.dispose();
-            currentMusic = null;
-        }
-        for (Sound sound : soundLibrary.values()) {
-            if (sound != null) sound.dispose();
         }
         soundLibrary.clear();
+    }
+
+
+    private static class SfxAudio extends Audio {
+        private final com.badlogic.gdx.audio.Sound gdxSound;
+        public SfxAudio(String id, com.badlogic.gdx.audio.Sound sound) {
+            this.id = id;
+            this.gdxSound = sound;
+        }
+        @Override public void play() { gdxSound.play(volume); }
+        @Override public void stop() { gdxSound.stop(); }
+        @Override public void pause() { gdxSound.pause(); }
+        @Override public void setVolume(float v) { this.volume = v; }
+    }
+
+    private static class MusicAudio extends Audio {
+        private final com.badlogic.gdx.audio.Music gdxMusic;
+        public MusicAudio(String id, com.badlogic.gdx.audio.Music music) {
+            this.id = id;
+            this.gdxMusic = music;
+        }
+        public void setLooping(boolean loop) { gdxMusic.setLooping(loop); }
+        @Override public void play() { gdxMusic.play(); }
+        @Override public void stop() { gdxMusic.stop(); }
+        @Override public void pause() { gdxMusic.pause(); }
+        @Override public void setVolume(float v) { 
+            this.volume = v; 
+            gdxMusic.setVolume(v);
+        }
     }
 }
