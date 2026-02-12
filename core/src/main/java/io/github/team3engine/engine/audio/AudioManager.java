@@ -2,6 +2,7 @@ package io.github.team3engine.engine.audio;
 
 import com.badlogic.gdx.Gdx;
 import io.github.team3engine.engine.interfaces.Disposable;
+import io.github.team3engine.engine.interfaces.VolumeControl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.Map;
 /**
  * Manages the game's audio system.
  */
-public class AudioManager implements Disposable {
+public class AudioManager implements Disposable, VolumeControl {
     // Volume levels (0.0 to 1.0)
     private float masterVolume = 1.0f;
     private float musicVolume = 0.3f;

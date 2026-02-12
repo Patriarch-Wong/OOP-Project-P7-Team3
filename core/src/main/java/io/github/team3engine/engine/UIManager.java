@@ -8,18 +8,18 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.interfaces.Updatable;
+import io.github.team3engine.engine.interfaces.VolumeControl;
 
 public class UIManager implements Updatable {
     private Stage stage;
     private Skin skin;
     private Table rootTable;
     private Window pauseWindow;
-    private AudioManager audioManager;
+    private VolumeControl volumeControl;
 
-    public UIManager(AudioManager audioManager) {
-        this.audioManager = audioManager;
+    public UIManager(VolumeControl volumeControl) {
+        this.volumeControl = volumeControl;
         this.stage = new Stage(new ScreenViewport());
         
         // Setup Skin with the Font Fix
@@ -56,17 +56,17 @@ public class UIManager implements Updatable {
         window.add(new Label(labelName, skin)).left().pad(10);
         final Slider slider = new Slider(0, 1, 0.1f, false, skin);
         
-        // Set initial value from AudioManager
-        if (type.equals("master")) slider.setValue(audioManager.getMasterVolume());
-        else if (type.equals("music")) slider.setValue(audioManager.getMusicVolume());
-        else slider.setValue(audioManager.getSFXVolume());
+        // Set initial value from volume control
+        if (type.equals("master")) slider.setValue(volumeControl.getMasterVolume());
+        else if (type.equals("music")) slider.setValue(volumeControl.getMusicVolume());
+        else slider.setValue(volumeControl.getSFXVolume());
 
         slider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (type.equals("master")) audioManager.setMasterVolume(slider.getValue());
-                else if (type.equals("music")) audioManager.setMusicVolume(slider.getValue());
-                else audioManager.setSFXVolume(slider.getValue());
+                if (type.equals("master")) volumeControl.setMasterVolume(slider.getValue());
+                else if (type.equals("music")) volumeControl.setMusicVolume(slider.getValue());
+                else volumeControl.setSFXVolume(slider.getValue());
             }
         });
         window.add(slider).width(200).row();
