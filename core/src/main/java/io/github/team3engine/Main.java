@@ -88,6 +88,10 @@ public class Main extends ApplicationAdapter {
             sceneManager.setPaused(false);
             uiManager.toggleMenu(false);
             ioManager.setActive(true);
+            // Restore the current scene's input processor so game input works again
+            if (sceneManager.getCurrentScene() != null) {
+                Gdx.input.setInputProcessor(sceneManager.getCurrentScene().getInputProcessor());
+            }
         });
 
         audioManager.preload("walk.mp3", "jump.mp3", "collide.mp3", "victory.mp3", "bullet_hit.mp3");
@@ -111,12 +115,16 @@ public class Main extends ApplicationAdapter {
             }
         }
 
+        if (!isPaused) {
+            engine.update(deltaTime);
+        }
+        // Always render the current scene; when paused use 0 delta so nothing advances (frozen frame)
+        if (sceneManager.getCurrentScene() != null) {
+            sceneManager.getCurrentScene().render(isPaused ? 0 : deltaTime);
+        }
         if (isPaused) {
             uiManager.update(deltaTime);
             uiManager.draw();
-        } else {
-            engine.update(deltaTime);
-            engine.render();
         }
     }
 

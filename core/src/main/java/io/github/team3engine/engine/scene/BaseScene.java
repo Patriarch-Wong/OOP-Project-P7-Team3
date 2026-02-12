@@ -71,6 +71,11 @@ public abstract class BaseScene implements Screen, Updatable {
         return getStage();
     }
 
+    /** Returns the input processor for this scene. Used when restoring input after unpause. */
+    public InputProcessor getInputProcessor() {
+        return getInputProcessorForScene();
+    }
+
     @Override
     public void show() {
         if (!ownFont) {
