@@ -7,9 +7,10 @@ import java.util.Map;
 
 import com.badlogic.gdx.InputProcessor;
 
+import io.github.team3engine.engine.interfaces.Disposable;
 import io.github.team3engine.engine.interfaces.Updatable;
 
-public class IOManager implements InputProcessor, Updatable {
+public class IOManager implements InputProcessor, Updatable, Disposable {
     private List<InputListener> inputListeners = new ArrayList<>();
     private Map<String, List<Runnable>> eventCallbacks = new HashMap<String, List<Runnable>>();
     private boolean isActive; // useed when not taking input(eg paused)

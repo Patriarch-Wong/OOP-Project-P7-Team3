@@ -1,9 +1,9 @@
 package io.github.team3engine.engine.collision;
 
 import com.badlogic.gdx.utils.Array;
-import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.interfaces.Collidable;
+import io.github.team3engine.engine.interfaces.Disposable;
 import io.github.team3engine.engine.interfaces.Updatable;
 
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CollisionManager implements Updatable {
+public class CollisionManager implements Updatable, Disposable {
     private boolean enabled = true;
     private final Map<Collidable, Integer> layers = new HashMap<>();
     private float soundTimer = 0; // Tracks elapsed time
@@ -53,6 +53,11 @@ public class CollisionManager implements Updatable {
     /** Clear all registered collidables to release references (e.g. on shutdown). */
     public void clear() {
         layers.clear();
+    }
+
+    @Override
+    public void dispose() {
+        clear();
     }
 
     public Array<Collidable[]> checkCollisions() {

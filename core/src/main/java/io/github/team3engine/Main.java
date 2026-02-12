@@ -118,10 +118,7 @@ public class Main extends ApplicationAdapter {
         if (!isPaused) {
             engine.update(deltaTime);
         }
-        // Always render the current scene; when paused use 0 delta so nothing advances (frozen frame)
-        if (sceneManager.getCurrentScene() != null) {
-            sceneManager.getCurrentScene().render(isPaused ? 0 : deltaTime);
-        }
+        engine.render(isPaused ? 0 : deltaTime);
         if (isPaused) {
             uiManager.update(deltaTime);
             uiManager.draw();

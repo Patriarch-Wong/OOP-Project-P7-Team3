@@ -3,12 +3,16 @@ package io.github.team3engine.engine.scene;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.team3engine.engine.interfaces.Disposable;
+import io.github.team3engine.engine.interfaces.FrameRenderable;
+import io.github.team3engine.engine.interfaces.Updatable;
+
 /**
  * Generic scene manager for the game engine. Holds scenes by string id,
  * manages the current scene, and handles show/hide on transition. Game-specific
  * scene creation and event wiring belong in the game (e.g. Main), not here.
  */
-public class SceneManager {
+public class SceneManager implements Updatable, FrameRenderable, Disposable {
     private static SceneManager instance;
 
     private final Map<String, BaseScene> scenes = new HashMap<>();
@@ -72,9 +76,7 @@ public class SceneManager {
         return paused;
     }
 
-    /**
-     * Updates the current scene (UML: SceneManager.update(deltaTime)).
-     */
+    @Override
     public void update(float deltaTime) {
         BaseScene current = getCurrentScene();
         if (current != null) {
@@ -82,9 +84,7 @@ public class SceneManager {
         }
     }
 
-    /**
-     * Renders the current scene (UML: SceneManager.render()).
-     */
+    @Override
     public void render(float delta) {
         BaseScene current = getCurrentScene();
         if (current != null) {
@@ -100,5 +100,10 @@ public class SceneManager {
         }
         scenes.clear();
         currentSceneId = null;
+    }
+
+    @Override
+    public void dispose() {
+        disposeAll();
     }
 }

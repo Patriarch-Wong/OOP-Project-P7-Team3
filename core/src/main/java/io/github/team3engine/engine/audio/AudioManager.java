@@ -1,13 +1,15 @@
 package io.github.team3engine.engine.audio;
 
 import com.badlogic.gdx.Gdx;
+import io.github.team3engine.engine.interfaces.Disposable;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Manages the game's audio system. 
+ * Manages the game's audio system.
  */
-public class AudioManager {
+public class AudioManager implements Disposable {
     // Volume levels (0.0 to 1.0)
     private float masterVolume = 1.0f;
     private float musicVolume = 0.3f;
@@ -100,6 +102,7 @@ public class AudioManager {
         return soundLibrary.get(name);
     }
 
+    @Override
     public void dispose() {
         if (currentMusic != null) {
             currentMusic.stop();

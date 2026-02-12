@@ -3,10 +3,11 @@ package io.github.team3engine.engine.entity;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
+import io.github.team3engine.engine.interfaces.Disposable;
 import io.github.team3engine.engine.interfaces.Renderable;
 import io.github.team3engine.engine.interfaces.Updatable;
 
-public class EntityManager implements Renderable, Updatable {
+public class EntityManager implements Renderable, Updatable, Disposable {
     private Array<Entity> entities;
     private Array<Entity> pendingAdd;
     private Array<Entity> pendingRemove;
@@ -136,5 +137,10 @@ public class EntityManager implements Renderable, Updatable {
         entities.clear();
         pendingAdd.clear();
         pendingRemove.clear();
+    }
+
+    @Override
+    public void dispose() {
+        disposeAll();
     }
 }

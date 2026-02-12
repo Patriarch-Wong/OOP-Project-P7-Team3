@@ -1,20 +1,29 @@
 package io.github.team3engine;
 
-import com.badlogic.gdx.Gdx;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.entity.MovementManager;
+import io.github.team3engine.engine.interfaces.Disposable;
+import io.github.team3engine.engine.interfaces.FrameRenderable;
+import io.github.team3engine.engine.interfaces.Updatable;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.SceneManager;
 
 /**
- * Generic central orchestrator of the game engine. Holds all core managers and
- * provides init/start/stop and game loop update/render. Event wiring is done
+ * Generic central orchestrator of the game engine. Holds all core managers,
+ * registers them by interface (Updatable, FrameRenderable, Disposable), and
+ * drives update/render/dispose by iterating those lists. Event wiring is done
  * by the game layer (e.g. Main), not here.
  */
 public class GameEngine {
+    private final List<Updatable> updatables = new ArrayList<>();
+    private final List<FrameRenderable> frameRenderables = new ArrayList<>();
+    private final List<Disposable> disposables = new ArrayList<>();
+
     private SceneManager sceneManager;
     private EntityManager entityManager;
     private MovementManager movementManager;
@@ -25,7 +34,7 @@ public class GameEngine {
     public GameEngine() {}
 
     /**
-     * Initialize and wire the managers only. Does not create entities or world.
+     * Initialize and wire the managers only; register them for update/render/dispose.
      */
     public void init() {
         audioManager = new AudioManager();
@@ -34,6 +43,17 @@ public class GameEngine {
         movementManager = new MovementManager();
         collisionManager = new CollisionManager();
         sceneManager = SceneManager.getInstance();
+
+        updatables.add(ioManager);
+        updatables.add(sceneManager);
+
+        frameRenderables.add(sceneManager);
+
+        disposables.add(sceneManager);
+        disposables.add(collisionManager);
+        disposables.add(entityManager);
+        disposables.add(ioManager);
+        disposables.add(audioManager);
     }
 
     public void start() {}
@@ -41,30 +61,30 @@ public class GameEngine {
     public void stop() {}
 
     /**
-     * Update step of the game loop (UML: update(deltaTime)). Delegates to IOManager and SceneManager.
+     * Update step: call update(deltaTime) on every registered Updatable.
      */
     public void update(float deltaTime) {
-        if (ioManager != null) ioManager.update(deltaTime);
-        if (sceneManager != null) sceneManager.update(deltaTime);
+        for (Updatable u : updatables) {
+            u.update(deltaTime);
+        }
     }
 
     /**
-     * Render step of the game loop. Delegates to SceneManager.
+     * Render step: call render(deltaTime) on every registered FrameRenderable.
      */
-    public void render() {
-        float delta = Gdx.graphics.getDeltaTime();
-        if (sceneManager != null) sceneManager.render(delta);
+    public void render(float deltaTime) {
+        for (FrameRenderable r : frameRenderables) {
+            r.render(deltaTime);
+        }
     }
 
     /**
-     * Dispose managers owned by the engine (entities, scene, audio, IO, collision).
+     * Dispose: call dispose() on every registered Disposable.
      */
     public void dispose() {
-        if (ioManager != null) ioManager.dispose();
-        if (entityManager != null) entityManager.disposeAll();
-        if (collisionManager != null) collisionManager.clear();
-        if (sceneManager != null) sceneManager.disposeAll();
-        if (audioManager != null) audioManager.dispose();
+        for (Disposable d : disposables) {
+            d.dispose();
+        }
     }
 
     public SceneManager getSceneManager() { return sceneManager; }
