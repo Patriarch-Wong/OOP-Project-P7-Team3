@@ -58,10 +58,12 @@ public class Main extends ApplicationAdapter {
 
         // Game-specific event wiring (engine only provides IOManager.registerEvent)
         ioManager.registerEvent("PLAYER_WIN", () -> {
+            Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
             String next = SceneType.SCENE_1.name().equals(sceneManager.getCurrentSceneId())
                     ? SceneType.SCENE_2.name()
                     : SceneType.SCENE_1.name();
+            Gdx.app.log("Game", "Switching to " + next);
             Gdx.app.postRunnable(() -> sceneManager.setScene(next));
         });
         ioManager.registerEvent("PLAYER_MOVING", () -> {
@@ -78,12 +80,14 @@ public class Main extends ApplicationAdapter {
         });
         ioManager.registerEvent("PLAYER_JUMP", () -> audioManager.play("jump.mp3"));
         ioManager.registerEvent("GAME_PAUSE", () -> {
+            Gdx.app.log("Game", "Game paused");
             isPaused = true;
             sceneManager.setPaused(true);
             uiManager.toggleMenu(true);
             ioManager.setActive(false);
         });
         ioManager.registerEvent("GAME_UNPAUSE", () -> {
+            Gdx.app.log("Game", "Game resumed");
             isPaused = false;
             sceneManager.setPaused(false);
             uiManager.toggleMenu(false);

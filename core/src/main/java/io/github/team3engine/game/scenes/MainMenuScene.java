@@ -71,7 +71,10 @@ public class MainMenuScene extends BaseScene {
         // endregion
 
         // register events
-        ioManager.registerEvent("START_GAME", () -> sceneManager.setScene(SceneType.SCENE_1.name()));
+        ioManager.registerEvent("START_GAME", () -> {
+            Gdx.app.log("Game", "Starting game - Scene 1");
+            sceneManager.setScene(SceneType.SCENE_1.name());
+        });
     }
 
     @Override
