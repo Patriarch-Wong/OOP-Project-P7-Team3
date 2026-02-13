@@ -146,6 +146,8 @@ public class Scene1 extends BaseScene {
         drawStageAndUI(delta);
 
         movementManager.applyMovement(player, movementInput, delta);
+        // syncs player to prevent falling through other entity like platform
+        player.update(0f);
 
         checkFallCondition();
         checkGroundDetection();

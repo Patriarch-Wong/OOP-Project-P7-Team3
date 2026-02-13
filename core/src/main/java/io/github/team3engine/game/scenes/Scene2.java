@@ -141,6 +141,8 @@ public class Scene2 extends BaseScene {
         delta = Math.min(delta, MAX_DELTA);
         update(delta);
         movementManager.applyMovement(player, movementInput, delta);
+        // syncs player to prevent falling through other entity like platform
+        player.update(0f);
 
         checkFallCondition();
         checkGroundDetection();
