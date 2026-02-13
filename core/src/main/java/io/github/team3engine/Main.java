@@ -9,7 +9,7 @@ import io.github.team3engine.engine.UIManager;
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.entity.EntityManager;
-import io.github.team3engine.engine.entity.MovementManager;
+import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.scenes.*;

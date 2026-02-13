@@ -1,5 +1,6 @@
-package io.github.team3engine.engine.entity;
+package io.github.team3engine.engine.movement;
 
+import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.interfaces.IMovementInput;
 
 public class MovementManager {

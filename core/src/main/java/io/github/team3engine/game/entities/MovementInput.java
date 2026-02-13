@@ -1,6 +1,6 @@
 package io.github.team3engine.game.entities;
 
-import io.github.team3engine.engine.entity.MovementManager;
+import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.interfaces.IMovementInput;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.game.inputs.PlayerInput;

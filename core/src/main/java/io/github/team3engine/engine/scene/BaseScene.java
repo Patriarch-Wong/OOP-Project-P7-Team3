@@ -12,13 +12,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
 /**
- * Generic scene base for the engine. Any game can extend this to define its own
- * scenes. Provides:
- * <ul>
- *   <li>Shared batch and font (subclasses may change {@link #font} color/size)</li>
- *   <li>Optional lazy Stage for UI (only created if {@link #getStage()} is used)</li>
- *   <li>Template render: clear screen (color from {@link #getClearColorR/G/B/A()}) → Stage (if any) → {@link #renderUI()}</li>
- * </ul>
+ * Generic scene base for the engine.
  * Override as needed: {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
  * {@link #update(float)}, or override {@link #render(float)} for a fully custom loop.
  */

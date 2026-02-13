@@ -6,7 +6,7 @@ import java.util.List;
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.entity.EntityManager;
-import io.github.team3engine.engine.entity.MovementManager;
+import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.interfaces.Disposable;
 import io.github.team3engine.engine.interfaces.FrameRenderable;
 import io.github.team3engine.engine.interfaces.Updatable;
