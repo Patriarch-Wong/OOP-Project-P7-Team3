@@ -60,27 +60,22 @@ public class GameEngine {
 
     public void stop() {}
 
-    /**
-     * Update step: call update(deltaTime) on every registered Updatable.
-     */
+    //call update(deltaTime) on every registered Updatable.
     public void update(float deltaTime) {
         for (Updatable u : updatables) {
             u.update(deltaTime);
         }
     }
 
-    /**
-     * Render step: call render(deltaTime) on every registered FrameRenderable.
-     */
+    //call render(deltaTime) on every registered FrameRenderable.
+
     public void render(float deltaTime) {
         for (FrameRenderable r : frameRenderables) {
             r.render(deltaTime);
         }
     }
 
-    /**
-     * Dispose: call dispose() on every registered Disposable.
-     */
+    //call dispose() on every registered Disposable.
     public void dispose() {
         for (Disposable d : disposables) {
             d.dispose();

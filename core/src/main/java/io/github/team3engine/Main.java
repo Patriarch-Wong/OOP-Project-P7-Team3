@@ -15,9 +15,8 @@ import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.scenes.*;
 
 /**
- * Entry point: initializes the GameEngine and uses its managers to register
- * scenes, wire game-specific events, and run the loop. Event wiring stays
- * in the game layer so the engine remains generic.
+ * Initializes the GameEngine and uses its managers to register
+ * scenes, wire game-specific events, and run the loop. 
  */
 public class Main extends ApplicationAdapter {
     private GameEngine engine;
@@ -46,17 +45,16 @@ public class Main extends ApplicationAdapter {
 
         uiManager = new UIManager(audioManager);
 
-        // Register scenes; game levels share engine's single set of managers (no per-scene allocation)
+        // Register scenes; game levels share engine's set of managers
         sceneManager.registerScene(SceneType.MAIN_MENU_SCENE.name(),
                 new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager));
         sceneManager.registerScene(SceneType.SCENE_1.name(),
                 new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager));
         sceneManager.registerScene(SceneType.SCENE_2.name(),
                 new Scene2(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager));
-        sceneManager.registerScene(SceneType.WIN_SCENE.name(), new WinScene(batch, sharedFont, sceneManager));
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
 
-        // Game-specific event wiring (engine only provides IOManager.registerEvent)
+        // Game-specific event wiring
         ioManager.registerEvent("PLAYER_WIN", () -> {
             Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
@@ -92,7 +90,7 @@ public class Main extends ApplicationAdapter {
             sceneManager.setPaused(false);
             uiManager.toggleMenu(false);
             ioManager.setActive(true);
-            // Restore the current scene's input processor so game input works again
+            // Restore the current scene's input processor 
             if (sceneManager.getCurrentScene() != null) {
                 Gdx.input.setInputProcessor(sceneManager.getCurrentScene().getInputProcessor());
             }

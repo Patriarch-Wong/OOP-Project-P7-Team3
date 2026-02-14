@@ -19,9 +19,7 @@ import io.github.team3engine.engine.scene.*;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.inputs.PlayerInput;
 
-/**
- * Inverse of Scene1: mirrored layout. Winning here returns to Scene1.
- */
+//Inverse layout of scene1
 public class Scene2 extends BaseScene {
     private static final float MAX_DELTA = 0.1f;
 
@@ -73,7 +71,7 @@ public class Scene2 extends BaseScene {
         entityManager.addEntity(bucket);
 
         // Default spawn (same as Scene1): center of screen
-        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, playerInput, ioManager);
+        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, ioManager);
         entityManager.addEntity(player);
 
         float bulletX = gw * 0.5f;

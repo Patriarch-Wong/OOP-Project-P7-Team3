@@ -10,11 +10,10 @@ import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.engine.io.IOManager;
-import io.github.team3engine.game.inputs.PlayerInput;
 
 /**
  * A collidable entity with a circular shape.
- * Handles WASD / arrow key movement itself.
+ * Movement is driven by the engine (MovementManager + MovementInput), not by this entity.
  * The hitbox is the axis-aligned bounding box of the circle for compatibility
  * with the existing collision system.
  */
@@ -25,7 +24,6 @@ public class Circle extends CollidableEntity {
     protected final com.badlogic.gdx.math.Circle circle;
     protected final ShapeRenderer shapeRenderer;
     protected Color color;
-    private PlayerInput playerInput;
     private IOManager io;
 
     public Circle(String id, float radius) {
@@ -38,9 +36,8 @@ public class Circle extends CollidableEntity {
         updateHitbox();
     }
 
-    public Circle(String id, float x, float y, float radius, PlayerInput playerInput, IOManager io) {
+    public Circle(String id, float x, float y, float radius, IOManager io) {
         this(id, radius);
-        this.playerInput = playerInput;
         this.io = io;
         setPos(x, y);
         updateHitbox();

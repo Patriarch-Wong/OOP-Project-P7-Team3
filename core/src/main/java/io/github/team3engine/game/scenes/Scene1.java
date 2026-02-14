@@ -69,7 +69,7 @@ public class Scene1 extends BaseScene {
         Bucket bucket = new Bucket("bucket", gw / 2f, 20f);
         entityManager.addEntity(bucket);
 
-        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, playerInput, ioManager);
+        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, ioManager);
         entityManager.addEntity(player);
 
         float bulletX = gw * 0.5f;

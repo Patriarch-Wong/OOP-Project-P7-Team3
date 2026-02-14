@@ -30,9 +30,7 @@ public abstract class CollidableEntity extends Entity implements Collidable {
         return hitbox;
     }
 
-    // Typically updates hitbox position to match entity position
-    // Assuming hitbox needs to be centered or at position
-    // For now, setting it to position.x, position.y
+    // updates hitbox position to match entity position
     protected void updateHitbox() {
         hitbox.setPosition(position.x, position.y);
         System.out.println("Hitbox updated to position: " + position.x + ", " + position.y);
