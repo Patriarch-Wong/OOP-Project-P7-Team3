@@ -2,8 +2,8 @@ package io.github.team3engine.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Screen;
@@ -12,9 +12,8 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
 /**
- * Generic scene base for the engine.
- * Override as needed: {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
- * {@link #update(float)}, or override {@link #render(float)} for a fully custom loop.
+ * Generic scene base. Override {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
+ * {@link #update(float)}, or {@link #render(float)} as needed.
  */
 public abstract class BaseScene implements Screen, Updatable {
     protected final SpriteBatch batch;
@@ -35,18 +34,13 @@ public abstract class BaseScene implements Screen, Updatable {
             this.ownFont = true;
         }
         if (ownFont) {
-            this.font.setColor(getDefaultFontColor());
+            this.font.setColor(Color.WHITE);
         }
     }
 
     /** Creates and owns a BitmapFont (one per scene). Prefer {@link #BaseScene(SpriteBatch, BitmapFont)} with a shared font for lower memory. */
     public BaseScene(SpriteBatch batch) {
         this(batch, null);
-    }
-
-    /** Override to change the default font color (default: white). */
-    protected Color getDefaultFontColor() {
-        return Color.WHITE;
     }
 
     /**
@@ -73,7 +67,7 @@ public abstract class BaseScene implements Screen, Updatable {
     @Override
     public void show() {
         if (!ownFont) {
-            font.setColor(getDefaultFontColor());
+            font.setColor(Color.WHITE);
         }
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
@@ -105,19 +99,11 @@ public abstract class BaseScene implements Screen, Updatable {
     @Override
     public void update(float delta) {}
 
-    /** Override to change clear color (default: black). */
-    protected float getClearColorR() { return 0f; }
-    protected float getClearColorG() { return 0f; }
-    protected float getClearColorB() { return 0f; }
-    protected float getClearColorA() { return 1f; }
-
-    /** Clears the screen using {@link #getClearColorR/G/B/A()}. Use from render() when overriding. */
+    /** Clears the screen. No args = black; use overload for custom color when overriding render(). */
     protected final void clearScreen() {
-        Gdx.gl.glClearColor(getClearColorR(), getClearColorG(), getClearColorB(), getClearColorA());
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        clearScreen(0f, 0f, 0f, 1f);
     }
 
-    /** Clears the screen to the given color. Use from render() when overriding. */
     protected final void clearScreen(float r, float g, float b, float a) {
         Gdx.gl.glClearColor(r, g, b, a);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);

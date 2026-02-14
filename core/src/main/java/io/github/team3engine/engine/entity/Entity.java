@@ -3,11 +3,10 @@ package io.github.team3engine.engine.entity;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-import io.github.team3engine.engine.interfaces.Identifiable;
 import io.github.team3engine.engine.interfaces.Renderable;
 import io.github.team3engine.engine.interfaces.Updatable;
 
-public abstract class Entity implements Updatable, Renderable, Identifiable{
+public abstract class Entity implements Updatable, Renderable {
     private String id;
     private boolean active;
     private boolean destroyed;
