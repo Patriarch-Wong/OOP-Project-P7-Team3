@@ -6,16 +6,16 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
 /**
- * Generic scene base. Override {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
- * {@link #update(float)}, or {@link #render(float)} as needed.
+ * Generic scene base with lifecycle: show/hide (on transition), update/render (each frame), dispose.
+ * Override {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
+ * {@link #update(float)}, or {@link #render(float)} as needed. Not tied to LibGDX {@link com.badlogic.gdx.Screen}.
  */
-public abstract class BaseScene implements Screen, Updatable {
+public abstract class BaseScene implements Updatable {
     protected final SpriteBatch batch;
     protected final BitmapFont font;
     /** True if this scene owns the font and must dispose it. */
@@ -64,7 +64,7 @@ public abstract class BaseScene implements Screen, Updatable {
         return getInputProcessorForScene();
     }
 
-    @Override
+    /** Called when this scene becomes active. Sets input processor and invokes {@link #onShow()}. */
     public void show() {
         if (!ownFont) {
             font.setColor(Color.WHITE);
@@ -76,19 +76,14 @@ public abstract class BaseScene implements Screen, Updatable {
     /** Override for scene-specific setup (e.g. add stage listeners, create entities). */
     protected void onShow() {}
 
-    @Override
+    /** Updates stage viewport on window resize. Call from game layer (e.g. ApplicationListener.resize) if needed. */
     public void resize(int w, int h) {
         if (stage != null) {
             stage.getViewport().update(w, h, true);
         }
     }
 
-    @Override
-    public void pause() {}
-
-    @Override
-    public void resume() {}
-
+    /** Called when this scene is left (e.g. transition to another scene). */
     public void hide() {
         onHide();
     }
@@ -120,7 +115,7 @@ public abstract class BaseScene implements Screen, Updatable {
         batch.end();
     }
 
-    @Override
+    /** Renders this scene (clear + stage + renderUI). Override for custom render. */
     public void render(float delta) {
         clearScreen();
         drawStageAndUI(delta);
@@ -129,7 +124,7 @@ public abstract class BaseScene implements Screen, Updatable {
     /** Draw this scene's UI with the batch already begun. Called from the default {@link #render(float)} after optional Stage. */
     protected abstract void renderUI();
 
-    @Override
+    /** Releases stage and owned font. Call when scene is no longer needed. */
     public void dispose() {
         if (stage != null) {
             stage.dispose();
