@@ -86,16 +86,24 @@ public class Scene2 extends BaseScene {
         float scaleY = gh / 12f;
         platformTex = new Texture(Gdx.files.internal("platform.png"));
 
-        Platform p1 = new Platform("platform_1", 1f * scaleX, 1f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
+        // Mirror platform positions: x -> gw - x - width
+        float p1w = 8f * scaleX, p1h = 1f * scaleY;
+        Platform p1 = new Platform("platform_1", gw - (1f * scaleX) - p1w, 1f * scaleY, p1w, p1h, platformTex);
         entityManager.addEntity(p1);
-        Platform p2 = new Platform("platform_2", 6f * scaleX, 5f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
+        float p2w = 8f * scaleX, p2h = 1f * scaleY;
+        Platform p2 = new Platform("platform_2", gw - (6f * scaleX) - p2w, 5f * scaleY, p2w, p2h, platformTex);
         entityManager.addEntity(p2);
-        Platform p3h = new Platform("platform_3_h", 11f * scaleX, 9f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
-        Platform p3v = new Platform("platform_3_v", 11f * scaleX, 8f * scaleY, 1f * scaleX, 1f * scaleY, platformTex);
+        float p3hw = 8f * scaleX, p3hh = 1f * scaleY;
+        Platform p3h = new Platform("platform_3_h", gw - (11f * scaleX) - p3hw, 9f * scaleY, p3hw, p3hh, platformTex);
+        float p3vw = 1f * scaleX, p3vh = 1f * scaleY;
+        Platform p3v = new Platform("platform_3_v", gw - (11f * scaleX) - p3vw, 8f * scaleY, p3vw, p3vh, platformTex);
         entityManager.addEntity(p3h);
         entityManager.addEntity(p3v);
 
+        // Win box on opposite side (mirrored x); WinBox constructor sets position, so
+        // create then set position
         WinBox winBox = new WinBox("win_box", 50f);
+        winBox.setPos(gw - 550 - 50, 60); // mirrored from Scene1's 550, 60
         entityManager.addEntity(winBox);
 
         collisionManager.register(player);
