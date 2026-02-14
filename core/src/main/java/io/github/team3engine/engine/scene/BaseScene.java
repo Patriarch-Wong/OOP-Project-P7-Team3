@@ -8,25 +8,19 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
-/**
- * Generic scene base with lifecycle: show/hide (on transition), update/render (each frame), dispose.
- * Override {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
- * {@link #update(float)}, or {@link #render(float)} as needed. Not tied to LibGDX {@link com.badlogic.gdx.Screen}.
- */
+//Base scene
+
 public abstract class BaseScene implements Updatable {
     protected final SpriteBatch batch;
 
     private Stage stage;
 
-    /** Generic scene: only needs a batch for drawing. Font/text is a game concern; inject in subclasses if needed. */
+    // batch to draw scene
     public BaseScene(SpriteBatch batch) {
         this.batch = batch;
     }
 
-    /**
-     * Lazy Stage for UI-only scenes (e.g. pause, win). Game scenes that never
-     * call this do not allocate a Stage.
-     */
+    // Stage for UI only scenes
     protected final Stage getStage() {
         if (stage == null) {
             stage = new Stage(new ScreenViewport(), batch);
@@ -34,12 +28,12 @@ public abstract class BaseScene implements Updatable {
         return stage;
     }
 
-    /** Override to use a different input processor when this scene is shown (default: getStage()). */
+    // Override to use a different input processor when this scene is shown
     protected InputProcessor getInputProcessorForScene() {
         return getStage();
     }
 
-    /** Returns the input processor for this scene. Used when restoring input after unpause. */
+    // Returns the input processor for this scene
     public InputProcessor getInputProcessor() {
         return getInputProcessorForScene();
     }
@@ -50,28 +44,28 @@ public abstract class BaseScene implements Updatable {
         onShow();
     }
 
-    /** Override for scene-specific setup (e.g. add stage listeners, create entities). */
+    //override for scene specific setups
     protected void onShow() {}
 
-    /** Updates stage viewport on window resize. Call from game layer (e.g. ApplicationListener.resize) if needed. */
+    //updates for resize
     public void resize(int w, int h) {
         if (stage != null) {
             stage.getViewport().update(w, h, true);
         }
     }
 
-    /** Called when this scene is left (e.g. transition to another scene). */
+    //call when transitioning scene
     public void hide() {
         onHide();
     }
 
-    /** Override for scene-specific cleanup (e.g. clear entities, dispose textures). */
+    // override for scene clean up
     protected void onHide() {}
 
     @Override
     public void update(float delta) {}
 
-    /** Clears the screen. No args = black; use overload for custom color when overriding render(). */
+    //clears scene
     protected final void clearScreen() {
         clearScreen(0f, 0f, 0f, 1f);
     }
@@ -81,7 +75,7 @@ public abstract class BaseScene implements Updatable {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
-    /** Draws stage (if created) then calls {@link #renderUI()}. Use when overriding render() to avoid duplicating batch/renderUI. */
+    //draws scene then renderui
     protected final void drawStageAndUI(float delta) {
         if (stage != null) {
             stage.act(delta);
@@ -92,7 +86,7 @@ public abstract class BaseScene implements Updatable {
         batch.end();
     }
 
-    /** Renders this scene (clear + stage + renderUI). Override for custom render. */
+    // redeners scnee
     public void render(float delta) {
         clearScreen();
         drawStageAndUI(delta);
