@@ -80,14 +80,12 @@ public class Main extends ApplicationAdapter {
         ioManager.registerEvent("GAME_PAUSE", () -> {
             Gdx.app.log("Game", "Game paused");
             isPaused = true;
-            sceneManager.setPaused(true);
             uiManager.toggleMenu(true);
             ioManager.setActive(false);
         });
         ioManager.registerEvent("GAME_UNPAUSE", () -> {
             Gdx.app.log("Game", "Game resumed");
             isPaused = false;
-            sceneManager.setPaused(false);
             uiManager.toggleMenu(false);
             ioManager.setActive(true);
             // Restore the current scene's input processor 
