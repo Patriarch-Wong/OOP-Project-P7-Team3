@@ -35,10 +35,12 @@ public class Scene1 extends BaseScene {
     private final MovementManager movementManager;
 
     private PlayerInput playerInput;
+    private final BitmapFont font;
 
     public Scene1(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager,
                   EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager) {
-        super(batch, sharedFont);
+        super(batch);
+        this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;

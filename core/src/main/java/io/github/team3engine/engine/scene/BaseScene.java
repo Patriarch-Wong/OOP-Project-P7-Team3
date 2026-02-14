@@ -2,9 +2,7 @@ package io.github.team3engine.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -17,30 +15,12 @@ import io.github.team3engine.engine.interfaces.Updatable;
  */
 public abstract class BaseScene implements Updatable {
     protected final SpriteBatch batch;
-    protected final BitmapFont font;
-    /** True if this scene owns the font and must dispose it. */
-    private final boolean ownFont;
 
     private Stage stage;
 
-    /** Uses a shared font; caller must not dispose it. Pass null to create and own a font. */
-    public BaseScene(SpriteBatch batch, BitmapFont sharedFont) {
-        this.batch = batch;
-        if (sharedFont != null) {
-            this.font = sharedFont;
-            this.ownFont = false;
-        } else {
-            this.font = new BitmapFont();
-            this.ownFont = true;
-        }
-        if (ownFont) {
-            this.font.setColor(Color.WHITE);
-        }
-    }
-
-    /** Creates and owns a BitmapFont (one per scene). Prefer {@link #BaseScene(SpriteBatch, BitmapFont)} with a shared font for lower memory. */
+    /** Generic scene: only needs a batch for drawing. Font/text is a game concern; inject in subclasses if needed. */
     public BaseScene(SpriteBatch batch) {
-        this(batch, null);
+        this.batch = batch;
     }
 
     /**
@@ -66,9 +46,6 @@ public abstract class BaseScene implements Updatable {
 
     /** Called when this scene becomes active. Sets input processor and invokes {@link #onShow()}. */
     public void show() {
-        if (!ownFont) {
-            font.setColor(Color.WHITE);
-        }
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
     }
@@ -124,14 +101,11 @@ public abstract class BaseScene implements Updatable {
     /** Draw this scene's UI with the batch already begun. Called from the default {@link #render(float)} after optional Stage. */
     protected abstract void renderUI();
 
-    /** Releases stage and owned font. Call when scene is no longer needed. */
+    /** Releases stage. Call when scene is no longer needed. */
     public void dispose() {
         if (stage != null) {
             stage.dispose();
             stage = null;
-        }
-        if (ownFont) {
-            font.dispose();
         }
     }
 }

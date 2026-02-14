@@ -19,12 +19,14 @@ public class MainMenuScene extends BaseScene {
     private final SceneManager sceneManager;
     private final IOManager ioManager;
     private final AudioManager audioManager;
+    private final BitmapFont font;
 
     // UI
     private Skin skin;
 
     public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager) {
-        super(batch, sharedFont);
+        super(batch);
+        this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;

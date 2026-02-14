@@ -9,9 +9,11 @@ import io.github.team3engine.engine.scene.SceneManager;
 
 public class WinScene extends BaseScene {
     private final SceneManager sceneManager;
+    private final BitmapFont font;
 
     public WinScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager) {
-        super(batch, sharedFont);
+        super(batch);
+        this.font = sharedFont;
         this.sceneManager = sceneManager;
         
         getStage().addListener(new InputListener() {
