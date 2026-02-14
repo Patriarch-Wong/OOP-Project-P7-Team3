@@ -19,9 +19,7 @@ import io.github.team3engine.engine.scene.*;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.inputs.PlayerInput;
 
-/**
- * Inverse of Scene1: mirrored layout. Winning here returns to Scene1.
- */
+//Inverse layout of scene1
 public class Scene2 extends BaseScene {
     private static final float MAX_DELTA = 0.07f;
 
@@ -38,10 +36,12 @@ public class Scene2 extends BaseScene {
     private final MovementManager movementManager;
 
     private PlayerInput playerInput;
+    private final BitmapFont font;
 
     public Scene2(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager,
                   EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager) {
-        super(batch, sharedFont);
+        super(batch);
+        this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
@@ -67,7 +67,7 @@ public class Scene2 extends BaseScene {
         Bucket bucket = new Bucket("bucket", gw / 2f, 20f);
         entityManager.addEntity(bucket);
 
-        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, playerInput, ioManager);
+        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, ioManager);
         entityManager.addEntity(player);
         
         // Reset movement state when scene starts

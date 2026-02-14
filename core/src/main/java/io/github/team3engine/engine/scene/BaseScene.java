@@ -2,51 +2,25 @@ package io.github.team3engine.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
-/**
- * Generic scene base with lifecycle: show/hide (on transition), update/render (each frame), dispose.
- * Override {@link #onShow()}, {@link #onHide()}, {@link #getInputProcessorForScene()},
- * {@link #update(float)}, or {@link #render(float)} as needed. Not tied to LibGDX {@link com.badlogic.gdx.Screen}.
- */
+//Base scene
+
 public abstract class BaseScene implements Updatable {
     protected final SpriteBatch batch;
-    protected final BitmapFont font;
-    /** True if this scene owns the font and must dispose it. */
-    private final boolean ownFont;
 
     private Stage stage;
 
-    /** Uses a shared font; caller must not dispose it. Pass null to create and own a font. */
-    public BaseScene(SpriteBatch batch, BitmapFont sharedFont) {
-        this.batch = batch;
-        if (sharedFont != null) {
-            this.font = sharedFont;
-            this.ownFont = false;
-        } else {
-            this.font = new BitmapFont();
-            this.ownFont = true;
-        }
-        if (ownFont) {
-            this.font.setColor(Color.WHITE);
-        }
-    }
-
-    /** Creates and owns a BitmapFont (one per scene). Prefer {@link #BaseScene(SpriteBatch, BitmapFont)} with a shared font for lower memory. */
+    // batch to draw scene
     public BaseScene(SpriteBatch batch) {
-        this(batch, null);
+        this.batch = batch;
     }
 
-    /**
-     * Lazy Stage for UI-only scenes (e.g. pause, win). Game scenes that never
-     * call this do not allocate a Stage.
-     */
+    // Stage for UI only scenes
     protected final Stage getStage() {
         if (stage == null) {
             stage = new Stage(new ScreenViewport(), batch);
@@ -54,47 +28,44 @@ public abstract class BaseScene implements Updatable {
         return stage;
     }
 
-    /** Override to use a different input processor when this scene is shown (default: getStage()). */
+    // Override to use a different input processor when this scene is shown
     protected InputProcessor getInputProcessorForScene() {
         return getStage();
     }
 
-    /** Returns the input processor for this scene. Used when restoring input after unpause. */
+    // Returns the input processor for this scene
     public InputProcessor getInputProcessor() {
         return getInputProcessorForScene();
     }
 
     /** Called when this scene becomes active. Sets input processor and invokes {@link #onShow()}. */
     public void show() {
-        if (!ownFont) {
-            font.setColor(Color.WHITE);
-        }
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
     }
 
-    /** Override for scene-specific setup (e.g. add stage listeners, create entities). */
+    //override for scene specific setups
     protected void onShow() {}
 
-    /** Updates stage viewport on window resize. Call from game layer (e.g. ApplicationListener.resize) if needed. */
+    //updates for resize
     public void resize(int w, int h) {
         if (stage != null) {
             stage.getViewport().update(w, h, true);
         }
     }
 
-    /** Called when this scene is left (e.g. transition to another scene). */
+    //call when transitioning scene
     public void hide() {
         onHide();
     }
 
-    /** Override for scene-specific cleanup (e.g. clear entities, dispose textures). */
+    // override for scene clean up
     protected void onHide() {}
 
     @Override
     public void update(float delta) {}
 
-    /** Clears the screen. No args = black; use overload for custom color when overriding render(). */
+    //clears scene
     protected final void clearScreen() {
         clearScreen(0f, 0f, 0f, 1f);
     }
@@ -104,7 +75,7 @@ public abstract class BaseScene implements Updatable {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
-    /** Draws stage (if created) then calls {@link #renderUI()}. Use when overriding render() to avoid duplicating batch/renderUI. */
+    //draws scene then renderui
     protected final void drawStageAndUI(float delta) {
         if (stage != null) {
             stage.act(delta);
@@ -115,7 +86,7 @@ public abstract class BaseScene implements Updatable {
         batch.end();
     }
 
-    /** Renders this scene (clear + stage + renderUI). Override for custom render. */
+    // redeners scnee
     public void render(float delta) {
         clearScreen();
         drawStageAndUI(delta);
@@ -124,14 +95,11 @@ public abstract class BaseScene implements Updatable {
     /** Draw this scene's UI with the batch already begun. Called from the default {@link #render(float)} after optional Stage. */
     protected abstract void renderUI();
 
-    /** Releases stage and owned font. Call when scene is no longer needed. */
+    /** Releases stage. Call when scene is no longer needed. */
     public void dispose() {
         if (stage != null) {
             stage.dispose();
             stage = null;
-        }
-        if (ownFont) {
-            font.dispose();
         }
     }
 }

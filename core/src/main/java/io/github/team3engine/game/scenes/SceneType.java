@@ -7,6 +7,5 @@ package io.github.team3engine.game.scenes;
 public enum SceneType {
     SCENE_1,
     SCENE_2,
-    WIN_SCENE,
     MAIN_MENU_SCENE
 }

@@ -17,7 +17,6 @@ public class SceneManager implements Updatable, FrameRenderable, Disposable {
 
     private final Map<String, BaseScene> scenes = new HashMap<>();
     private String currentSceneId;
-    private boolean paused = false;
 
     private SceneManager() {}
 
@@ -66,14 +65,6 @@ public class SceneManager implements Updatable, FrameRenderable, Disposable {
 
     public String getCurrentSceneId() {
         return currentSceneId;
-    }
-
-    public void setPaused(boolean paused) {
-        this.paused = paused;
-    }
-
-    public boolean isPaused() {
-        return paused;
     }
 
     @Override

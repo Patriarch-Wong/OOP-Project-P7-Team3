@@ -54,12 +54,10 @@ public abstract class Entity implements Updatable, Renderable {
         return position;
     }
 
-    /** Read-only X; prefer over getPos().x to avoid holding mutable reference. */
     public float getX() { 
         return position.x; 
     }
 
-    /** Read-only Y; prefer over getPos().y to avoid holding mutable reference. */
     public float getY() { 
         return position.y; 
     }
