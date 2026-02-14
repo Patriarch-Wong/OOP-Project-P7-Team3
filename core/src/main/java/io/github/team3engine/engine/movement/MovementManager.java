@@ -4,7 +4,7 @@ import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.interfaces.IMovementInput;
 
 public class MovementManager {
-    // Movement configuration
+    // Movement configuration (shared across all entities)
     private float maxSpeed = 300f;
     private float maxFallSpeed = -600f;
     private float acceleration = 700f;
@@ -14,18 +14,16 @@ public class MovementManager {
     private float gravity = -900.0f;
     private float jumpCooldownDuration = 0.6f;
 
-    // State (start at rest so input responds immediately)
-    private float velocityX = 0f;
-    private float velocityY = 0f;
-    private boolean isGrounded = true;
-    private boolean movementEnabled = true;
-    private float jumpCooldownRemaining = 0f;
-
-    public void applyMovement(Entity entity, IMovementInput input, float deltaTime) {
-        if (!movementEnabled) {
+    // Apply movement to an entity based on its MovementState and input.
+    public void applyMovement(Entity entity, MovementState state, IMovementInput input, float deltaTime) {
+        if (!state.isMovementEnabled()) {
             return;
         }
 
+        float velocityX = state.getVelocityX();
+        float velocityY = state.getVelocityY();
+
+        // Horizontal movement
         float axis = input.getMovementAxis();
         if (Math.abs(axis) > 0.01f) {
             velocityX += axis * acceleration * deltaTime;
@@ -46,83 +44,135 @@ public class MovementManager {
         velocityX = clamp(velocityX, -maxSpeed, maxSpeed);
 
         // Jump cooldown: tick down each frame
-        jumpCooldownRemaining -= deltaTime;
-        if (jumpCooldownRemaining < 0f)
-            jumpCooldownRemaining = 0f;
+        float jumpCooldown = state.getJumpCooldownRemaining();
+        jumpCooldown -= deltaTime;
+        if (jumpCooldown < 0f)
+            jumpCooldown = 0f;
+        state.setJumpCooldownRemaining(jumpCooldown);
 
-        if (input.isJump() && isGrounded && jumpCooldownRemaining <= 0f) {
+        // Jump
+        if (input.isJump() && state.isGrounded() && jumpCooldown <= 0f) {
             velocityY = jumpForce;
-            jumpCooldownRemaining = jumpCooldownDuration;
-            isGrounded = false;
+            state.setJumpCooldownRemaining(jumpCooldownDuration);
+            state.setGrounded(false);
         }
 
         // Gravity (always applies)
         velocityY += gravity * deltaTime;
         velocityY = Math.max(velocityY, maxFallSpeed);
 
-       // entity.setPos(entity.getX() + velocityX * deltaTime, entity.getY() + velocityY * deltaTime);
-        entity.getPos().x += velocityX * deltaTime; // check if supposed to be get rather than set
+        // Update state
+        state.setVelocityX(velocityX);
+        state.setVelocityY(velocityY);
+
+        // Apply movement to entity position
+        entity.getPos().x += velocityX * deltaTime;
         entity.getPos().y += velocityY * deltaTime;
     }
 
-    public void setGrounded(boolean grounded) {
-        this.isGrounded = grounded;
-        // Only zero downward velocity when landing; don't zero upward velocity so we
-        // don't fight
-        // collision resolution (platform pushing entity up) and cause sticking/jitter.
-        if (grounded && velocityY < 0f) {
-            velocityY = 0f;
+    /**
+     * Set grounded state for an entity.
+     * Only zeros downward velocity when landing.
+     */
+    public void setGrounded(MovementState state, boolean grounded) {
+        state.setGrounded(grounded);
+        // Only zero downward velocity when landing; don't zero upward velocity
+        if (grounded && state.getVelocityY() < 0f) {
+            state.setVelocityY(0f);
         }
     }
 
-    /** True when vertical velocity is upward. */
-    public boolean isMovingUpward() {
-        return velocityY > 1f;
+    // True when vertical velocity is upward.
+    public boolean isMovingUpward(MovementState state) {
+        return state.getVelocityY() > 1f;
     }
 
-    /** True when horizontal speed is above threshold. */
-    public boolean hasHorizontalMotion() {
-        return Math.abs(velocityX) > 5f;
+    // True when horizontal speed is above threshold.
+    public boolean hasHorizontalMotion(MovementState state) {
+        return Math.abs(state.getVelocityX()) > 5f;
     }
 
-    /** Set vertical velocity to zero (upward motion canceled). */
-    public void cancelUpwardVelocity() {
-        velocityY = 0f;
+    //Set vertical velocity to zero (upward motion canceled).
+    public void cancelUpwardVelocity(MovementState state) {
+        state.setVelocityY(0f);
     }
 
-    public void enableMovement() {
-        movementEnabled = true;
+    //Enable movement for an entity.
+    public void enableMovement(MovementState state) {
+        state.setMovementEnabled(true);
     }
 
-    public void disableMovement() {
-        movementEnabled = false;
-        velocityX = 0;
+    //Disable movement for an entity and zero horizontal velocity.
+    public void disableMovement(MovementState state) {
+        state.setMovementEnabled(false);
+        state.setVelocityX(0);
     }
 
-    public void hitCeiling() {
-        if (velocityY > 0)
-            velocityY = 0;
-    }
-    
-    public boolean isGrounded() {
-        return isGrounded;
-    }
-
-    public float getJumpCooldownRemaining() {
-        return jumpCooldownRemaining;
-    }
-
-    /** Resets velocity and grounded state (e.g. when switching to a new scene reusing this manager). */
-    public void reset() {
-        velocityX = 0f;
-        velocityY = 0f;
-        isGrounded = true;
-        jumpCooldownRemaining = 0f;
-        movementEnabled = true;
+    //Handle ceiling collision (cancel upward velocity).
+    public void hitCeiling(MovementState state) {
+        if (state.getVelocityY() > 0)
+            state.setVelocityY(0);
     }
 
     // Utility (private, not part of UML)
     private float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    // Configuration getters/setters 
+    public float getMaxSpeed() {
+        return maxSpeed;
+    }
+
+    public void setMaxSpeed(float maxSpeed) {
+        this.maxSpeed = maxSpeed;
+    }
+
+    public float getMaxFallSpeed() {
+        return maxFallSpeed;
+    }
+
+    public void setMaxFallSpeed(float maxFallSpeed) {
+        this.maxFallSpeed = maxFallSpeed;
+    }
+
+    public float getAcceleration() {
+        return acceleration;
+    }
+
+    public void setAcceleration(float acceleration) {
+        this.acceleration = acceleration;
+    }
+
+    public float getDeceleration() {
+        return deceleration;
+    }
+
+    public void setDeceleration(float deceleration) {
+        this.deceleration = deceleration;
+    }
+
+    public float getJumpForce() {
+        return jumpForce;
+    }
+
+    public void setJumpForce(float jumpForce) {
+        this.jumpForce = jumpForce;
+    }
+
+    public float getGravity() {
+        return gravity;
+    }
+
+    public void setGravity(float gravity) {
+        this.gravity = gravity;
+    }
+
+    public float getJumpCooldownDuration() {
+        return jumpCooldownDuration;
+    }
+
+    public void setJumpCooldownDuration(float jumpCooldownDuration) {
+        this.jumpCooldownDuration = jumpCooldownDuration;
     }
 }

@@ -26,6 +26,10 @@ public class Scene1 extends BaseScene {
     private Texture platformTex;
     private Circle player;
     private MovementInput movementInput;
+    
+    // Bucket with AI movement
+    private Bucket bucket;
+    private AIMovement bucketAI;
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
@@ -54,21 +58,33 @@ public class Scene1 extends BaseScene {
 
     @Override
     protected void onShow() {
-        movementManager.reset();
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
 
-        movementInput = new MovementInput(movementManager, ioManager, playerInput);
-
         float gw = Gdx.graphics.getWidth();
         float gh = Gdx.graphics.getHeight();
 
-        Bucket bucket = new Bucket("bucket", gw / 2f, 20f);
+        // Create bucket with AI movement
+        bucket = new Bucket("bucket", gw / 2f, 0f);
         entityManager.addEntity(bucket);
+        
+        // Create AI input for the bucket
+        // Boundaries: 0 to screen width, accounting for bucket width
+        bucketAI = new AIMovement(380, 450, bucket.getWidth());
+        
+        // Optional: Enable random direction changes every 2 seconds
+        // bucketAI.enableTimedDirectionChanges(2f);
 
         player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, playerInput, ioManager);
         entityManager.addEntity(player);
+        
+        // Reset movement state when scene starts
+        player.getMovementState().reset();
+        bucket.getMovementState().reset();
+        
+        // Create movement input tied to this player's movement state
+        movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
 
         float bulletX = gw * 0.5f;
         float bulletY = gh * 0.75f;
@@ -102,9 +118,6 @@ public class Scene1 extends BaseScene {
         collisionManager.register(winBox);
 
         image = new Texture("libgdx.png");
-
-        // region register events
-
     }
 
     @Override
@@ -116,7 +129,9 @@ public class Scene1 extends BaseScene {
             playerInput = null;
         }
         movementInput = null;
+        bucketAI = null;
         player = null;
+        bucket = null;
         if (image != null) {
             image.dispose();
             image = null;
@@ -132,7 +147,6 @@ public class Scene1 extends BaseScene {
         delta = Math.min(delta, MAX_DELTA);
         update(delta);
         
-        // clearScreen(0.15f, 0.15f, 0.2f, 1f);
         Gdx.gl.glClearColor(0.15f, 0.15f, 0.4f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -145,9 +159,14 @@ public class Scene1 extends BaseScene {
         batch.end();
         drawStageAndUI(delta);
 
-        movementManager.applyMovement(player, movementInput, delta);
-        // syncs player to prevent falling through other entity like platform
+        // Apply movement to player using the player's movement state
+        movementManager.applyMovement(player, player.getMovementState(), movementInput, delta);
         player.update(0f);
+        
+        // Apply AI movement to bucket
+        bucketAI.update(bucket.getX(), delta);
+        movementManager.applyMovement(bucket, bucket.getMovementState(), bucketAI, delta);
+        bucket.update(0f);
 
         checkFallCondition();
         checkGroundDetection();
@@ -176,8 +195,9 @@ public class Scene1 extends BaseScene {
             Collidable other = (a == player) ? b : a;
             if (!(other instanceof Platform))
                 continue;
-            if (movementManager.isMovingUpward() && player.getY()+player.getRadius() <= other.getHitbox().y + 2f) {
-                movementManager.cancelUpwardVelocity();
+            if (movementManager.isMovingUpward(player.getMovementState()) && 
+                player.getY() + player.getRadius() <= other.getHitbox().y + 2f) {
+                movementManager.cancelUpwardVelocity(player.getMovementState());
                 break;
             }
         }
@@ -185,9 +205,7 @@ public class Scene1 extends BaseScene {
 
     private void checkGroundDetection() {
         // Ground detection after resolve: only set grounded when circle has actually
-        // landed
-        // (bottom at or just below platform top), not when still above — avoids slowing
-        // down in mid-air.
+        // landed (bottom at or just below platform top), not when still above
         boolean isOnFloor = player.getY() <= player.getRadius() + 1f;
         boolean isOnPlatform = false;
         float circleBottom = player.getY() - player.getRadius();
@@ -212,13 +230,13 @@ public class Scene1 extends BaseScene {
         }
 
         if (isOnFloor || isOnPlatform) {
-            movementManager.setGrounded(true);
+            movementManager.setGrounded(player.getMovementState(), true);
         } else {
-            movementManager.setGrounded(false);
+            movementManager.setGrounded(player.getMovementState(), false);
         }
 
         if (player.touchesCeiling(entityManager)) {
-            movementManager.hitCeiling();
+            movementManager.hitCeiling(player.getMovementState());
         }
     }
 
@@ -226,6 +244,6 @@ public class Scene1 extends BaseScene {
     protected void renderUI() {
         font.draw(batch, "SCENE 1 - Reach the green box!", 100, 400);
         font.draw(batch, "Win to go to Scene 2.", 100, 350);
+        font.draw(batch, "Bucket moves automatically!", 100, 300);
     }
-
 }

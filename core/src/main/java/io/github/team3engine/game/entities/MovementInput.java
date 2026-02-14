@@ -4,16 +4,17 @@ import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.interfaces.IMovementInput;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.game.inputs.PlayerInput;
+import io.github.team3engine.engine.movement.MovementState;
 
 public class MovementInput implements IMovementInput {
     public float movementAxis;
     public boolean jump;
-    private final MovementManager movementManager;
+    private final MovementState movementState;
     private final IOManager io;
     private final PlayerInput playerInput;
 
-    public MovementInput(MovementManager movementManager, IOManager io, PlayerInput playerInput) {
-        this.movementManager = movementManager;
+    public MovementInput(MovementState movementState, IOManager io, PlayerInput playerInput) {
+        this.movementState = movementState;
         this.io = io;
         this.playerInput = playerInput;
     }
@@ -26,17 +27,17 @@ public class MovementInput implements IMovementInput {
 
         if (playerInput.isLeftHeld()) {
             movementAxis -= 1;
-            if (movementManager.isGrounded())
+            if (movementState.isGrounded())
                 io.broadcast("PLAYER_MOVING");
         }
         if (playerInput.isRightHeld()) {
             movementAxis += 1;
-            if (movementManager.isGrounded())
+            if (movementState.isGrounded())
                 io.broadcast("PLAYER_MOVING");
         }
 
         jump = playerInput.isSpaceHeld();
-        if (jump && movementManager.isGrounded() && movementManager.getJumpCooldownRemaining() <= 0f) {
+        if (jump && movementState.isGrounded() && movementState.getJumpCooldownRemaining() <= 0f) {
             io.broadcast("PLAYER_JUMP");
         }
     }

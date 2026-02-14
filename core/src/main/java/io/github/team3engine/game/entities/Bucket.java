@@ -6,9 +6,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
+import io.github.team3engine.engine.movement.MovementState;
 
 /**
- * A collidable entity that displays and acts as a bucket (e.g. for catching drops).
+ * A collidable entity that displays and acts as a bucket (e.g. for catching
+ * drops).
  * Renders using the bucket texture; hitbox matches texture size at position.
  */
 public class Bucket extends CollidableEntity {
@@ -17,11 +19,15 @@ public class Bucket extends CollidableEntity {
     private final float width;
     private final float height;
 
+    // Movement state for AI-controlled movement
+    private MovementState movementState;
+
     public Bucket(String id, String texturePath, float x, float y) {
         super(id);
         this.texture = new Texture(Gdx.files.internal(texturePath));
         this.width = texture.getWidth();
         this.height = texture.getHeight();
+        this.movementState = new MovementState();
         setPos(x, y);
         updateHitbox();
     }
@@ -38,6 +44,14 @@ public class Bucket extends CollidableEntity {
         return height;
     }
 
+    /**
+     * Get the movement state for this bucket.
+     * Used by MovementManager for AI-controlled movement.
+     */
+    public MovementState getMovementState() {
+        return movementState;
+    }
+
     @Override
     protected void updateHitbox() {
         hitbox.setPosition(position.x, position.y);
@@ -46,7 +60,14 @@ public class Bucket extends CollidableEntity {
 
     @Override
     public void update(float dt) {
-        // Bucket does not move; just keep hitbox in sync
+        // Update hitbox to match position (position may be changed by MovementManager)
+        // Keep on screen (border clamp)
+        float w = Gdx.graphics.getWidth();
+        float h = Gdx.graphics.getHeight();
+        position.x = Math.max(0, Math.min(w - this.getWidth(), position.x));
+        position.y = Math.max(0, Math.min(h - this.getHeight(), position.y));
+
+        System.out.println("Bucket position: " + position.x + ", " + position.y);
         updateHitbox();
     }
 

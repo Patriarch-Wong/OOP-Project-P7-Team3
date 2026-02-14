@@ -23,7 +23,7 @@ import io.github.team3engine.game.inputs.PlayerInput;
  * Inverse of Scene1: mirrored layout. Winning here returns to Scene1.
  */
 public class Scene2 extends BaseScene {
-    private static final float MAX_DELTA = 0.1f;
+    private static final float MAX_DELTA = 0.07f;
 
     private Texture image;
     private Texture platformTex;
@@ -57,12 +57,9 @@ public class Scene2 extends BaseScene {
 
     @Override
     protected void onShow() {
-        movementManager.reset();
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
-
-        movementInput = new MovementInput(movementManager, ioManager, playerInput);
 
         float gw = Gdx.graphics.getWidth();
         float gh = Gdx.graphics.getHeight();
@@ -70,9 +67,14 @@ public class Scene2 extends BaseScene {
         Bucket bucket = new Bucket("bucket", gw / 2f, 20f);
         entityManager.addEntity(bucket);
 
-        // Default spawn (same as Scene1): center of screen
         player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, playerInput, ioManager);
         entityManager.addEntity(player);
+        
+        // Reset movement state when scene starts
+        player.getMovementState().reset();
+        
+        // Create movement input tied to this player's movement state
+        movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
 
         float bulletX = gw * 0.5f;
         float bulletY = gh * 0.75f;
@@ -84,24 +86,16 @@ public class Scene2 extends BaseScene {
         float scaleY = gh / 12f;
         platformTex = new Texture(Gdx.files.internal("platform.png"));
 
-        // Mirror platform positions: x -> gw - x - width
-        float p1w = 8f * scaleX, p1h = 1f * scaleY;
-        Platform p1 = new Platform("platform_1", gw - (1f * scaleX) - p1w, 1f * scaleY, p1w, p1h, platformTex);
+        Platform p1 = new Platform("platform_1", 1f * scaleX, 1f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p1);
-        float p2w = 8f * scaleX, p2h = 1f * scaleY;
-        Platform p2 = new Platform("platform_2", gw - (6f * scaleX) - p2w, 5f * scaleY, p2w, p2h, platformTex);
+        Platform p2 = new Platform("platform_2", 6f * scaleX, 5f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p2);
-        float p3hw = 8f * scaleX, p3hh = 1f * scaleY;
-        Platform p3h = new Platform("platform_3_h", gw - (11f * scaleX) - p3hw, 9f * scaleY, p3hw, p3hh, platformTex);
-        float p3vw = 1f * scaleX, p3vh = 1f * scaleY;
-        Platform p3v = new Platform("platform_3_v", gw - (11f * scaleX) - p3vw, 8f * scaleY, p3vw, p3vh, platformTex);
+        Platform p3h = new Platform("platform_3_h", 11f * scaleX, 9f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
+        Platform p3v = new Platform("platform_3_v", 11f * scaleX, 8f * scaleY, 1f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p3h);
         entityManager.addEntity(p3v);
 
-        // Win box on opposite side (mirrored x); WinBox constructor sets position, so
-        // create then set position
         WinBox winBox = new WinBox("win_box", 50f);
-        winBox.setPos(gw - 550 - 50, 60); // mirrored from Scene1's 550, 60
         entityManager.addEntity(winBox);
 
         collisionManager.register(player);
@@ -140,14 +134,7 @@ public class Scene2 extends BaseScene {
     public void render(float delta) {
         delta = Math.min(delta, MAX_DELTA);
         update(delta);
-        movementManager.applyMovement(player, movementInput, delta);
-        // syncs player to prevent falling through other entity like platform
-        player.update(0f);
-
-        checkFallCondition();
-        checkGroundDetection();
-
-        // clearScreen(0.15f, 0.15f, 0.2f, 1f);
+        
         Gdx.gl.glClearColor(0.15f, 0.15f, 0.4f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -159,6 +146,14 @@ public class Scene2 extends BaseScene {
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
+
+        // Apply movement using the player's movement state
+        movementManager.applyMovement(player, player.getMovementState(), movementInput, delta);
+        // syncs player to prevent falling through other entity like platform
+        player.update(0f);
+
+        checkFallCondition();
+        checkGroundDetection();
     }
 
     @Override
@@ -172,8 +167,7 @@ public class Scene2 extends BaseScene {
     // local methods
     private void checkFallCondition() {
         Array<Collidable[]> collisionPairs = collisionManager.resolveCollisions();
-        // If player is jumping, not moving horizontally, and collides with a platform,
-        // make them fall
+        // If player is jumping, not moving horizontally, and collides with a platform, make them fall
         for (Collidable[] pair : collisionPairs) {
             if (pair == null || pair.length < 2)
                 continue;
@@ -185,8 +179,9 @@ public class Scene2 extends BaseScene {
             Collidable other = (a == player) ? b : a;
             if (!(other instanceof Platform))
                 continue;
-            if (movementManager.isMovingUpward() && player.getY() + player.getRadius() <= other.getHitbox().y + 2f) {
-                movementManager.cancelUpwardVelocity();
+            if (movementManager.isMovingUpward(player.getMovementState()) && 
+                player.getY() + player.getRadius() <= other.getHitbox().y + 2f) {
+                movementManager.cancelUpwardVelocity(player.getMovementState());
                 break;
             }
         }
@@ -194,13 +189,11 @@ public class Scene2 extends BaseScene {
 
     private void checkGroundDetection() {
         // Ground detection after resolve: only set grounded when circle has actually
-        // landed
-        // (bottom at or just below platform top), not when still above, avoids slowing
-        // down in mid-air
+        // landed (bottom at or just below platform top), not when still above
         boolean isOnFloor = player.getY() <= player.getRadius() + 1f;
         boolean isOnPlatform = false;
         float circleBottom = player.getY() - player.getRadius();
-        float sinkTolerance = 3f;
+        float sinkTolerance = 5f;  // Increased tolerance to handle landing better
 
         for (Entity e : entityManager.getAll()) {
             if (e instanceof Platform) {
@@ -221,19 +214,19 @@ public class Scene2 extends BaseScene {
         }
 
         if (isOnFloor || isOnPlatform) {
-            movementManager.setGrounded(true);
+            movementManager.setGrounded(player.getMovementState(), true);
         } else {
-            movementManager.setGrounded(false);
+            movementManager.setGrounded(player.getMovementState(), false);
         }
 
         if (player.touchesCeiling(entityManager)) {
-            movementManager.hitCeiling();
+            movementManager.hitCeiling(player.getMovementState());
         }
     }
 
     @Override
     protected void renderUI() {
-        font.draw(batch, "SCENE 2 - Inverse layout!", 100, 400);
-        font.draw(batch, "Win to return to Scene 1.", 100, 350);
+        font.draw(batch, "SCENE 1 - Reach the green box!", 100, 400);
+        font.draw(batch, "Win to go to Scene 2.", 100, 350);
     }
 }

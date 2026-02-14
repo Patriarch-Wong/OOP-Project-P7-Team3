@@ -10,13 +10,12 @@ import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.engine.io.IOManager;
+import io.github.team3engine.engine.movement.MovementState;
 import io.github.team3engine.game.inputs.PlayerInput;
 
 /**
- * A collidable entity with a circular shape.
- * Handles WASD / arrow key movement itself.
- * The hitbox is the axis-aligned bounding box of the circle for compatibility
- * with the existing collision system.
+ * Circle entity used as player character
+ * Includes a MovementState for physics-based movement
  */
 public class Circle extends CollidableEntity {
 
@@ -27,10 +26,14 @@ public class Circle extends CollidableEntity {
     protected Color color;
     private PlayerInput playerInput;
     private IOManager io;
+    
+    // Movement state for this entity
+    private MovementState movementState;
 
     public Circle(String id, float radius) {
         super(id);
         this.radius = radius;
+        this.movementState = new MovementState();
 
         this.circle = new com.badlogic.gdx.math.Circle(position.x, position.y, radius);
         this.shapeRenderer = new ShapeRenderer();
@@ -70,6 +73,14 @@ public class Circle extends CollidableEntity {
 
     public void setColor(float r, float g, float b, float a) {
         this.color.set(r, g, b, a);
+    }
+    
+    /**
+     * Get the movement state for this entity.
+     * Used by MovementManager to track velocity, grounded status, etc.
+     */
+    public MovementState getMovementState() {
+        return movementState;
     }
 
     @Override
