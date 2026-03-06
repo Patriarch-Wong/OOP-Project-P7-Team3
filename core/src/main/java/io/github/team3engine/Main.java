@@ -29,8 +29,8 @@ public class Main extends ApplicationAdapter {
     private float footstepTimer = 0;
     private boolean wasMoving = false;
 
-    @Override
-    public void create() {
+        @Override
+        public void create() {
         engine = new GameEngine();
         engine.init();
 
@@ -45,13 +45,17 @@ public class Main extends ApplicationAdapter {
 
         uiManager = new UIManager(audioManager);
 
+        // Store width and height once
+        int screenWidth = Gdx.graphics.getWidth();
+        int screenHeight = Gdx.graphics.getHeight();
+
         // Register scenes; game levels share engine's set of managers
         sceneManager.registerScene(SceneType.MAIN_MENU_SCENE.name(),
-                new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager));
+            new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight));
         sceneManager.registerScene(SceneType.SCENE_1.name(),
-                new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager));
+            new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
         sceneManager.registerScene(SceneType.SCENE_2.name(),
-                new Scene2(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager));
+            new Scene2(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
 
         // Game-specific event wiring

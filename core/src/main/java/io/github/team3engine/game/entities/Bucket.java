@@ -21,19 +21,23 @@ public class Bucket extends CollidableEntity {
 
     // Movement state for AI-controlled movement
     private MovementState movementState;
+    private final float screenWidth;
+    private final float screenHeight;
 
-    public Bucket(String id, String texturePath, float x, float y) {
+    public Bucket(String id, String texturePath, float x, float y, float screenWidth, float screenHeight) {
         super(id);
         this.texture = new Texture(Gdx.files.internal(texturePath));
         this.width = texture.getWidth();
         this.height = texture.getHeight();
         this.movementState = new MovementState();
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
         setPos(x, y);
         updateHitbox();
     }
 
-    public Bucket(String id, float x, float y) {
-        this(id, "bucket.png", x, y);
+    public Bucket(String id, float x, float y, float screenWidth, float screenHeight) {
+        this(id, "bucket.png", x, y, screenWidth, screenHeight);
     }
 
     public float getWidth() {
@@ -62,8 +66,8 @@ public class Bucket extends CollidableEntity {
     public void update(float dt) {
         // Update hitbox to match position (position may be changed by MovementManager)
         // Keep on screen (border clamp)
-        float w = Gdx.graphics.getWidth();
-        float h = Gdx.graphics.getHeight();
+        float w = screenWidth;
+        float h = screenHeight;
         position.x = Math.max(0, Math.min(w - this.getWidth(), position.x));
         position.y = Math.max(0, Math.min(h - this.getHeight(), position.y));
 

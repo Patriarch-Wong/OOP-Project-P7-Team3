@@ -26,23 +26,25 @@ public class Circle extends CollidableEntity {
     protected final ShapeRenderer shapeRenderer;
     protected Color color;
     private IOManager io;
-    
+    private final float screenWidth;
+    private final float screenHeight;
     // Movement state for this entity
     private MovementState movementState;
 
-    public Circle(String id, float radius) {
+    public Circle(String id, float radius, float screenWidth, float screenHeight) {
         super(id);
         this.radius = radius;
         this.movementState = new MovementState();
-
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
         this.circle = new com.badlogic.gdx.math.Circle(position.x, position.y, radius);
         this.shapeRenderer = new ShapeRenderer();
         this.color = new Color(1f, 1f, 1f, 1f);
         updateHitbox();
     }
 
-    public Circle(String id, float x, float y, float radius, IOManager io) {
-        this(id, radius);
+    public Circle(String id, float x, float y, float radius, IOManager io, float screenWidth, float screenHeight) {
+        this(id, radius, screenWidth, screenHeight);
         this.io = io;
         setPos(x, y);
         updateHitbox();
@@ -101,8 +103,8 @@ public class Circle extends CollidableEntity {
     @Override
     public void update(float dt) {
         // Keep circle on screen (border clamp)
-        float w = Gdx.graphics.getWidth();
-        float h = Gdx.graphics.getHeight();
+        float w = screenWidth;
+        float h = screenHeight;
         position.x = Math.max(radius, Math.min(w - radius, position.x));
         position.y = Math.max(radius, Math.min(h - radius, position.y));
         updateHitbox();

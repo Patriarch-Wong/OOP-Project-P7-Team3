@@ -41,8 +41,12 @@ public class Scene1 extends BaseScene {
     private PlayerInput playerInput;
     private final BitmapFont font;
 
+    private final int screenWidth;
+    private final int screenHeight;
+
     public Scene1(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager,
-                  EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager) {
+                  EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager,
+                  int screenWidth, int screenHeight) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
@@ -51,6 +55,8 @@ public class Scene1 extends BaseScene {
         this.entityManager = entityManager;
         this.collisionManager = collisionManager;
         this.movementManager = movementManager;
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
     }
 
     @Override
@@ -64,11 +70,11 @@ public class Scene1 extends BaseScene {
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
 
-        float gw = Gdx.graphics.getWidth();
-        float gh = Gdx.graphics.getHeight();
+        float gw = screenWidth;
+        float gh = screenHeight;
 
         // Create bucket with AI movement
-        bucket = new Bucket("bucket", gw / 2f, 0f);
+        bucket = new Bucket("bucket", gw / 2f, 0f, gw, gh);
         entityManager.addEntity(bucket);
         
         // Create AI input for the bucket
@@ -78,7 +84,7 @@ public class Scene1 extends BaseScene {
         // Optional: Enable random direction changes every 2 seconds
         // bucketAI.enableTimedDirectionChanges(2f);
 
-        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, ioManager);
+        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, ioManager, gw, gh);
         entityManager.addEntity(player);
         
         // Reset movement state when scene starts

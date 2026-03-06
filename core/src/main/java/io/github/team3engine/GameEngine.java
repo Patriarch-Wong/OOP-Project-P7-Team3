@@ -42,7 +42,7 @@ public class GameEngine {
         entityManager = new EntityManager();
         movementManager = new MovementManager();
         collisionManager = new CollisionManager();
-        sceneManager = SceneManager.getInstance();
+        sceneManager = new SceneManager();
 
         updatables.add(ioManager);
         updatables.add(sceneManager);

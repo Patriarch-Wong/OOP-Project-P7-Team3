@@ -20,16 +20,20 @@ public class MainMenuScene extends BaseScene {
     private final IOManager ioManager;
     private final AudioManager audioManager;
     private final BitmapFont font;
+    private final int screenWidth;
+    private final int screenHeight;
 
     // UI
     private Skin skin;
 
-    public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager) {
+    public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager, int screenWidth, int screenHeight) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
     }
 
     @Override
@@ -41,8 +45,8 @@ public class MainMenuScene extends BaseScene {
         // region Create button
         TextButton startButton = new TextButton("Start Game", skin);
         startButton.setSize(200, 50);
-        startButton.setPosition((Gdx.graphics.getWidth() - startButton.getWidth()) / 2f,
-                (Gdx.graphics.getHeight() - startButton.getHeight()) / 2f);
+        startButton.setPosition((screenWidth - startButton.getWidth()) / 2f,
+            (screenHeight - startButton.getHeight()) / 2f);
 
         // Button action
         startButton.addListener(new ClickListener() {

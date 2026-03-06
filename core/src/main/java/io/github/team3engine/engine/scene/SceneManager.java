@@ -13,17 +13,19 @@ import io.github.team3engine.engine.interfaces.Updatable;
  * scene creation and event wiring belong in the game (e.g. Main), not here.
  */
 public class SceneManager implements Updatable, FrameRenderable, Disposable {
-    private static SceneManager instance;
+    // private static SceneManager instance;
 
     private final Map<String, BaseScene> scenes = new HashMap<>();
     private String currentSceneId;
 
-    private SceneManager() {}
+    public SceneManager() {
 
-    public static SceneManager getInstance() {
-        if (instance == null) instance = new SceneManager();
-        return instance;
     }
+
+    // public static SceneManager getInstance() {
+    //     if (instance == null) instance = new SceneManager();
+    //     return instance;
+    // }
 
     /**
      * Registers a scene under the given id. Does not switch to it.
