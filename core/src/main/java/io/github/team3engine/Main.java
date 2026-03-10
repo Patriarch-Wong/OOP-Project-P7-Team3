@@ -56,15 +56,23 @@ public class Main extends ApplicationAdapter {
             new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
         sceneManager.registerScene(SceneType.SCENE_2.name(),
             new Scene2(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
-        sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
+        sceneManager.registerScene(SceneType.TEST_SCENE.name(),
+            new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
+        sceneManager.setScene(SceneType.TEST_SCENE.name());
 
         // Game-specific event wiring
         ioManager.registerEvent("PLAYER_WIN", () -> {
             Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
-            String next = SceneType.SCENE_1.name().equals(sceneManager.getCurrentSceneId())
-                    ? SceneType.SCENE_2.name()
-                    : SceneType.SCENE_1.name();
+            String currentScene = sceneManager.getCurrentSceneId();
+            String next;
+            if (SceneType.SCENE_1.name().equals(currentScene)) {
+                next = SceneType.SCENE_2.name();
+            } else if (SceneType.TEST_SCENE.name().equals(currentScene)) {
+                next = SceneType.MAIN_MENU_SCENE.name();
+            } else {
+                next = SceneType.SCENE_1.name();
+            }
             Gdx.app.log("Game", "Switching to " + next);
             Gdx.app.postRunnable(() -> sceneManager.setScene(next));
         });
@@ -81,6 +89,13 @@ public class Main extends ApplicationAdapter {
             }
         });
         ioManager.registerEvent("PLAYER_JUMP", () -> audioManager.play("jump.mp3"));
+        ioManager.registerEvent("PLAYER_DEAD", () -> {
+            Gdx.app.log("Game", "Player died!");
+            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
+        });
+        ioManager.registerEvent("NPC_RESCUED", () -> {
+            Gdx.app.log("Game", "NPC rescued!");
+        });
         ioManager.registerEvent("GAME_PAUSE", () -> {
             Gdx.app.log("Game", "Game paused");
             isPaused = true;
