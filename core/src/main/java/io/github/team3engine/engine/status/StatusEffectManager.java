@@ -55,6 +55,14 @@ public class StatusEffectManager {
         return null;
     }
 
+    public <T extends StatusEffect> List<T> getAllEffects(Class<T> type) {
+        List<T> matched = new ArrayList<>();
+        for (StatusEffect e : effects) {
+            if (type.isInstance(e)) matched.add(type.cast(e));
+        }
+        return matched;
+    }
+
     public List<StatusEffect> getAll() {
         return effects;
     }

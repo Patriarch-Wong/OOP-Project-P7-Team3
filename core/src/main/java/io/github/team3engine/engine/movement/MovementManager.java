@@ -10,7 +10,7 @@ public class MovementManager {
     private float acceleration = 700f;
     private float deceleration = 700f;
 
-    private float jumpForce = 450.0f;
+    private float jumpForce = 620.0f;
     private float gravity = -900.0f;
     private float jumpCooldownDuration = 0.6f;
 

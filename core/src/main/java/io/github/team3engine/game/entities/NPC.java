@@ -1,11 +1,12 @@
 package io.github.team3engine.game.entities;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.game.status.SlowEffect;
 
 /**
  * NPC that can be rescued. On contact with Player:
@@ -15,9 +16,9 @@ import io.github.team3engine.game.status.SlowEffect;
 public class NPC extends CollidableEntity {
     private static final float WIDTH = 16f;
     private static final float HEIGHT = 28f;
-    private static final float SLOW_FACTOR = 0.3f;
-
     private final ShapeRenderer shapeRenderer;
+    private final BitmapFont font;
+    private final GlyphLayout layout;
     private float bobTimer = 0f;
     private final String name;
 
@@ -25,6 +26,8 @@ public class NPC extends CollidableEntity {
         super(id);
         this.name = name;
         this.shapeRenderer = new ShapeRenderer();
+        this.font = new BitmapFont();
+        this.layout = new GlyphLayout();
         setPos(x, y);
         updateHitbox();
     }
@@ -59,23 +62,25 @@ public class NPC extends CollidableEntity {
         shapeRenderer.circle(position.x, position.y + HEIGHT + headRadius * 0.3f, headRadius);
 
         shapeRenderer.end();
+
+        // "HELP!" label bobbing above head
         batch.begin();
+        float helpBob = (float) Math.sin(bobTimer * 4f) * 3f;
+        String helpText = "HELP!";
+        layout.setText(font, helpText);
+        font.setColor(1f, 0.8f, 0f, 1f);
+        font.draw(batch, helpText, position.x - layout.width / 2f,
+                position.y + HEIGHT + headRadius * 2f + 14f + helpBob);
     }
 
     @Override
     public void dispose() {
         shapeRenderer.dispose();
+        font.dispose();
     }
 
     @Override
     public void onCollision(Collidable other) {
-        if (other instanceof Player && !isDestroyed()) {
-            Player player = (Player) other;
-            if (!player.isCarryingNPC()) {
-                player.pickUpNPC();
-                player.getStatusEffects().apply(new SlowEffect(SLOW_FACTOR, Float.MAX_VALUE));
-                destroy();
-            }
-        }
+        // Game logic handled by CollisionMediator
     }
 }

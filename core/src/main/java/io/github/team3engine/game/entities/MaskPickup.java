@@ -1,5 +1,7 @@
 package io.github.team3engine.game.entities;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
@@ -14,11 +16,13 @@ import io.github.team3engine.game.status.DamageReductionEffect;
  * Rendered as a blue bobbing circle.
  */
 public class MaskPickup extends CollidableEntity implements Pickup {
-    private static final float SIZE = 16f;
+    private static final float SIZE = 22f;
     private static final float REDUCTION = 0.5f;
     private static final float DURATION = 10f;
 
     private final ShapeRenderer shapeRenderer;
+    private final BitmapFont font;
+    private final GlyphLayout layout;
     private float bobTimer = 0f;
     private final float baseY;
 
@@ -26,6 +30,8 @@ public class MaskPickup extends CollidableEntity implements Pickup {
         super(id);
         this.baseY = y;
         this.shapeRenderer = new ShapeRenderer();
+        this.font = new BitmapFont();
+        this.layout = new GlyphLayout();
         setPos(x, y);
         updateHitbox();
     }
@@ -34,7 +40,7 @@ public class MaskPickup extends CollidableEntity implements Pickup {
     public void onPickup(Entity collector) {
         if (collector instanceof Player) {
             Player player = (Player) collector;
-            player.getStatusEffects().apply(new DamageReductionEffect(REDUCTION, DURATION));
+            player.getStatusEffects().apply(new DamageReductionEffect(REDUCTION, DURATION, "Mask"));
         }
         destroy();
     }
@@ -57,22 +63,31 @@ public class MaskPickup extends CollidableEntity implements Pickup {
         batch.end();
         shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
         shapeRenderer.setTransformMatrix(batch.getTransformMatrix());
+
+        // Outer glow ring
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.4f, 0.7f, 1f, 0.4f);
+        shapeRenderer.circle(position.x, position.y, SIZE + 6f);
+        // Inner circle
         shapeRenderer.setColor(0.2f, 0.58f, 0.86f, 1f);
         shapeRenderer.circle(position.x, position.y, SIZE);
         shapeRenderer.end();
+
+        // Label
         batch.begin();
+        layout.setText(font, "MASK");
+        font.setColor(0.3f, 0.7f, 1f, 1f);
+        font.draw(batch, "MASK", position.x - layout.width / 2f, position.y + SIZE + 18f);
     }
 
     @Override
     public void dispose() {
         shapeRenderer.dispose();
+        font.dispose();
     }
 
     @Override
     public void onCollision(Collidable other) {
-        if (other instanceof Player && !isDestroyed()) {
-            onPickup((Player) other);
-        }
+        // Game logic handled by CollisionMediator
     }
 }

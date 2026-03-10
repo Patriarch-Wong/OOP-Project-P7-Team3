@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Damageable;
 import io.github.team3engine.engine.interfaces.Solid;
 
 /**
@@ -32,6 +31,8 @@ public class Fire extends CollidableEntity implements Solid {
     public Fire(String id, float x, float y, float width, float height) {
         this(id, x, y, width, height, 20f);
     }
+
+    public float getDamage() { return damage; }
 
     @Override
     protected void updateHitbox() {
@@ -72,11 +73,6 @@ public class Fire extends CollidableEntity implements Solid {
 
     @Override
     public void onCollision(Collidable other) {
-        if (other instanceof Damageable) {
-            Damageable target = (Damageable) other;
-            if (!target.isInvincible()) {
-                target.takeDamage(damage);
-            }
-        }
+        // Game logic handled by CollisionMediator
     }
 }

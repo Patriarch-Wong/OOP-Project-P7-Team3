@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.engine.io.IOManager;
-import io.github.team3engine.game.status.SlowEffect;
 
 /**
  * Exit door. On collision with Player:
@@ -72,20 +71,8 @@ public class ExitDoor extends CollidableEntity {
 
     @Override
     public void onCollision(Collidable other) {
-        if (!(other instanceof Player)) return;
-        Player player = (Player) other;
-
-        if (player.isCarryingNPC()) {
-            player.rescueNPC();
-            SlowEffect slow = player.getStatusEffects().getEffect(SlowEffect.class);
-            if (slow != null) {
-                player.getStatusEffects().remove(slow);
-            }
-            io.broadcast("NPC_RESCUED");
-        }
-
-        if (player.getRescuedCount() >= requiredRescues) {
-            io.broadcast("PLAYER_WIN");
-        }
+        // Game logic handled by CollisionMediator
     }
+
+    public int getRequiredRescues() { return requiredRescues; }
 }

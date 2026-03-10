@@ -26,6 +26,12 @@ public abstract class CollidableEntity extends Entity implements Collidable {
         this.velocity.set(x, y);
     }
 
+    @Override
+    public void setPos(float x, float y) {
+        super.setPos(x, y);
+        updateHitbox();
+    }
+
     public Rectangle getHitbox() {
         return hitbox;
     }

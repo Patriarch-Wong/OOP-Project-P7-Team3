@@ -9,10 +9,12 @@ import io.github.team3engine.engine.status.StatusEffect;
  */
 public class DamageReductionEffect extends StatusEffect {
     private final float reductionFactor;
+    private final String name;
 
-    public DamageReductionEffect(float reductionFactor, float duration) {
+    public DamageReductionEffect(float reductionFactor, float duration, String name) {
         super(duration);
         this.reductionFactor = reductionFactor;
+        this.name = name;
     }
 
     /** Returns the multiplier for incoming damage (e.g. 0.5 = half damage). */
@@ -22,7 +24,7 @@ public class DamageReductionEffect extends StatusEffect {
 
     @Override
     public String getName() {
-        return "DmgReduce";
+        return name;
     }
 
     @Override

@@ -15,6 +15,8 @@ import io.github.team3engine.engine.status.StatusEffectManager;
 import io.github.team3engine.game.status.DamageReductionEffect;
 import io.github.team3engine.game.status.SlowEffect;
 
+import java.util.List;
+
 public class Player extends CollidableEntity implements Damageable {
     private final float width;
     private final float height;
@@ -28,7 +30,7 @@ public class Player extends CollidableEntity implements Damageable {
     private float hp;
     private float maxHp;
     private float invincibilityTimer = 0f;
-    private static final float INVINCIBILITY_DURATION = 1.5f;
+    private static final float INVINCIBILITY_DURATION = 3.0f;
 
     // Status effects
     private final StatusEffectManager statusEffects;
@@ -63,9 +65,9 @@ public class Player extends CollidableEntity implements Damageable {
     public void takeDamage(float amount) {
         if (!isAlive() || isInvincible()) return;
 
-        // Apply damage reduction from active effects
-        DamageReductionEffect reduction = statusEffects.getEffect(DamageReductionEffect.class);
-        if (reduction != null) {
+        // Apply damage reduction from all active effects (multiplicative stacking)
+        List<DamageReductionEffect> reductions = statusEffects.getAllEffects(DamageReductionEffect.class);
+        for (DamageReductionEffect reduction : reductions) {
             amount *= reduction.getDamageMultiplier();
         }
 

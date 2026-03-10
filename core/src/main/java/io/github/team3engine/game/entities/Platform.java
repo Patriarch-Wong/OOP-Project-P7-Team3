@@ -178,7 +178,6 @@ public class Platform extends CollidableEntity implements Solid {
             ce.setVelocity(ce.getVelocity().x, 0f);
         }
 
-        // Ensure hitbox is updated after resolving
-        ce.update(Gdx.graphics.getDeltaTime());
+        // Hitbox is auto-synced by CollidableEntity.setPos()
     }
 }
