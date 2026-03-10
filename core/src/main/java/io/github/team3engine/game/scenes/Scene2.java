@@ -6,18 +6,15 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.Array;
-
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
-import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.movement.MovementManager;
-import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.*;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.inputs.PlayerInput;
+import io.github.team3engine.game.physics.GroundDetector;
 
 //Inverse layout of scene1
 public class Scene2 extends BaseScene {
@@ -36,6 +33,7 @@ public class Scene2 extends BaseScene {
     private final MovementManager movementManager;
 
     private PlayerInput playerInput;
+    private GroundDetector groundDetector;
     private final BitmapFont font;
 
     private final int screenWidth;
@@ -73,7 +71,7 @@ public class Scene2 extends BaseScene {
         Bucket bucket = new Bucket("bucket", gw / 2f, 20f, gw, gh);
         entityManager.addEntity(bucket);
 
-        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, ioManager, gw, gh);
+        player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, gw, gh);
         entityManager.addEntity(player);
         
         // Reset movement state when scene starts
@@ -81,12 +79,7 @@ public class Scene2 extends BaseScene {
         
         // Create movement input tied to this player's movement state
         movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
-
-        float bulletX = gw * 0.5f;
-        float bulletY = gh * 0.75f;
-        Bullet singleBullet = new Bullet("bullet_single", bulletX, bulletY, null, audioManager);
-        singleBullet.setVelocity(0f, 0f);
-        entityManager.addEntity(singleBullet);
+        groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
 
         float scaleX = gw / 19f;
         float scaleY = gh / 12f;
@@ -106,15 +99,11 @@ public class Scene2 extends BaseScene {
         entityManager.addEntity(p3h);
         entityManager.addEntity(p3v);
 
-        // Win box on opposite side (mirrored x); WinBox constructor sets position, so
-        // create then set position
-        WinBox winBox = new WinBox("win_box", 50f);
-        winBox.setPos(gw - 550 - 50, 60); // mirrored from Scene1's 550, 60
+        WinBox winBox = new WinBox("win_box", gw - 550 - 50, 60, 50f, ioManager);
         entityManager.addEntity(winBox);
 
         collisionManager.register(player);
         collisionManager.register(bucket);
-        collisionManager.register(singleBullet);
         collisionManager.register(p1);
         collisionManager.register(p2);
         collisionManager.register(p3h);
@@ -178,64 +167,12 @@ public class Scene2 extends BaseScene {
         collisionManager.update(delta);
     }
 
-    // local methods
     private void checkFallCondition() {
-        Array<Collidable[]> collisionPairs = collisionManager.resolveCollisions();
-        // If player is jumping, not moving horizontally, and collides with a platform, make them fall
-        for (Collidable[] pair : collisionPairs) {
-            if (pair == null || pair.length < 2)
-                continue;
-
-            Collidable a = pair[0], b = pair[1];
-
-            if (a != player && b != player)
-                continue;
-            Collidable other = (a == player) ? b : a;
-            if (!(other instanceof Platform))
-                continue;
-            if (movementManager.isMovingUpward(player.getMovementState()) && 
-                player.getY() + player.getRadius() <= other.getHitbox().y + 2f) {
-                movementManager.cancelUpwardVelocity(player.getMovementState());
-                break;
-            }
-        }
+        groundDetector.checkFallCondition(player);
     }
 
     private void checkGroundDetection() {
-        // Ground detection after resolve: only set grounded when circle has actually
-        // landed (bottom at or just below platform top), not when still above
-        boolean isOnFloor = player.getY() <= player.getRadius() + 1f;
-        boolean isOnPlatform = false;
-        float circleBottom = player.getY() - player.getRadius();
-        float sinkTolerance = 5f;  // Increased tolerance to handle landing better
-
-        for (Entity e : entityManager.getAll()) {
-            if (e instanceof Platform) {
-                Platform platform = (Platform) e;
-                float platformTop = platform.getY() + platform.getHeight();
-                float platformLeft = platform.getX();
-                float platformRight = platform.getX() + platform.getWidth();
-                float circleCenterX = player.getX();
-                boolean landed = circleBottom <= platformTop + sinkTolerance
-                        && circleBottom >= platformTop - sinkTolerance;
-                boolean overPlatform = circleCenterX >= platformLeft - player.getRadius()
-                        && circleCenterX <= platformRight + player.getRadius();
-                if (landed && overPlatform) {
-                    isOnPlatform = true;
-                    break;
-                }
-            }
-        }
-
-        if (isOnFloor || isOnPlatform) {
-            movementManager.setGrounded(player.getMovementState(), true);
-        } else {
-            movementManager.setGrounded(player.getMovementState(), false);
-        }
-
-        if (player.touchesCeiling(entityManager)) {
-            movementManager.hitCeiling(player.getMovementState());
-        }
+        groundDetector.checkGroundDetection(player);
     }
 
     @Override

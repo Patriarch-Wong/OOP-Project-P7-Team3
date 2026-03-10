@@ -71,7 +71,6 @@ public class Bucket extends CollidableEntity {
         position.x = Math.max(0, Math.min(w - this.getWidth(), position.x));
         position.y = Math.max(0, Math.min(h - this.getHeight(), position.y));
 
-        System.out.println("Bucket position: " + position.x + ", " + position.y);
         updateHitbox();
     }
 

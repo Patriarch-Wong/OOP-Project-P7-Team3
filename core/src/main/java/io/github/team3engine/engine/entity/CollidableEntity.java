@@ -33,7 +33,6 @@ public abstract class CollidableEntity extends Entity implements Collidable {
     // updates hitbox position to match entity position
     protected void updateHitbox() {
         hitbox.setPosition(position.x, position.y);
-        System.out.println("Hitbox updated to position: " + position.x + ", " + position.y);
     }
 
     @Override

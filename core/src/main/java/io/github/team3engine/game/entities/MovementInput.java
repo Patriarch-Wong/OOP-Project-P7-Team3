@@ -7,8 +7,8 @@ import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.engine.movement.MovementState;
 
 public class MovementInput implements IMovementInput {
-    public float movementAxis;
-    public boolean jump;
+    private float movementAxis;
+    private boolean jump;
     private final MovementState movementState;
     private final IOManager io;
     private final PlayerInput playerInput;

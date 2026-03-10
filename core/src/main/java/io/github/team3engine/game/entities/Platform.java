@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
+import io.github.team3engine.engine.interfaces.Solid;
 
 /**
  * Rectangular platform. Supports either loading its own Texture (by path)
@@ -17,7 +18,7 @@ import io.github.team3engine.engine.interfaces.Collidable;
  * Collision resolution: pushes the other CollidableEntity out of overlap
  * along the minimal penetration axis and zeroes velocity on that axis.
  */
-public class Platform extends CollidableEntity {
+public class Platform extends CollidableEntity implements Solid {
     private final Texture texture;
     private final boolean ownsTexture;
     private final float width;

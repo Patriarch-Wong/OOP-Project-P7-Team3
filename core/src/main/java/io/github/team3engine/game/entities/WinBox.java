@@ -3,26 +3,27 @@ package io.github.team3engine.game.entities;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.engine.io.IOManager;
 
 /**
- * A winning objective entity - triggers victory sound and event on contact.
+ * A winning objective entity - triggers victory event on contact with any CollidableEntity.
  */
 public class WinBox extends CollidableEntity {
     private final float size;
     private final ShapeRenderer shapeRenderer;
     private Color color;
+    private final IOManager io;
     
-    public WinBox(String id, float size) {
+    public WinBox(String id, float x, float y, float size, IOManager io) {
         super(id);
         this.size = size;
+        this.io = io;
         this.shapeRenderer = new ShapeRenderer();
         this.color = new Color(0.2f, 0.8f, 0.2f, 1f);
-        
-        setPos(550, 60); // Positioned slightly above ground
+
+        setPos(x, y);
         updateHitbox();
     }
 
@@ -51,34 +52,35 @@ public class WinBox extends CollidableEntity {
 
     @Override
     public void onCollision(Collidable other) {
-        if (!(other instanceof Circle)) return;
+        if (!(other instanceof CollidableEntity)) return;
 
-        Circle player = (Circle) other;
+        CollidableEntity entity = (CollidableEntity) other;
 
-        // --- 2. THE PHYSICS (Every frame) ---
-        // This part prevents the ball from bypassing/phasing through the box
+        io.broadcast("PLAYER_WIN");
+
+        // Resolve overlap so the entity doesn't phase through the box
         float aLeft = hitbox.x;
         float aRight = hitbox.x + hitbox.width;
         float aBottom = hitbox.y;
         float aTop = hitbox.y + hitbox.height;
 
-        float bLeft = player.getHitbox().x;
-        float bRight = player.getHitbox().x + player.getHitbox().width;
-        float bBottom = player.getHitbox().y;
-        float bTop = player.getHitbox().y + player.getHitbox().height;
+        float bLeft = entity.getHitbox().x;
+        float bRight = entity.getHitbox().x + entity.getHitbox().width;
+        float bBottom = entity.getHitbox().y;
+        float bTop = entity.getHitbox().y + entity.getHitbox().height;
 
         float overlapX = Math.min(aRight, bRight) - Math.max(aLeft, bLeft);
         float overlapY = Math.min(aTop, bTop) - Math.max(aBottom, bBottom);
 
         if (overlapX > 0 && overlapY > 0) {
             if (overlapX < overlapY) {
-                float dx = (player.getPos().x < (hitbox.x + hitbox.width/2)) ? -overlapX : overlapX;
-                player.setPos(player.getPos().x + dx, player.getPos().y);
-                player.setVelocity(0f, player.getVelocity().y);
+                float dx = (entity.getPos().x < (hitbox.x + hitbox.width / 2)) ? -overlapX : overlapX;
+                entity.setPos(entity.getPos().x + dx, entity.getPos().y);
+                entity.setVelocity(0f, entity.getVelocity().y);
             } else {
-                float dy = (player.getPos().y < (hitbox.y + hitbox.height/2)) ? -overlapY : overlapY;
-                player.setPos(player.getPos().x, player.getPos().y + dy);
-                player.setVelocity(player.getVelocity().x, 0f);
+                float dy = (entity.getPos().y < (hitbox.y + hitbox.height / 2)) ? -overlapY : overlapY;
+                entity.setPos(entity.getPos().x, entity.getPos().y + dy);
+                entity.setVelocity(entity.getVelocity().x, 0f);
             }
         }
     }
