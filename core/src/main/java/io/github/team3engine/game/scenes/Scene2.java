@@ -13,6 +13,7 @@ import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.*;
 import io.github.team3engine.game.entities.*;
+import io.github.team3engine.game.factories.StaticEntityFactory;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
 
@@ -99,7 +100,8 @@ public class Scene2 extends BaseScene {
         entityManager.addEntity(p3h);
         entityManager.addEntity(p3v);
 
-        WinBox winBox = new WinBox("win_box", gw - 550 - 50, 60, 50f, ioManager);
+        WinBox winBox = StaticEntityFactory.createEntity(WinBox.class, "win_box", 550, 60, 50f, 50f, null);
+        // WinBox winBox = new WinBox("win_box", gw - 550 - 50, 60, 50f, ioManager);
         entityManager.addEntity(winBox);
 
         collisionManager.register(player);

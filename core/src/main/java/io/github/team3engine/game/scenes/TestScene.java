@@ -207,6 +207,17 @@ public class TestScene extends BaseScene {
                 ioManager.broadcast("PLAYER_WIN");
             }
         });
+
+        // register scene specific events in scene
+        ioManager.registerEvent("PLAYER_WIN", () -> {
+            Gdx.app.log("Game", "Player won!");
+            audioManager.play("victory.mp3");
+            // Restart the test scene
+            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.TEST_SCENE.name()));
+        });
+        ioManager.registerEvent("NPC_RESCUED", () -> {
+            Gdx.app.log("Game", "NPC rescued!");
+        });
     }
 
     @Override
@@ -228,6 +239,9 @@ public class TestScene extends BaseScene {
             platformTex.dispose();
             platformTex = null;
         }
+        ioManager.clearEvent("PLAYER_WIN");
+        ioManager.clearEvent("NPC_RESCUED");
+
     }
 
     @Override

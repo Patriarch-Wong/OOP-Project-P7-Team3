@@ -1,14 +1,26 @@
 package io.github.team3engine.game.scenes;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Timer;
+
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
+import io.github.team3engine.engine.collision.CollisionMediator;
+import io.github.team3engine.engine.entity.CollidableEntity;
+import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
+import io.github.team3engine.engine.interfaces.Collidable;
+import io.github.team3engine.engine.interfaces.Damageable;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
@@ -16,6 +28,7 @@ import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
+import io.github.team3engine.game.factories.*;
 
 public class Scene1 extends BaseScene {
     private static final float MAX_DELTA = 0.07f;
@@ -24,7 +37,7 @@ public class Scene1 extends BaseScene {
     private Texture platformTex;
     private Circle player;
     private MovementInput movementInput;
-    
+
     // Bucket with AI movement
     private Bucket bucket;
     private AIMovement bucketAI;
@@ -43,9 +56,14 @@ public class Scene1 extends BaseScene {
     private final int screenWidth;
     private final int screenHeight;
 
-    public Scene1(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager,
-                  EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager,
-                  int screenWidth, int screenHeight) {
+    CollisionMediator mediator;
+    private Map<String, Float> hazardCooldowns = new HashMap<>();
+    private Timer.Task fireResetTask;
+
+    public Scene1(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager,
+            AudioManager audioManager,
+            EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager,
+            int screenWidth, int screenHeight) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
@@ -75,40 +93,55 @@ public class Scene1 extends BaseScene {
         // Create bucket with AI movement
         bucket = new Bucket("bucket", gw / 2f, 0f, gw, gh);
         entityManager.addEntity(bucket);
-        
+
         // Create AI input for the bucket
         // Boundaries: 0 to screen width, accounting for bucket width
         bucketAI = new AIMovement(380, 450, bucket.getWidth());
-        
+
         // Optional: Enable random direction changes every 2 seconds
         // bucketAI.enableTimedDirectionChanges(2f);
 
         player = new Circle("player_circle", gw / 2f, gh / 2f, 30f, gw, gh);
         entityManager.addEntity(player);
-        
+
         // Reset movement state when scene starts
         player.getMovementState().reset();
         bucket.getMovementState().reset();
-        
+
         // Create movement input tied to this player's movement state
         movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
         groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
 
         float scaleX = gw / 19f;
         float scaleY = gh / 12f;
-        platformTex = new Texture(Gdx.files.internal("platform.png"));
+        String platformTexturePath = "platform.png";
 
-        Platform p1 = new Platform("platform_1", 1f * scaleX, 1f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
+        Platform p1 = StaticEntityFactory.createEntity(Platform.class, "platform_1", 1f * scaleX, 1f * scaleY,
+                8f * scaleX, 1f * scaleY, platformTexturePath);
+        Platform p2 = StaticEntityFactory.createEntity(Platform.class, "platform_2", 6f * scaleX, 5f * scaleY,
+                8f * scaleX, 1f * scaleY, platformTexturePath);
+        Platform p3h = StaticEntityFactory.createEntity(Platform.class, "platform_3_h", 11f * scaleX, 9f * scaleY,
+                8f * scaleX, 1f * scaleY, platformTexturePath);
+        Platform p3v = StaticEntityFactory.createEntity(Platform.class, "platform_3_v", 11f * scaleX, 8f * scaleY,
+                1f * scaleX, 1f * scaleY, platformTexturePath);
+
         entityManager.addEntity(p1);
-        Platform p2 = new Platform("platform_2", 6f * scaleX, 5f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p2);
-        Platform p3h = new Platform("platform_3_h", 11f * scaleX, 9f * scaleY, 8f * scaleX, 1f * scaleY, platformTex);
-        Platform p3v = new Platform("platform_3_v", 11f * scaleX, 8f * scaleY, 1f * scaleX, 1f * scaleY, platformTex);
         entityManager.addEntity(p3h);
         entityManager.addEntity(p3v);
 
-        WinBox winBox = new WinBox("win_box", 550, 60, 50f, ioManager);
+        WinBox winBox = StaticEntityFactory.createEntity(WinBox.class, "win_box", 500, 60, 50f, 50f, null);
         entityManager.addEntity(winBox);
+
+        SpriteEntity fire1 = SpriteEntityFactory.animated(
+                "hazard_fire_1",
+                3f * scaleX, 2f * scaleY,
+                "ui/sprites/fire_spritesheet.png",
+                8, 1, 0.2f,
+                2.5f, 2.5f,
+                true);
+
+        entityManager.addEntity(fire1);
 
         collisionManager.register(player);
         collisionManager.register(bucket);
@@ -117,8 +150,49 @@ public class Scene1 extends BaseScene {
         collisionManager.register(p3h);
         collisionManager.register(p3v);
         collisionManager.register(winBox);
+        collisionManager.register(fire1);
 
         image = new Texture("libgdx.png");
+
+        ioManager.registerEvent("PLAYER_HIT_FIRE", () -> {
+            Gdx.app.log("Game", "Player hit fire!");
+            Color currentPlayerColor = player.getColor().cpy();
+            player.setColor(Color.RED);
+            audioManager.play("oof.mp3");
+
+            // Reset color after 0.5 seconds
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    player.setColor(currentPlayerColor);
+                }
+            }, 0.4f);
+            // add visual feedback, reduce health, etc.
+        });
+        // register scene specific events in scene
+        ioManager.registerEvent("PLAYER_WIN", () -> {
+            Gdx.app.log("Game", "Player won!");
+            audioManager.play("victory.mp3");
+            // Restart the scene
+            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCENE_1.name()));
+        });
+
+        // --- Collision rules (Mediator pattern) ---
+        mediator = new CollisionMediator();
+
+        // Fire and player collision rle
+        mediator.addIdRule("hazard_fire_1", "player_circle", (a, playerId) -> {
+            float cooldown = hazardCooldowns.getOrDefault("fire", 0f);
+            if (cooldown <= 0f) {
+                ioManager.broadcast("PLAYER_HIT_FIRE");
+                hazardCooldowns.put("fire", 2.0f);
+            }
+        });
+
+        // winbox and player collision rule
+        mediator.addIdRule("win_box", "player_circle", (a, playerId) -> {
+            ioManager.broadcast("PLAYER_WIN");
+        });
     }
 
     @Override
@@ -141,13 +215,16 @@ public class Scene1 extends BaseScene {
             platformTex.dispose();
             platformTex = null;
         }
+        
+        ioManager.clearEvent("PLAYER_HIT_FIRE");
+        ioManager.clearEvent("PLAYER_WIN");
     }
 
     @Override
     public void render(float delta) {
         delta = Math.min(delta, MAX_DELTA);
         update(delta);
-        
+
         Gdx.gl.glClearColor(0.15f, 0.15f, 0.4f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -163,7 +240,7 @@ public class Scene1 extends BaseScene {
         // Apply movement to player using the player's movement state
         movementManager.applyMovement(player, player.getMovementState(), movementInput, delta);
         player.update(0f);
-        
+
         // Apply AI movement to bucket
         bucketAI.update(bucket.getX(), delta);
         movementManager.applyMovement(bucket, bucket.getMovementState(), bucketAI, delta);
@@ -174,11 +251,29 @@ public class Scene1 extends BaseScene {
     }
 
     @Override
-    public void update(float delta) {
-        entityManager.updateAll(delta);
-        playerInput.update(delta);
+    public void update(float dt) {
+        entityManager.updateAll(dt);
+        playerInput.update(dt);
         movementInput.update();
-        collisionManager.update(delta);
+        collisionManager.update(dt);
+
+        // Platform.onCollision() still runs for physics pushout
+        Array<Collidable[]> pairs = collisionManager.resolveCollisions();
+        // Game rules dispatched through mediator (no instanceof in entities)
+        mediator.resolve(pairs);
+
+        if (!hazardCooldowns.isEmpty()) {
+            java.util.List<String> keys = new java.util.ArrayList<>(hazardCooldowns.keySet());
+            for (String key : keys) {
+                float time = hazardCooldowns.get(key);
+                if (time > 0) {
+                    time -= dt;
+                    if (time < 0)
+                        time = 0;
+                    hazardCooldowns.put(key, time);
+                }
+            }
+        }
     }
 
     private void checkFallCondition() {

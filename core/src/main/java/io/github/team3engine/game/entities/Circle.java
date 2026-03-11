@@ -1,5 +1,9 @@
 package io.github.team3engine.game.entities;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -13,7 +17,8 @@ import io.github.team3engine.engine.movement.MovementState;
 
 /**
  * A collidable entity with a circular shape.
- * Movement is driven by the engine (MovementManager + MovementInput), not by this entity.
+ * Movement is driven by the engine (MovementManager + MovementInput), not by
+ * this entity.
  * The hitbox is the axis-aligned bounding box of the circle for compatibility
  * with the existing collision system.
  */
@@ -28,6 +33,7 @@ public class Circle extends CollidableEntity {
     private final float screenHeight;
     // Movement state for this entity
     private MovementState movementState;
+
 
     public Circle(String id, float radius, float screenWidth, float screenHeight) {
         super(id);
@@ -72,7 +78,7 @@ public class Circle extends CollidableEntity {
     public void setColor(float r, float g, float b, float a) {
         this.color.set(r, g, b, a);
     }
-    
+
     /**
      * Get the movement state for this entity.
      * Used by MovementManager to track velocity, grounded status, etc.
@@ -104,6 +110,7 @@ public class Circle extends CollidableEntity {
         float h = screenHeight;
         position.x = Math.max(radius, Math.min(w - radius, position.x));
         position.y = Math.max(radius, Math.min(h - radius, position.y));
+
         updateHitbox();
     }
 
@@ -122,7 +129,7 @@ public class Circle extends CollidableEntity {
         // shapeRenderer.setColor(0f, 1f, 0f, 1f); // Green outline for circle hitbox
         // shapeRenderer.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
         // shapeRenderer.end();
-        
+
         batch.begin();
     }
 
@@ -133,8 +140,6 @@ public class Circle extends CollidableEntity {
 
     @Override
     public void onCollision(Collidable other) {
-        // No game-specific logic here; collision responses are handled
-        // by the other entity's onCollision (e.g. WinBox broadcasts PLAYER_WIN).
     }
 
     public boolean touchesCeiling(EntityManager entityManager) {
@@ -142,7 +147,8 @@ public class Circle extends CollidableEntity {
         float tolerance = 6f;
 
         for (Entity e : entityManager.getAll()) {
-            if (!(e instanceof Solid)) continue;
+            if (!(e instanceof Solid))
+                continue;
             CollidableEntity solid = (CollidableEntity) e;
             com.badlogic.gdx.math.Rectangle box = solid.getHitbox();
 

@@ -49,18 +49,16 @@ public class Main extends ApplicationAdapter {
         int screenWidth = Gdx.graphics.getWidth();
         int screenHeight = Gdx.graphics.getHeight();
 
-        // Register TestScene only — old demo scenes are not used
+        // Register scenes
+        sceneManager.registerScene(SceneType.MAIN_MENU_SCENE.name(),
+            new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight));
         sceneManager.registerScene(SceneType.TEST_SCENE.name(),
             new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
-        sceneManager.setScene(SceneType.TEST_SCENE.name());
+        sceneManager.registerScene(SceneType.SCENE_1.name(),
+            new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
+        sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
 
-        // Game-specific event wiring
-        ioManager.registerEvent("PLAYER_WIN", () -> {
-            Gdx.app.log("Game", "Player won!");
-            audioManager.play("victory.mp3");
-            // Restart the test scene
-            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.TEST_SCENE.name()));
-        });
+        // global events reguster here
         ioManager.registerEvent("PLAYER_MOVING", () -> {
             float dt = Gdx.graphics.getDeltaTime();
             footstepTimer += dt;
@@ -78,9 +76,6 @@ public class Main extends ApplicationAdapter {
             Gdx.app.log("Game", "Player died!");
             // Restart the test scene
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.TEST_SCENE.name()));
-        });
-        ioManager.registerEvent("NPC_RESCUED", () -> {
-            Gdx.app.log("Game", "NPC rescued!");
         });
         ioManager.registerEvent("GAME_PAUSE", () -> {
             Gdx.app.log("Game", "Game paused");

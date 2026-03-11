@@ -43,19 +43,25 @@ public class MainMenuScene extends BaseScene {
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
         // region Create button
-        TextButton startButton = new TextButton("Start Game", skin);
-        startButton.setSize(200, 50);
-        startButton.setPosition((screenWidth - startButton.getWidth()) / 2f,
-            (screenHeight - startButton.getHeight()) / 2f);
+        TextButton scene1Button = new TextButton("Scene 1", skin);
+        scene1Button.setSize(200, 50);
+        scene1Button.setPosition((screenWidth - scene1Button.getWidth()) / 2f,
+            (screenHeight - scene1Button.getHeight()) / 2f);
+
+        
+        TextButton testSceneButton = new TextButton("Test Scene", skin);
+        testSceneButton.setSize(200, 50);
+        testSceneButton.setPosition((screenWidth - testSceneButton.getWidth()) / 2f,
+            (screenHeight - scene1Button.getHeight() - testSceneButton.getHeight()) / 3f);
+
 
         // Button action
-        startButton.addListener(new ClickListener() {
+        scene1Button.addListener(new ClickListener() {
             @Override // hover enter
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 // pointer == -1 means mouse, not touch
-                System.out.println("Hovering over Start Game button");
                 if (pointer == -1) {
-                    startButton.setColor(0.7f, 0.7f, 1f, 1f); // light blue on hover
+                    scene1Button.setColor(0.7f, 0.7f, 1f, 1f); // light blue on hover
                     Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
                 }
             }
@@ -63,7 +69,7 @@ public class MainMenuScene extends BaseScene {
             @Override // hover exit
             public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
                 if (pointer == -1) {
-                    startButton.setColor(1f, 1f, 1f, 1f); // reset to normal
+                    scene1Button.setColor(1f, 1f, 1f, 1f); // reset to normal
                     Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
                 }
             }
@@ -73,13 +79,43 @@ public class MainMenuScene extends BaseScene {
                 ioManager.broadcast("START_GAME");
             }
         });
-        getStage().addActor(startButton);
+        getStage().addActor(scene1Button);
+
+        // Button action
+        testSceneButton.addListener(new ClickListener() {
+            @Override // hover enter
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                // pointer == -1 means mouse, not touch
+                if (pointer == -1) {
+                    testSceneButton.setColor(0.7f, 0.7f, 1f, 1f); // light blue on hover
+                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
+                }
+            }
+
+            @Override // hover exit
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                if (pointer == -1) {
+                    testSceneButton.setColor(1f, 1f, 1f, 1f); // reset to normal
+                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+                }
+            }
+
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                ioManager.broadcast("START_GAME_TEST");
+            }
+        });
+        getStage().addActor(testSceneButton);
         // endregion
 
         // register events
         ioManager.registerEvent("START_GAME", () -> {
             Gdx.app.log("Game", "Starting game - Scene 1");
             sceneManager.setScene(SceneType.SCENE_1.name());
+        });
+        ioManager.registerEvent("START_GAME_TEST", () -> {
+            Gdx.app.log("Game", "Starting game - Test Scene");
+            sceneManager.setScene(SceneType.TEST_SCENE.name());
         });
     }
 
