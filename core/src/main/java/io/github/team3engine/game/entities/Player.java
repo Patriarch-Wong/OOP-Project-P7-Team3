@@ -1,8 +1,7 @@
 package io.github.team3engine.game.entities;
 
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.Entity;
@@ -21,8 +20,7 @@ public class Player extends CollidableEntity implements Damageable {
     private final float width;
     private final float height;
     private float baseSpeed = 220f;
-    private final ShapeRenderer shapeRenderer;
-    private Color color;
+    private final Texture texture;
     private final float screenWidth;
     private final float screenHeight;
 
@@ -53,8 +51,7 @@ public class Player extends CollidableEntity implements Damageable {
         this.screenHeight = screenHeight;
         this.movementState = new MovementState();
         this.statusEffects = new StatusEffectManager(this);
-        this.shapeRenderer = new ShapeRenderer();
-        this.color = new Color(0.2f, 0.5f, 0.9f, 1f); // Blue player
+        this.texture = new Texture("player.png");
         setPos(x, y);
         updateHitbox();
     }
@@ -168,23 +165,12 @@ public class Player extends CollidableEntity implements Damageable {
             }
         }
 
-        batch.end();
-        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-        shapeRenderer.setTransformMatrix(batch.getTransformMatrix());
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(color);
-        // Draw body (rectangle centered on position.x, bottom at position.y)
-        shapeRenderer.rect(position.x - width / 2f, position.y, width, height);
-        // Draw head (small circle on top)
-        float headRadius = width * 0.35f;
-        shapeRenderer.circle(position.x, position.y + height + headRadius * 0.5f, headRadius);
-        shapeRenderer.end();
-        batch.begin();
+        batch.draw(texture, position.x - width / 2f, position.y, width, height);
     }
 
     @Override
     public void dispose() {
-        shapeRenderer.dispose();
+        texture.dispose();
         statusEffects.clearAll();
     }
 
