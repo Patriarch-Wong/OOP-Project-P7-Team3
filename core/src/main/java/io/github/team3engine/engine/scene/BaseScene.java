@@ -2,25 +2,29 @@ package io.github.team3engine.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
-
-//Base scene
+import io.github.team3engine.engine.scoring.ScoreManager;
 
 public abstract class BaseScene implements Updatable {
     protected final SpriteBatch batch;
-
     private Stage stage;
+    private Timer timer = new Timer(60f);
+    private boolean timerEnabled = false;
 
-    // batch to draw scene
+    private final BitmapFont timerFont = new BitmapFont();
+    private final GlyphLayout timerLayout = new GlyphLayout();
+
     public BaseScene(SpriteBatch batch) {
         this.batch = batch;
     }
 
-    // Stage for UI only scenes
     protected final Stage getStage() {
         if (stage == null) {
             stage = new Stage(new ScreenViewport(), batch);
@@ -28,44 +32,53 @@ public abstract class BaseScene implements Updatable {
         return stage;
     }
 
-    // Override to use a different input processor when this scene is shown
     protected InputProcessor getInputProcessorForScene() {
         return getStage();
     }
 
-    // Returns the input processor for this scene
     public InputProcessor getInputProcessor() {
         return getInputProcessorForScene();
     }
 
-    /** Called when this scene becomes active. Sets input processor and invokes {@link #onShow()}. */
     public void show() {
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
     }
 
-    //override for scene specific setups
     protected void onShow() {}
 
-    //updates for resize
+    protected void enableTimer() {
+        timer = new Timer(60f);
+        timerEnabled = true;
+        timer.start();
+    }
+
     public void resize(int w, int h) {
         if (stage != null) {
             stage.getViewport().update(w, h, true);
         }
     }
 
-    //call when transitioning scene
     public void hide() {
         onHide();
     }
 
-    // override for scene clean up
     protected void onHide() {}
 
     @Override
-    public void update(float delta) {}
+    public void update(float delta) {
+        if (timerEnabled) {
+            timer.update(delta);
+            if (timer.isFinished()) {
+                onTimerFinished();
+            }
+        }
+    }
 
-    //clears scene
+    protected void onTimerFinished() {}
+
+    public Timer getTimer() { return timer; }
+
     protected final void clearScreen() {
         clearScreen(0f, 0f, 0f, 1f);
     }
@@ -75,7 +88,38 @@ public abstract class BaseScene implements Updatable {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
-    //draws scene then renderui
+    private void renderTimerAndScore() {
+        if (!timerEnabled) return;
+
+        // Timer
+        int seconds = (int) Math.ceil(timer.getTimeRemaining());
+        int minutes = seconds / 60;
+        int secs = seconds % 60;
+        String timeText = String.format("Time: %d:%02d", minutes, secs);
+
+        if (seconds <= 10) {
+            timerFont.setColor(Color.RED);
+        } else {
+            timerFont.setColor(Color.WHITE);
+        }
+
+        timerLayout.setText(timerFont, timeText);
+        float timerX = Gdx.graphics.getWidth() - timerLayout.width - 20f;
+        float timerY = Gdx.graphics.getHeight() - 10f;
+        timerFont.draw(batch, timeText, timerX, timerY);
+
+        // Score — directly below timer
+        String scoreText = "Score: " + ScoreManager.getInstance().getScore();
+        timerFont.setColor(Color.YELLOW);
+        timerLayout.setText(timerFont, scoreText);
+        float scoreX = Gdx.graphics.getWidth() - timerLayout.width - 20f;
+        float scoreY = timerY - 20f;
+        timerFont.draw(batch, scoreText, scoreX, scoreY);
+
+        // Reset color
+        timerFont.setColor(Color.WHITE);
+    }
+
     protected final void drawStageAndUI(float delta) {
         if (stage != null) {
             stage.act(delta);
@@ -83,20 +127,19 @@ public abstract class BaseScene implements Updatable {
         }
         batch.begin();
         renderUI();
+        renderTimerAndScore();
         batch.end();
     }
 
-    // redeners scnee
     public void render(float delta) {
         clearScreen();
         drawStageAndUI(delta);
     }
 
-    /** Draw this scene's UI with the batch already begun. Called from the default {@link #render(float)} after optional Stage. */
     protected abstract void renderUI();
 
-    /** Releases stage. Call when scene is no longer needed. */
     public void dispose() {
+        timerFont.dispose();
         if (stage != null) {
             stage.dispose();
             stage = null;
