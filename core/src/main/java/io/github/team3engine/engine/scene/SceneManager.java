@@ -61,6 +61,10 @@ public class SceneManager implements Updatable, FrameRenderable, Disposable {
         }
     }
 
+    public BaseScene getScene(String id) {
+        return scenes.get(id);
+    }
+
     public BaseScene getCurrentScene() {
         return currentSceneId == null ? null : scenes.get(currentSceneId);
     }

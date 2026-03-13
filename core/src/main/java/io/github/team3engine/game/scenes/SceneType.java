@@ -1,12 +1,9 @@
 package io.github.team3engine.game.scenes;
 
-/**
- * Game-specific scene identifiers. Kept in the game layer so the engine
- * remains generic (SceneManager uses string ids only).
- */
 public enum SceneType {
     SCENE_1,
     SCENE_2,
     TEST_SCENE,
-    MAIN_MENU_SCENE
+    MAIN_MENU_SCENE,
+    SCORE_BOARD
 }

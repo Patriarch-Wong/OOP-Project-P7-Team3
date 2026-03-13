@@ -307,6 +307,5 @@ public class Scene1 extends BaseScene {
         font.draw(batch, "SCENE 1 - Reach the green box!", 100, 400);
         font.draw(batch, "Win to go to Scene 2.", 100, 350);
         font.draw(batch, "Score: " + ScoreManager.getInstance().getScore(), 100, 300);
-        font.draw(batch, "Time: " + (int) getTimer().getTimeRemaining() + "s", 100, 250);
     }
 }

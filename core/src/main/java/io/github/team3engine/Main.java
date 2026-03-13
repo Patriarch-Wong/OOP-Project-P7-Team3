@@ -56,6 +56,10 @@ public class Main extends ApplicationAdapter {
             new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
         sceneManager.registerScene(SceneType.SCENE_1.name(),
             new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
+
+        ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, screenWidth, screenHeight);
+        sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
+
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
 
         // global events reguster here

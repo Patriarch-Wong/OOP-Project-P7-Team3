@@ -19,10 +19,15 @@ import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
+import io.github.team3engine.engine.scoring.ScoreContext;
+import io.github.team3engine.engine.scoring.ScoreManager;
 import io.github.team3engine.engine.status.StatusEffect;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
+import io.github.team3engine.game.score.NpcRescueRule;
+import io.github.team3engine.game.score.ObjectiveRule;
+import io.github.team3engine.game.score.TimeBonusRule;
 import io.github.team3engine.game.status.SlowEffect;
 
 public class TestScene extends BaseScene {
@@ -70,7 +75,14 @@ public class TestScene extends BaseScene {
     @Override
     protected void onShow() {
         super.onShow();
-        enableTimer(); // ← starts 60s countdown
+        enableTimer();
+
+        // --- Register score rules ---
+        ScoreManager.getInstance().reset();
+        ScoreManager.getInstance().addRule(new ObjectiveRule());
+        ScoreManager.getInstance().addRule(new NpcRescueRule());
+        ScoreManager.getInstance().addRule(new TimeBonusRule());
+
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
@@ -78,12 +90,14 @@ public class TestScene extends BaseScene {
         float gw = screenWidth;
         float gh = screenHeight;
 
+        // --- Player ---
         player = new Player("player", gw * 0.1f, 60f, 20f, 36f, 100f, gw, gh);
         entityManager.addEntity(player);
         player.getMovementState().reset();
         movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
         groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
 
+        // --- Platforms ---
         platformTex = new Texture(Gdx.files.internal("platform.png"));
 
         Platform ground = new Platform("ground", 0, 0, gw, 40f, platformTex);
@@ -95,6 +109,7 @@ public class TestScene extends BaseScene {
         Platform p3 = new Platform("plat_3", 620f, 300f, 200f, 16f, platformTex);
         entityManager.addEntity(p3);
 
+        // --- Fire hazards ---
         Fire fire1a = new Fire("fire_1a", 220f, 40f, 30f, 35f);
         Fire fire1b = new Fire("fire_1b", 248f, 40f, 25f, 28f);
         Fire fire1c = new Fire("fire_1c", 230f, 72f, 20f, 22f);
@@ -114,17 +129,21 @@ public class TestScene extends BaseScene {
         entityManager.addEntity(fire3a);
         entityManager.addEntity(fire3b);
 
+        // --- Pickups ---
         WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
         MaskPickup mask = new MaskPickup("mask", 550f, 75f);
         entityManager.addEntity(towel);
         entityManager.addEntity(mask);
 
+        // --- NPC ---
         NPC npc = new NPC("npc_child", 350f, 55f, "Child");
         entityManager.addEntity(npc);
 
+        // --- Exit door ---
         ExitDoor exit = new ExitDoor("exit_door", gw - 55f, 40f, 40f, 60f, 1, ioManager);
         entityManager.addEntity(exit);
 
+        // --- Register collisions ---
         collisionManager.register(player);
         collisionManager.register(ground);
         collisionManager.register(p1);
@@ -143,6 +162,7 @@ public class TestScene extends BaseScene {
         collisionManager.register(npc);
         collisionManager.register(exit);
 
+        // --- Collision rules ---
         mediator = new CollisionMediator();
 
         mediator.addRule(Fire.class, Damageable.class, (fire, target) -> {
@@ -185,11 +205,25 @@ public class TestScene extends BaseScene {
             }
         });
 
+        // --- Events ---
         ioManager.registerEvent("PLAYER_WIN", () -> {
             Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
-            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.TEST_SCENE.name()));
+
+            ScoreContext context = new ScoreContext("PLAYER_ESCAPED");
+            context.put("objectiveComplete", true);
+            context.put("npcsRescued", player.getRescuedCount());
+            context.put("timeRemaining", getTimer().getTimeRemaining());
+            ScoreManager.getInstance().applyRules(context);
+
+            Gdx.app.log("Score", "Final Score: " + ScoreManager.getInstance().getFinalScore());
+
+            // Show scoreboard, next level = TEST_SCENE (change to SCENE_2 when ready)
+            ScoreBoardScene board = (ScoreBoardScene) sceneManager.getScene(SceneType.SCORE_BOARD.name());
+            if (board != null) board.setNextScene(SceneType.TEST_SCENE.name());
+            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
         });
+
         ioManager.registerEvent("NPC_RESCUED", () -> {
             Gdx.app.log("Game", "NPC rescued!");
         });
@@ -242,7 +276,7 @@ public class TestScene extends BaseScene {
 
     @Override
     public void update(float delta) {
-        super.update(delta);
+        super.update(delta);  // ticks the timer
         delta = Math.min(delta, MAX_DELTA);
         entityManager.updateAll(delta);
         playerInput.update(delta);
@@ -255,14 +289,19 @@ public class TestScene extends BaseScene {
     @Override
     protected void onTimerFinished() {
         Gdx.app.log("Game", "Time's up! Game Over.");
-        Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
+        // Still show scoreboard so player sees their score
+        ScoreBoardScene board = (ScoreBoardScene) sceneManager.getScene(SceneType.SCORE_BOARD.name());
+        if (board != null) board.setNextScene(SceneType.TEST_SCENE.name());
+        Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
     }
 
     @Override
     protected void renderUI() {
+        // HP
         String hpText = "HP: " + (int) player.getHp() + " / " + (int) player.getMaxHp();
         font.draw(batch, hpText, 20, screenHeight - 20);
 
+        // Buffs
         StringBuilder buffs = new StringBuilder();
         for (StatusEffect effect : player.getStatusEffects().getAll()) {
             if (buffs.length() > 0) buffs.append("  |  ");
@@ -275,13 +314,16 @@ public class TestScene extends BaseScene {
             font.draw(batch, buffs.toString(), 20, screenHeight - 40);
         }
 
+        // Carrying status
         if (player.isCarryingNPC()) {
             font.draw(batch, "Carrying: Child", 20, screenHeight - 60);
         }
 
+        // Rescued count
         font.draw(batch, "Rescued: " + player.getRescuedCount() + "/1",
                 screenWidth - 150, screenHeight - 20);
 
+        // Instructions
         font.draw(batch, "Rescue the NPC and reach the EXIT!", 200, screenHeight - 20);
     }
 }

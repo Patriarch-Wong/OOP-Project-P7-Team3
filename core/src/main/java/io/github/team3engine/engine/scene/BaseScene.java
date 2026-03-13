@@ -47,6 +47,7 @@ public abstract class BaseScene implements Updatable {
 
     protected void onShow() {}
 
+    // Call this in onShow() of any game scene to start the 60s countdown
     protected void enableTimer() {
         timer = new Timer(60f);
         timerEnabled = true;
@@ -70,6 +71,7 @@ public abstract class BaseScene implements Updatable {
         if (timerEnabled) {
             timer.update(delta);
             if (timer.isFinished()) {
+                timerEnabled = false; // prevent repeated calls
                 onTimerFinished();
             }
         }
@@ -91,7 +93,7 @@ public abstract class BaseScene implements Updatable {
     private void renderTimerAndScore() {
         if (!timerEnabled) return;
 
-        // Timer
+        // Timer top right
         int seconds = (int) Math.ceil(timer.getTimeRemaining());
         int minutes = seconds / 60;
         int secs = seconds % 60;
@@ -108,7 +110,7 @@ public abstract class BaseScene implements Updatable {
         float timerY = Gdx.graphics.getHeight() - 10f;
         timerFont.draw(batch, timeText, timerX, timerY);
 
-        // Score — directly below timer
+        // Score directly below timer
         String scoreText = "Score: " + ScoreManager.getInstance().getScore();
         timerFont.setColor(Color.YELLOW);
         timerLayout.setText(timerFont, scoreText);
@@ -116,7 +118,6 @@ public abstract class BaseScene implements Updatable {
         float scoreY = timerY - 20f;
         timerFont.draw(batch, scoreText, scoreX, scoreY);
 
-        // Reset color
         timerFont.setColor(Color.WHITE);
     }
 
