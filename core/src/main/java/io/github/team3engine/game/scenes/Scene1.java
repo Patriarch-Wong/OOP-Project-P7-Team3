@@ -26,6 +26,8 @@ import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.entities.*;
+import io.github.team3engine.engine.scoring.ScoreContext;
+import io.github.team3engine.engine.scoring.ScoreManager;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
 import io.github.team3engine.game.factories.*;
@@ -83,6 +85,7 @@ public class Scene1 extends BaseScene {
 
     @Override
     protected void onShow() {
+        super.onShow(); // starts the timer
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
@@ -173,7 +176,7 @@ public class Scene1 extends BaseScene {
         ioManager.registerEvent("PLAYER_WIN", () -> {
             Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
-            // Restart the scene
+            onPlayerEscaped();
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCENE_1.name()));
         });
 
@@ -284,10 +287,26 @@ public class Scene1 extends BaseScene {
         groundDetector.checkGroundDetection(player);
     }
 
+    private void onPlayerEscaped() {
+        getTimer().stop();
+        ScoreContext context = new ScoreContext("PLAYER_ESCAPED");
+        context.put("timeRemaining", getTimer().getTimeRemaining());
+        context.put("objectiveComplete", true);
+        ScoreManager.getInstance().applyRules(context);
+        Gdx.app.log("Score", "Final Score: " + ScoreManager.getInstance().getFinalScore());
+    }
+
+    @Override
+    protected void onTimerFinished() {
+        Gdx.app.log("Game", "Time's up!");
+        // TODO: trigger game over scene when ready
+    }
+
     @Override
     protected void renderUI() {
         font.draw(batch, "SCENE 1 - Reach the green box!", 100, 400);
         font.draw(batch, "Win to go to Scene 2.", 100, 350);
-        font.draw(batch, "Bucket moves automatically!", 100, 300);
+        font.draw(batch, "Score: " + ScoreManager.getInstance().getScore(), 100, 300);
+        font.draw(batch, "Time: " + (int) getTimer().getTimeRemaining() + "s", 100, 250);
     }
 }
