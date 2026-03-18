@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 
+import io.github.team3engine.engine.collision.SolidCollisionResolver;
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.engine.interfaces.Solid;
@@ -131,6 +132,6 @@ public class Platform extends CollidableEntity implements Solid {
 
     @Override
     public void onCollision(Collidable other) {
-        Solid.super.onCollision(other); // push-out
+        SolidCollisionResolver.resolve(this, other);
     }
 }

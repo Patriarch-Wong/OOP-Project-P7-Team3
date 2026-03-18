@@ -12,8 +12,7 @@ public class TimeBonusRule implements ScoreRule {
 
     @Override
     public int evaluate(ScoreContext context) {
-        if (!context.has("timeRemaining")) return 0;
-        float timeRemaining = (float) context.get("timeRemaining");
+        float timeRemaining = context.getFloat("timeRemaining", 0f);
         return (int)(timeRemaining * POINTS_PER_SECOND);
     }
 }

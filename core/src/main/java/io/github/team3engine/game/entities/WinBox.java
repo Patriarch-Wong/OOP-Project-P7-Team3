@@ -5,13 +5,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Solid;
 
 /**
  * A winning objective entity - triggers victory event on contact with any
- * CollidableEntity.
+ * CollidableEntity. Not a solid surface; collision logic is handled by the
+ * CollisionMediator.
  */
-public class WinBox extends CollidableEntity implements Solid {
+public class WinBox extends CollidableEntity {
     private final float sizeX;
     private final float sizeY;
     private final ShapeRenderer shapeRenderer;
@@ -53,8 +53,7 @@ public class WinBox extends CollidableEntity implements Solid {
 
     @Override
     public void onCollision(Collidable other) {
-        Solid.super.onCollision(other); // push-out
-
+        // No-op: collision logic handled by CollisionMediator
     }
 
     @Override

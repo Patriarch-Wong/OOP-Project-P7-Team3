@@ -138,6 +138,7 @@ public class MainMenuScene extends BaseScene {
     @Override
     public void onHide() {
         ioManager.clearEvent(GameEvents.START_GAME);
+        ioManager.clearEvent(GameEvents.START_GAME_TEST);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (skin != null) {
             skin.dispose();

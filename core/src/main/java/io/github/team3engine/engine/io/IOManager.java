@@ -65,6 +65,40 @@ public class IOManager implements InputProcessor, Updatable, Disposable {
         }
     }
 
+    // ── Deprecated String-based overloads (kept for backward compatibility) ──
+
+    /**
+     * @deprecated Use {@link #registerEvent(Enum, Runnable)} with a typed enum instead.
+     */
+    @Deprecated
+    public void registerEvent(String event, Runnable callback) {
+        if (event == null) return;
+        eventCallbacks
+                .computeIfAbsent(event, k -> new ArrayList<>())
+                .add(callback);
+    }
+
+    /**
+     * @deprecated Use {@link #clearEvent(Enum)} with a typed enum instead.
+     */
+    @Deprecated
+    public void clearEvent(String event) {
+        if (event == null) return;
+        eventCallbacks.remove(event);
+    }
+
+    /**
+     * @deprecated Use {@link #broadcast(Enum)} with a typed enum instead.
+     */
+    @Deprecated
+    public void broadcast(String event) {
+        List<Runnable> callbacks = eventCallbacks.get(event);
+        if (callbacks == null) return;
+        for (Runnable r : callbacks) {
+            r.run();
+        }
+    }
+
     public boolean isActive() {
         return isActive;
     }

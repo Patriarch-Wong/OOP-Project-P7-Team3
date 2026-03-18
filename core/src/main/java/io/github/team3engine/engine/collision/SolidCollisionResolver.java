@@ -6,6 +6,20 @@ import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
 
 public final class SolidCollisionResolver {
+    /**
+     * Extra push-out factor along the X axis to prevent the mover from
+     * immediately re-entering the solid on the next frame due to
+     * floating-point rounding.
+     */
+    private static final float HORIZONTAL_PUSH_MARGIN = 1.1f;
+
+    /**
+     * Extra push-out factor along the Y axis. Slightly smaller than X
+     * because vertical corrections (landing/ceiling) are more visually
+     * noticeable and a large margin would cause jitter.
+     */
+    private static final float VERTICAL_PUSH_MARGIN = 1.05f;
+
     private SolidCollisionResolver() {}
 
     public static void resolve(CollidableEntity solid, Collidable other) {
@@ -46,12 +60,12 @@ public final class SolidCollisionResolver {
 
         if (overlapX < overlapY) {
             // push along X
-            float dx = (bCenterX < aCenterX) ? -overlapX * 1.1f : overlapX * 1.1f;
+            float dx = (bCenterX < aCenterX) ? -overlapX * HORIZONTAL_PUSH_MARGIN : overlapX * HORIZONTAL_PUSH_MARGIN;
             mover.setPos(mover.getPos().x + dx, mover.getPos().y);
             mover.setVelocity(0f, mover.getVelocity().y);
         } else {
             // push along Y - add extra margin to ensure complete separation
-            float dy = (bCenterY < aCenterY) ? -overlapY * 1.05f : overlapY * 1.05f;
+            float dy = (bCenterY < aCenterY) ? -overlapY * VERTICAL_PUSH_MARGIN : overlapY * VERTICAL_PUSH_MARGIN;
             mover.setPos(mover.getPos().x, mover.getPos().y + dy);
             mover.setVelocity(mover.getVelocity().x, 0f);
         }

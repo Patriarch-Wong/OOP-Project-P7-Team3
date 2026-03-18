@@ -1,11 +1,9 @@
 package io.github.team3engine.game.entities;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
@@ -18,6 +16,7 @@ public class Fire extends CollidableEntity {
     private final float height;
     private final float damage;
     private final Texture texture;
+    private final boolean ownsTexture;
     private final Animation<TextureRegion> animation;
     private float stateTime = 0f;
     private float scaleX = 1f;
@@ -33,6 +32,8 @@ public class Fire extends CollidableEntity {
         this.height = height;
         this.damage = damage;
         this.texture = fireTex;
+        // Texture is provided externally (shared); this Fire does not own it
+        this.ownsTexture = false;
         this.upsideDown = upsideDown;
         int frameWidth = texture.getWidth() / frameCols;
         int frameHeight = texture.getHeight() / frameRows;
@@ -101,10 +102,6 @@ public class Fire extends CollidableEntity {
         updateHitbox();
     }
 
-    // private final ShapeRenderer debugShape = new ShapeRenderer();
-    // private static final Color HITBOX_COLOR = new Color(1f, 0f, 0f, 1f);
-    // private static final boolean DEBUG_HITBOX = true;
-
     @Override
     public void render(SpriteBatch batch) {
         float scaledWidth = width * scaleX;
@@ -118,27 +115,17 @@ public class Fire extends CollidableEntity {
                 }
                 float drawY = upsideDown ? position.y - scaledHeight : position.y;
                 batch.draw(drawFrame, position.x, drawY, scaledWidth, scaledHeight);
-
-                // torender  hitbox of fire 
-                // if (DEBUG_HITBOX) {
-                //     batch.end();
-                //     debugShape.setProjectionMatrix(batch.getProjectionMatrix());
-                //     debugShape.begin(ShapeRenderer.ShapeType.Line);
-                //     debugShape.setColor(HITBOX_COLOR);
-                //     debugShape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
-                //     debugShape.end();
-                //     batch.begin();
-                // }
                 return;
             }
         }
         batch.draw(texture, position.x, position.y, scaledWidth, scaledHeight);
-
     }
 
     @Override
     public void dispose() {
-        texture.dispose();
+        if (ownsTexture && texture != null) {
+            texture.dispose();
+        }
     }
 
     @Override

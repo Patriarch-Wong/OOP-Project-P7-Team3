@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Timer;
 
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
@@ -58,7 +57,7 @@ public class Scene1 extends BaseScene {
 
     CollisionMediator mediator;
     private Map<String, Float> hazardCooldowns = new HashMap<>();
-    private Timer.Task fireResetTask;
+    private com.badlogic.gdx.utils.Timer.Task fireResetTask;
 
     public Scene1(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager,
             AudioManager audioManager,
@@ -83,7 +82,8 @@ public class Scene1 extends BaseScene {
 
     @Override
     protected void onShow() {
-        super.onShow(); // starts the timer
+        super.onShow();
+        enableTimer();
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
@@ -161,8 +161,8 @@ public class Scene1 extends BaseScene {
             player.setColor(Color.RED);
             audioManager.play("oof.mp3");
 
-            // Reset color after 0.5 seconds
-            Timer.schedule(new Timer.Task() {
+            // Reset color after 0.4 seconds
+            com.badlogic.gdx.utils.Timer.schedule(new com.badlogic.gdx.utils.Timer.Task() {
                 @Override
                 public void run() {
                     player.setColor(currentPlayerColor);
@@ -253,6 +253,7 @@ public class Scene1 extends BaseScene {
 
     @Override
     public void update(float dt) {
+        super.update(dt); // ticks the timer
         entityManager.updateAll(dt);
         playerInput.update(dt);
         movementInput.update();

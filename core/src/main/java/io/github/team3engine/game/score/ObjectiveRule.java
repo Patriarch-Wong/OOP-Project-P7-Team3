@@ -8,8 +8,7 @@ public class ObjectiveRule implements ScoreRule {
 
     @Override
     public int evaluate(ScoreContext context) {
-        if (!context.has("objectiveComplete")) return 0;
-        boolean complete = (boolean) context.get("objectiveComplete");
+        boolean complete = context.getBoolean("objectiveComplete", false);
         return complete ? BASE_POINTS : 0;
     }
 }

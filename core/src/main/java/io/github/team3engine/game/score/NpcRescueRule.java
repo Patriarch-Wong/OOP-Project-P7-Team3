@@ -12,8 +12,7 @@ public class NpcRescueRule implements ScoreRule {
 
     @Override
     public int evaluate(ScoreContext context) {
-        if (!context.has("npcsRescued")) return 0;
-        int rescued = (int) context.get("npcsRescued");
+        int rescued = context.getInt("npcsRescued", 0);
         return rescued * POINTS_PER_NPC;
     }
 }

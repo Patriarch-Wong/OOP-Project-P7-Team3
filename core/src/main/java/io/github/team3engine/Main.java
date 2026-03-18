@@ -117,7 +117,7 @@ public class Main extends ApplicationAdapter {
         SceneManager sceneManager = engine.getSceneManager();
         IOManager ioManager = engine.getIOManager();
 
-        if (sceneManager.getCurrentSceneId() != SceneType.MAIN_MENU_SCENE.name()) {
+        if (!SceneType.MAIN_MENU_SCENE.name().equals(sceneManager.getCurrentSceneId())) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 if (isPaused) {
                     ioManager.broadcast(GameEvents.GAME_UNPAUSE);
