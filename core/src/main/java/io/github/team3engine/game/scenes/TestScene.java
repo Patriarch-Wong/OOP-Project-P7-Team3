@@ -23,6 +23,7 @@ import io.github.team3engine.engine.scoring.ScoreContext;
 import io.github.team3engine.engine.scoring.ScoreManager;
 import io.github.team3engine.engine.status.StatusEffect;
 import io.github.team3engine.game.entities.*;
+import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
 import io.github.team3engine.game.score.NpcRescueRule;
@@ -198,15 +199,15 @@ public class TestScene extends BaseScene {
                 if (slow != null) {
                     p.getStatusEffects().remove(slow);
                 }
-                ioManager.broadcast("NPC_RESCUED");
+                ioManager.broadcast(GameEvents.NPC_RESCUED);
             }
             if (p.getRescuedCount() >= door.getRequiredRescues()) {
-                ioManager.broadcast("PLAYER_WIN");
+                ioManager.broadcast(GameEvents.PLAYER_WIN);
             }
         });
 
         // --- Events ---
-        ioManager.registerEvent("PLAYER_WIN", () -> {
+        ioManager.registerEvent(GameEvents.PLAYER_WIN, () -> {
             Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
 
@@ -224,7 +225,7 @@ public class TestScene extends BaseScene {
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
         });
 
-        ioManager.registerEvent("NPC_RESCUED", () -> {
+        ioManager.registerEvent(GameEvents.NPC_RESCUED, () -> {
             Gdx.app.log("Game", "NPC rescued!");
         });
     }
@@ -248,8 +249,8 @@ public class TestScene extends BaseScene {
             platformTex.dispose();
             platformTex = null;
         }
-        ioManager.clearEvent("PLAYER_WIN");
-        ioManager.clearEvent("NPC_RESCUED");
+        ioManager.clearEvent(GameEvents.PLAYER_WIN);
+        ioManager.clearEvent(GameEvents.NPC_RESCUED);
     }
 
     @Override
@@ -270,7 +271,7 @@ public class TestScene extends BaseScene {
         groundDetector.checkGroundDetection(player);
 
         if (!player.isAlive()) {
-            ioManager.broadcast("PLAYER_DEAD");
+            ioManager.broadcast(GameEvents.PLAYER_DEAD);
         }
     }
 

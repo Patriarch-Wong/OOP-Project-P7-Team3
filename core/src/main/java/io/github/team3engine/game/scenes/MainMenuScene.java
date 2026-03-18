@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.Cursor;
 import io.github.team3engine.engine.scene.*;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.audio.AudioManager;
+import io.github.team3engine.game.events.GameEvents;
 
 public class MainMenuScene extends BaseScene {
     private final SceneManager sceneManager;
@@ -76,7 +77,7 @@ public class MainMenuScene extends BaseScene {
 
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast("START_GAME");
+                ioManager.broadcast(GameEvents.START_GAME);
             }
         });
         getStage().addActor(scene1Button);
@@ -102,18 +103,18 @@ public class MainMenuScene extends BaseScene {
 
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast("START_GAME_TEST");
+                ioManager.broadcast(GameEvents.START_GAME_TEST);
             }
         });
         getStage().addActor(testSceneButton);
         // endregion
 
         // register events
-        ioManager.registerEvent("START_GAME", () -> {
+        ioManager.registerEvent(GameEvents.START_GAME, () -> {
             Gdx.app.log("Game", "Starting game - Scene 1");
             sceneManager.setScene(SceneType.SCENE_1.name());
         });
-        ioManager.registerEvent("START_GAME_TEST", () -> {
+        ioManager.registerEvent(GameEvents.START_GAME_TEST, () -> {
             Gdx.app.log("Game", "Starting game - Test Scene");
             sceneManager.setScene(SceneType.TEST_SCENE.name());
         });
@@ -136,7 +137,7 @@ public class MainMenuScene extends BaseScene {
 
     @Override
     public void onHide() {
-        ioManager.clearEvent("START_GAME");
+        ioManager.clearEvent(GameEvents.START_GAME);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (skin != null) {
             skin.dispose();

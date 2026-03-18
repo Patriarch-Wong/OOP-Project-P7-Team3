@@ -15,6 +15,7 @@ import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.engine.scoring.ScoreManager;
+import io.github.team3engine.game.events.GameEvents;
 
 public class ScoreBoardScene extends BaseScene {
 
@@ -75,7 +76,7 @@ public class ScoreBoardScene extends BaseScene {
             }
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast("SCOREBOARD_NEXT");
+                ioManager.broadcast(GameEvents.SCOREBOARD_NEXT);
             }
         });
 
@@ -101,21 +102,21 @@ public class ScoreBoardScene extends BaseScene {
             }
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast("SCOREBOARD_MENU");
+                ioManager.broadcast(GameEvents.SCOREBOARD_MENU);
             }
         });
 
         getStage().addActor(nextButton);
         getStage().addActor(menuButton);
 
-        ioManager.registerEvent("SCOREBOARD_NEXT", () -> {
+        ioManager.registerEvent(GameEvents.SCOREBOARD_NEXT, () -> {
             if (nextSceneId != null) {
                 ScoreManager.getInstance().reset();
                 Gdx.app.postRunnable(() -> sceneManager.setScene(nextSceneId));
             }
         });
 
-        ioManager.registerEvent("SCOREBOARD_MENU", () -> {
+        ioManager.registerEvent(GameEvents.SCOREBOARD_MENU, () -> {
             ScoreManager.getInstance().reset();
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
         });
@@ -123,8 +124,8 @@ public class ScoreBoardScene extends BaseScene {
 
     @Override
     protected void onHide() {
-        ioManager.clearEvent("SCOREBOARD_NEXT");
-        ioManager.clearEvent("SCOREBOARD_MENU");
+        ioManager.clearEvent(GameEvents.SCOREBOARD_NEXT);
+        ioManager.clearEvent(GameEvents.SCOREBOARD_MENU);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (skin != null) {
             skin.dispose();

@@ -36,16 +36,18 @@ public class IOManager implements InputProcessor, Updatable, Disposable {
         eventCallbacks.clear();
     }
 
-    // register callbacks for each event
-    public void registerEvent(String eventName, Runnable callback) {
+    // register callbacks for each event using an enum (avoid string typos)
+    public void registerEvent(Enum<?> event, Runnable callback) {
+        if (event == null) return;
         eventCallbacks
-                .computeIfAbsent(eventName, k -> new ArrayList<>())
+                .computeIfAbsent(event.name(), k -> new ArrayList<>())
                 .add(callback);
     }
 
     // clear all callbacks for a specific event
-    public void clearEvent(String eventName) {
-        eventCallbacks.remove(eventName);
+    public void clearEvent(Enum<?> event) {
+        if (event == null) return;
+        eventCallbacks.remove(event.name());
     }
 
     public void clearAllEvents() {
@@ -53,8 +55,8 @@ public class IOManager implements InputProcessor, Updatable, Disposable {
     }
 
     // when an event happens, run all the callbacks linked to that event
-    public void broadcast(String eventName) {
-        List<Runnable> callbacks = eventCallbacks.get(eventName);
+    public void broadcast(Enum<?> event) {
+        List<Runnable> callbacks = eventCallbacks.get(event.name());
         if (callbacks == null)
             return;
 

@@ -16,16 +16,14 @@ import com.badlogic.gdx.utils.Timer;
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.collision.CollisionMediator;
-import io.github.team3engine.engine.entity.CollidableEntity;
-import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Damageable;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.entities.*;
+import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.engine.scoring.ScoreContext;
 import io.github.team3engine.engine.scoring.ScoreManager;
 import io.github.team3engine.game.inputs.PlayerInput;
@@ -157,7 +155,7 @@ public class Scene1 extends BaseScene {
 
         image = new Texture("libgdx.png");
 
-        ioManager.registerEvent("PLAYER_HIT_FIRE", () -> {
+        ioManager.registerEvent(GameEvents.PLAYER_HIT_FIRE, () -> {
             Gdx.app.log("Game", "Player hit fire!");
             Color currentPlayerColor = player.getColor().cpy();
             player.setColor(Color.RED);
@@ -173,7 +171,7 @@ public class Scene1 extends BaseScene {
             // add visual feedback, reduce health, etc.
         });
         // register scene specific events in scene
-        ioManager.registerEvent("PLAYER_WIN", () -> {
+        ioManager.registerEvent(GameEvents.PLAYER_WIN, () -> {
             Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
             onPlayerEscaped();
@@ -187,14 +185,14 @@ public class Scene1 extends BaseScene {
         mediator.addIdRule("hazard_fire_1", "player_circle", (a, playerId) -> {
             float cooldown = hazardCooldowns.getOrDefault("fire", 0f);
             if (cooldown <= 0f) {
-                ioManager.broadcast("PLAYER_HIT_FIRE");
+                ioManager.broadcast(GameEvents.PLAYER_HIT_FIRE);
                 hazardCooldowns.put("fire", 2.0f);
             }
         });
 
         // winbox and player collision rule
         mediator.addIdRule("win_box", "player_circle", (a, playerId) -> {
-            ioManager.broadcast("PLAYER_WIN");
+            ioManager.broadcast(GameEvents.PLAYER_WIN);
         });
     }
 
@@ -218,9 +216,9 @@ public class Scene1 extends BaseScene {
             platformTex.dispose();
             platformTex = null;
         }
-        
-        ioManager.clearEvent("PLAYER_HIT_FIRE");
-        ioManager.clearEvent("PLAYER_WIN");
+
+        ioManager.clearEvent(GameEvents.PLAYER_HIT_FIRE);
+        ioManager.clearEvent(GameEvents.PLAYER_WIN);
     }
 
     @Override

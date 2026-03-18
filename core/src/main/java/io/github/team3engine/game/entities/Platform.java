@@ -131,53 +131,6 @@ public class Platform extends CollidableEntity implements Solid {
 
     @Override
     public void onCollision(Collidable other) {
-        if (!(other instanceof CollidableEntity))
-            return;
-
-        CollidableEntity ce = (CollidableEntity) other;
-        Rectangle a = this.getHitbox();
-        Rectangle b = ce.getHitbox();
-
-        if (a == null || b == null)
-            return;
-        if (!a.overlaps(b))
-            return;
-
-        // compute penetration amounts on each axis
-        float aLeft = a.x;
-        float aRight = a.x + a.width;
-        float aBottom = a.y;
-        float aTop = a.y + a.height;
-
-        float bLeft = b.x;
-        float bRight = b.x + b.width;
-        float bBottom = b.y;
-        float bTop = b.y + b.height;
-
-        float overlapX = Math.min(aRight, bRight) - Math.max(aLeft, bLeft);
-        float overlapY = Math.min(aTop, bTop) - Math.max(aBottom, bBottom);
-
-        if (overlapX <= 0 || overlapY <= 0)
-            return; // no overlap
-
-        // centers for direction
-        float aCenterX = a.x + a.width * 0.5f;
-        float aCenterY = a.y + a.height * 0.5f;
-        float bCenterX = b.x + b.width * 0.5f;
-        float bCenterY = b.y + b.height * 0.5f;
-
-        if (overlapX < overlapY) {
-            // push along X
-            float dx = (bCenterX < aCenterX) ? -overlapX * 1.1f : overlapX * 1.1f;
-            ce.setPos(ce.getPos().x + dx, ce.getPos().y);
-            ce.setVelocity(0f, ce.getVelocity().y);
-        } else {
-            // push along Y - add extra margin to ensure complete separation
-            float dy = (bCenterY < aCenterY) ? -overlapY * 1.05f : overlapY * 1.05f;
-            ce.setPos(ce.getPos().x, ce.getPos().y + dy);
-            ce.setVelocity(ce.getVelocity().x, 0f);
-        }
-
-        // Hitbox is auto-synced by CollidableEntity.setPos()
+        Solid.super.onCollision(other); // push-out
     }
 }

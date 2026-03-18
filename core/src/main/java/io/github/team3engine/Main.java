@@ -5,18 +5,24 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+
 import io.github.team3engine.engine.UIManager;
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
+import io.github.team3engine.engine.collision.CollisionMediator;
+import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.EntityManager;
+import io.github.team3engine.engine.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.SceneManager;
+import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.scenes.*;
 
 /**
  * Initializes the GameEngine and uses its managers to register
- * scenes, wire game-specific events, and run the loop. 
+ * scenes, wire game-specific events, and run the loop.
  */
 public class Main extends ApplicationAdapter {
     private GameEngine engine;
@@ -29,8 +35,8 @@ public class Main extends ApplicationAdapter {
     private float footstepTimer = 0;
     private boolean wasMoving = false;
 
-        @Override
-        public void create() {
+    @Override
+    public void create() {
         engine = new GameEngine();
         engine.init();
 
@@ -51,19 +57,22 @@ public class Main extends ApplicationAdapter {
 
         // Register scenes
         sceneManager.registerScene(SceneType.MAIN_MENU_SCENE.name(),
-            new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight));
+                new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight));
         sceneManager.registerScene(SceneType.TEST_SCENE.name(),
-            new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
+                new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
+                        movementManager, screenWidth, screenHeight));
         sceneManager.registerScene(SceneType.SCENE_1.name(),
-            new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager, movementManager, screenWidth, screenHeight));
+                new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
+                        movementManager, screenWidth, screenHeight));
 
-        ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, screenWidth, screenHeight);
+        ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, screenWidth,
+                screenHeight);
         sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
 
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
 
         // global events reguster here
-        ioManager.registerEvent("PLAYER_MOVING", () -> {
+        ioManager.registerEvent(GameEvents.PLAYER_MOVING, () -> {
             float dt = Gdx.graphics.getDeltaTime();
             footstepTimer += dt;
             if (!wasMoving) {
@@ -75,24 +84,24 @@ public class Main extends ApplicationAdapter {
                 footstepTimer = 0f;
             }
         });
-        ioManager.registerEvent("PLAYER_JUMP", () -> audioManager.play("jump.mp3"));
-        ioManager.registerEvent("PLAYER_DEAD", () -> {
+        ioManager.registerEvent(GameEvents.PLAYER_JUMP, () -> audioManager.play("jump.mp3"));
+        ioManager.registerEvent(GameEvents.PLAYER_DEAD, () -> {
             Gdx.app.log("Game", "Player died!");
             // Restart the test scene
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.TEST_SCENE.name()));
         });
-        ioManager.registerEvent("GAME_PAUSE", () -> {
+        ioManager.registerEvent(GameEvents.GAME_PAUSE, () -> {
             Gdx.app.log("Game", "Game paused");
             isPaused = true;
             uiManager.toggleMenu(true);
             ioManager.setActive(false);
         });
-        ioManager.registerEvent("GAME_UNPAUSE", () -> {
+        ioManager.registerEvent(GameEvents.GAME_UNPAUSE, () -> {
             Gdx.app.log("Game", "Game resumed");
             isPaused = false;
             uiManager.toggleMenu(false);
             ioManager.setActive(true);
-            // Restore the current scene's input processor 
+            // Restore the current scene's input processor
             if (sceneManager.getCurrentScene() != null) {
                 Gdx.input.setInputProcessor(sceneManager.getCurrentScene().getInputProcessor());
             }
@@ -111,9 +120,9 @@ public class Main extends ApplicationAdapter {
         if (sceneManager.getCurrentSceneId() != SceneType.MAIN_MENU_SCENE.name()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 if (isPaused) {
-                    ioManager.broadcast("GAME_UNPAUSE");
+                    ioManager.broadcast(GameEvents.GAME_UNPAUSE);
                 } else {
-                    ioManager.broadcast("GAME_PAUSE");
+                    ioManager.broadcast(GameEvents.GAME_PAUSE);
                 }
                 return;
             }

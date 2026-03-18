@@ -13,7 +13,7 @@ import io.github.team3engine.engine.interfaces.Solid;
  * Static fire hazard. Deals damage to any Damageable entity on contact.
  * Implements Solid so player can't walk through it.
  */
-public class Fire extends CollidableEntity implements Solid {
+public class Fire extends CollidableEntity {
     private final float width;
     private final float height;
     private final float damage;

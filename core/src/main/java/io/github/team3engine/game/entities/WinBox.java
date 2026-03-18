@@ -5,17 +5,18 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.io.IOManager;
+import io.github.team3engine.engine.interfaces.Solid;
 
 /**
- * A winning objective entity - triggers victory event on contact with any CollidableEntity.
+ * A winning objective entity - triggers victory event on contact with any
+ * CollidableEntity.
  */
-public class WinBox extends CollidableEntity {
+public class WinBox extends CollidableEntity implements Solid {
     private final float sizeX;
     private final float sizeY;
     private final ShapeRenderer shapeRenderer;
     private Color color;
-    
+
     public WinBox(String id, float x, float y, float sizeX, float sizeY) {
         super(id);
         this.sizeX = sizeX;
@@ -52,35 +53,8 @@ public class WinBox extends CollidableEntity {
 
     @Override
     public void onCollision(Collidable other) {
-        // if (!(other instanceof CollidableEntity)) return;
+        Solid.super.onCollision(other); // push-out
 
-        // CollidableEntity entity = (CollidableEntity) other;
-
-        // // Resolve overlap so the entity doesn't phase through the box
-        // float aLeft = hitbox.x;
-        // float aRight = hitbox.x + hitbox.width;
-        // float aBottom = hitbox.y;
-        // float aTop = hitbox.y + hitbox.height;
-
-        // float bLeft = entity.getHitbox().x;
-        // float bRight = entity.getHitbox().x + entity.getHitbox().width;
-        // float bBottom = entity.getHitbox().y;
-        // float bTop = entity.getHitbox().y + entity.getHitbox().height;
-
-        // float overlapX = Math.min(aRight, bRight) - Math.max(aLeft, bLeft);
-        // float overlapY = Math.min(aTop, bTop) - Math.max(aBottom, bBottom);
-
-        // if (overlapX > 0 && overlapY > 0) {
-        //     if (overlapX < overlapY) {
-        //         float dx = (entity.getPos().x < (hitbox.x + hitbox.width / 2)) ? -overlapX : overlapX;
-        //         entity.setPos(entity.getPos().x + dx, entity.getPos().y);
-        //         entity.setVelocity(0f, entity.getVelocity().y);
-        //     } else {
-        //         float dy = (entity.getPos().y < (hitbox.y + hitbox.height / 2)) ? -overlapY : overlapY;
-        //         entity.setPos(entity.getPos().x, entity.getPos().y + dy);
-        //         entity.setVelocity(entity.getVelocity().x, 0f);
-        //     }
-        // }
     }
 
     @Override
