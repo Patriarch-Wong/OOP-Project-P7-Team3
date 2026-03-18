@@ -33,6 +33,10 @@ import io.github.team3engine.game.status.SlowEffect;
 
 public class TestScene extends BaseScene {
     private static final float MAX_DELTA = 0.07f;
+    private static final float FIRE_GROW_X_PER_SEC = 0.18f;
+    private static final float FIRE_GROW_Y_PER_SEC = 0.06f;
+    private static final float FIRE_MAX_SCALE_X = 2f;
+    private static final float FIRE_MAX_SCALE_Y = 2f;
 
     private Player player;
     private MovementInput movementInput;
@@ -40,6 +44,7 @@ public class TestScene extends BaseScene {
     private GroundDetector groundDetector;
     private CollisionMediator mediator;
     private Texture platformTex;
+    private final Array<Fire> fires = new Array<>();
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
@@ -77,6 +82,7 @@ public class TestScene extends BaseScene {
     protected void onShow() {
         super.onShow();
         enableTimer();
+        fires.clear();
 
         // --- Register score rules ---
         ScoreManager.getInstance().reset();
@@ -111,24 +117,40 @@ public class TestScene extends BaseScene {
         entityManager.addEntity(p3);
 
         // --- Fire hazards ---
-        Fire fire1a = new Fire("fire_1a", 220f, 40f, 30f, 35f);
-        Fire fire1b = new Fire("fire_1b", 248f, 40f, 25f, 28f);
-        Fire fire1c = new Fire("fire_1c", 230f, 72f, 20f, 22f);
+        Texture fire_texture = new Texture(Gdx.files.internal("ui/sprites/fire_spritesheet.png"));
+        Fire fire1a = new Fire("fire_1a", 150f, 40f, 20f, 30f, fire_texture, 8, 1, false);
+        Fire ceilingFire = new Fire("ceiling_fire_1a", 200f, 130f, 20f, 30f, fire_texture, 8, 1, true);
+        Fire ceilingFire2 = new Fire("ceiling_fire_1b", 360f, 210f, 20f, 30f, fire_texture, 8, 1, true);
+
+        // Fire fire1b = new Fire("fire_1b", 248f, 40f, 25f, 35f, fire_texture, 8, 1);
+        // Fire fire1c = new Fire("fire_1c", 230f, 72f, 20f, 22f);
+        trackFire(fire1a);
+        trackFire(ceilingFire);
+        trackFire(ceilingFire2);
+        // trackFire(fire1b);
+        // trackFire(fire1c);
         entityManager.addEntity(fire1a);
-        entityManager.addEntity(fire1b);
-        entityManager.addEntity(fire1c);
+        entityManager.addEntity(ceilingFire);
+        entityManager.addEntity(ceilingFire2);
+        // entityManager.addEntity(fire1b);
+        // entityManager.addEntity(fire1c);
 
-        Fire fire2a = new Fire("fire_2a", 680f, 40f, 35f, 40f);
-        Fire fire2b = new Fire("fire_2b", 713f, 40f, 28f, 32f);
-        Fire fire2c = new Fire("fire_2c", 695f, 78f, 22f, 24f);
-        entityManager.addEntity(fire2a);
-        entityManager.addEntity(fire2b);
-        entityManager.addEntity(fire2c);
+        // Fire fire2a = new Fire("fire_2a", 680f, 40f, 35f, 40f);
+        // Fire fire2b = new Fire("fire_2b", 713f, 40f, 28f, 32f);
+        // Fire fire2c = new Fire("fire_2c", 695f, 78f, 22f, 24f);
+        // trackFire(fire2a);
+        // trackFire(fire2b);
+        // trackFire(fire2c);
+        // entityManager.addEntity(fire2a);
+        // entityManager.addEntity(fire2b);
+        // entityManager.addEntity(fire2c);
 
-        Fire fire3a = new Fire("fire_3a", 520f, 226f, 28f, 30f);
-        Fire fire3b = new Fire("fire_3b", 546f, 226f, 22f, 25f);
-        entityManager.addEntity(fire3a);
-        entityManager.addEntity(fire3b);
+        // Fire fire3a = new Fire("fire_3a", 520f, 226f, 28f, 30f);
+        // Fire fire3b = new Fire("fire_3b", 546f, 226f, 22f, 25f);
+        // trackFire(fire3a);
+        // trackFire(fire3b);
+        // entityManager.addEntity(fire3a);
+        // entityManager.addEntity(fire3b);
 
         // --- Pickups ---
         WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
@@ -151,13 +173,15 @@ public class TestScene extends BaseScene {
         collisionManager.register(p2);
         collisionManager.register(p3);
         collisionManager.register(fire1a);
-        collisionManager.register(fire1b);
-        collisionManager.register(fire1c);
-        collisionManager.register(fire2a);
-        collisionManager.register(fire2b);
-        collisionManager.register(fire2c);
-        collisionManager.register(fire3a);
-        collisionManager.register(fire3b);
+        collisionManager.register(ceilingFire);
+        collisionManager.register(ceilingFire2);
+        // collisionManager.register(fire1b);
+        // collisionManager.register(fire1c);
+        // collisionManager.register(fire2a);
+        // collisionManager.register(fire2b);
+        // collisionManager.register(fire2c);
+        // collisionManager.register(fire3a);
+        // collisionManager.register(fire3b);
         collisionManager.register(towel);
         collisionManager.register(mask);
         collisionManager.register(npc);
@@ -234,6 +258,7 @@ public class TestScene extends BaseScene {
     protected void onHide() {
         entityManager.disposeAll();
         collisionManager.clear();
+        fires.clear();
         if (playerInput != null) {
             ioManager.removeInputListener(playerInput);
             playerInput = null;
@@ -279,6 +304,7 @@ public class TestScene extends BaseScene {
     public void update(float delta) {
         super.update(delta);  // ticks the timer
         delta = Math.min(delta, MAX_DELTA);
+        growFires(delta);
         entityManager.updateAll(delta);
         playerInput.update(delta);
         movementInput.update();
@@ -326,5 +352,21 @@ public class TestScene extends BaseScene {
 
         // Instructions
         font.draw(batch, "Rescue the NPC and reach the EXIT!", 200, screenHeight - 20);
+    }
+
+    private void trackFire(Fire fire) {
+        fire.setMaxScale(FIRE_MAX_SCALE_X, FIRE_MAX_SCALE_Y);
+        fires.add(fire);
+    }
+
+    private void growFires(float delta) {
+        float growX = FIRE_GROW_X_PER_SEC * delta;
+        float growY = FIRE_GROW_Y_PER_SEC * delta;
+        for (Fire fire : fires) {
+            if (!fire.isActive() || fire.isDestroyed()) {
+                continue;
+            }
+            fire.addScale(growX, growY);
+        }
     }
 }
