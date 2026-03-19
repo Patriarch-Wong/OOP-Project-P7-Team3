@@ -68,6 +68,8 @@ public class Main extends ApplicationAdapter {
         ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, screenWidth,
                 screenHeight);
         sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
+        sceneManager.registerScene(SceneType.GAME_OVER.name(),
+                new GameOverScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight, SceneType.TEST_SCENE));
 
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
 
@@ -87,8 +89,8 @@ public class Main extends ApplicationAdapter {
         ioManager.registerEvent(GameEvents.PLAYER_JUMP, () -> audioManager.play("jump.mp3"));
         ioManager.registerEvent(GameEvents.PLAYER_DEAD, () -> {
             Gdx.app.log("Game", "Player died!");
-            // Restart the test scene
-            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.TEST_SCENE.name()));
+            // Show Game Over screen
+            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));
         });
         ioManager.registerEvent(GameEvents.GAME_PAUSE, () -> {
             Gdx.app.log("Game", "Game paused");

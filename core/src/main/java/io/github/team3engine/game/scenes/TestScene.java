@@ -295,7 +295,7 @@ public class TestScene extends BaseScene {
         groundDetector.checkFallCondition(player);
         groundDetector.checkGroundDetection(player);
 
-        if (!player.isAlive()) {
+        if (player.isDead()) {
             ioManager.broadcast(GameEvents.PLAYER_DEAD);
         }
     }

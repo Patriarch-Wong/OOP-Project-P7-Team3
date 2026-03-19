@@ -30,6 +30,12 @@ public class Player extends CollidableEntity implements Damageable {
     private float invincibilityTimer = 0f;
     private static final float INVINCIBILITY_DURATION = 3.0f;
 
+    // Floating damage text
+    private static final float DAMAGE_TEXT_DURATION = 1.2f;
+    private float damageTextTimer = 0f;
+    private float damageTextAmount = 0f;
+    private final com.badlogic.gdx.graphics.g2d.BitmapFont damageFont;
+
     // Status effects
     private final StatusEffectManager statusEffects;
 
@@ -52,6 +58,8 @@ public class Player extends CollidableEntity implements Damageable {
         this.movementState = new MovementState();
         this.statusEffects = new StatusEffectManager(this);
         this.texture = new Texture("player.png");
+        this.damageFont = new com.badlogic.gdx.graphics.g2d.BitmapFont();
+        this.damageFont.getData().setScale(1.2f);
         setPos(x, y);
         updateHitbox();
     }
@@ -68,8 +76,24 @@ public class Player extends CollidableEntity implements Damageable {
             amount *= reduction.getDamageMultiplier();
         }
 
-        hp = Math.max(0f, hp - amount);
-        invincibilityTimer = INVINCIBILITY_DURATION;
+        // final damage after buffs/debuffs
+        float finalDamage = amount;
+
+        if (finalDamage > 0.01f) {
+            spawnDamageText(finalDamage);
+            hp = Math.max(0f, hp - finalDamage);
+            invincibilityTimer = INVINCIBILITY_DURATION;
+
+            // Game Over when HP goes down to 0
+            if (hp <= 0f) {
+                isDead();
+            }
+        }
+    }
+
+    private void spawnDamageText(float damage) {
+        this.damageTextAmount = damage;
+        this.damageTextTimer = DAMAGE_TEXT_DURATION;
     }
 
     @Override
@@ -85,6 +109,9 @@ public class Player extends CollidableEntity implements Damageable {
 
     @Override
     public boolean isAlive() { return hp > 0f; }
+
+   
+    public boolean isDead() { return !isAlive(); }
 
     @Override
     public boolean isInvincible() { return invincibilityTimer > 0f; }
@@ -153,6 +180,10 @@ public class Player extends CollidableEntity implements Damageable {
         position.x = Math.max(width / 2f, Math.min(screenWidth - width / 2f, position.x));
         position.y = Math.max(0f, Math.min(screenHeight - height, position.y));
         updateHitbox();
+
+        if (damageTextTimer > 0f) {
+            damageTextTimer = Math.max(0f, damageTextTimer - dt);
+        }
     }
 
     @Override
@@ -166,12 +197,24 @@ public class Player extends CollidableEntity implements Damageable {
         }
 
         batch.draw(texture, position.x - width / 2f, position.y, width, height);
+
+        if (damageTextTimer > 0f) {
+            float alpha = damageTextTimer / DAMAGE_TEXT_DURATION;
+            damageFont.setColor(1f, 0.2f, 0.2f, alpha);
+            String damageString = String.format("-%.0f", damageTextAmount);
+            float textX = position.x - damageFont.getRegion().getRegionWidth() / 2f;
+            float textY = position.y + height + 20f;
+            damageFont.draw(batch, damageString, textX, textY);
+        }
     }
 
     @Override
     public void dispose() {
         texture.dispose();
         statusEffects.clearAll();
+        if (damageFont != null) {
+            damageFont.dispose();
+        }
     }
 
     @Override
