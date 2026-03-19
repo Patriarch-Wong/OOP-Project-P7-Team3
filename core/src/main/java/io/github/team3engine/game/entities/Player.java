@@ -63,6 +63,7 @@ public class Player extends CollidableEntity implements Damageable {
         this.statusEffects = new StatusEffectManager(this);
         this.texture = new Texture("player.png");
         this.damageText = new FloatingText(1.2f, new Color(1f, 0.2f, 0.2f, 1f), 1.2f, new Vector2(0f, 20f));
+        this.animator = new PlayerAnimator();
         setPos(x, y);
         updateHitbox();
     }
