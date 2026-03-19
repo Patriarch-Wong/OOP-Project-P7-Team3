@@ -9,7 +9,7 @@ import io.github.team3engine.engine.movement.MovementState;
 
 public class MovementInput implements IMovementInput {
     private float movementAxis;
-    private boolean jump;
+    private boolean jump, crouch;
     private final MovementState movementState;
     private final IOManager io;
     private final PlayerInput playerInput;
@@ -41,6 +41,10 @@ public class MovementInput implements IMovementInput {
         if (jump && movementState.isGrounded() && movementState.getJumpCooldownRemaining() <= 0f) {
             io.broadcast(GameEvents.PLAYER_MOVING);
         }
+
+        crouch = playerInput.isDownHeld();
+        if (crouch && movementState.isGrounded() &&  movementState.setCrouching(crouch)) {
+            io.broadcast(GameEvents.PLAYER_CROUCH);
     }
 
     @Override
