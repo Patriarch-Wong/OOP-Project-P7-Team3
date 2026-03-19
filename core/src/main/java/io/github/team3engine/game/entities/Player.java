@@ -3,6 +3,7 @@ package io.github.team3engine.game.entities;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
@@ -26,6 +27,9 @@ public class Player extends CollidableEntity implements Damageable {
     private final Texture texture;
     private final float screenWidth;
     private final float screenHeight;
+
+    // Animation
+    private final PlayerAnimator animator;
 
     // HP system
     private float hp;
@@ -154,6 +158,9 @@ public class Player extends CollidableEntity implements Damageable {
 
     @Override
     public void update(float dt) {
+        // Update animations
+        animator.update(movementState, dt);
+        
         // Tick status effects
         statusEffects.update(dt);
 
@@ -179,6 +186,11 @@ public class Player extends CollidableEntity implements Damageable {
                 return; // skip this frame's render
             }
         }
+        TextureRegion frame = animator.getCurrentFrame(movementState);
+        // Scale draw size based on frame aspect ratio, keeping height fixed
+        float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
+        float drawHeight = height;
+        float drawWidth = drawHeight * frameAspect;
 
         batch.draw(texture, position.x - width / 2f, position.y, width, height);
         damageText.render(batch, position.x, position.y + height);
@@ -188,6 +200,7 @@ public class Player extends CollidableEntity implements Damageable {
     public void dispose() {
         texture.dispose();
         statusEffects.clearAll();
+        animator.dispose();
         damageText.dispose();
     }
 
