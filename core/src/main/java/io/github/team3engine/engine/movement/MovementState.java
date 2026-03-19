@@ -7,6 +7,7 @@ public class MovementState {
     private float velocityY = 0f;
     
     private boolean isGrounded = true;
+    private boolean isCrouching = false;
     private boolean movementEnabled = true;
     private float jumpCooldownRemaining = 0f;
 
@@ -33,6 +34,14 @@ public class MovementState {
 
     public void setGrounded(boolean grounded) {
         this.isGrounded = grounded;
+    }
+
+    public boolean isCrouching() {
+        return isCrouching;
+    }
+
+    public void setCrouching(boolean crouching) {
+        this.isCrouching = crouching;
     }
 
     public boolean isMovementEnabled() {
