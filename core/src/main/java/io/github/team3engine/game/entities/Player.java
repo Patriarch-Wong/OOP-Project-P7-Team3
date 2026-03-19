@@ -193,7 +193,7 @@ public class Player extends CollidableEntity implements Damageable {
         float drawHeight = height;
         float drawWidth = drawHeight * frameAspect;
 
-        batch.draw(texture, position.x - width / 2f, position.y, width, height);
+        batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
         damageText.render(batch, position.x, position.y + height);
     }
 
