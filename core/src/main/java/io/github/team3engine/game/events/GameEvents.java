@@ -7,6 +7,7 @@ package io.github.team3engine.game.events;
 public enum GameEvents {
     PLAYER_MOVING,
     PLAYER_JUMP,
+    PLAYER_CROUCH
     PLAYER_DEAD,
     PLAYER_HIT_FIRE,
     PLAYER_WIN,
