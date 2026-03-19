@@ -298,7 +298,11 @@ public class Scene1 extends BaseScene {
     @Override
     protected void onTimerFinished() {
         Gdx.app.log("Game", "Time's up!");
-        // TODO: trigger game over scene when ready
+        GameOverScene gameOverScene = (GameOverScene) sceneManager.getScene(SceneType.GAME_OVER.name());
+        if (gameOverScene != null) {
+            gameOverScene.setRetryScene(SceneType.SCENE_1.name());
+        }
+        Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));
     }
 
     @Override

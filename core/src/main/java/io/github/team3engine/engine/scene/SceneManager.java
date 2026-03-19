@@ -50,6 +50,9 @@ public class SceneManager implements Updatable, FrameRenderable, Disposable {
      * The scene must already be registered.
      */
     public void setScene(String id) {
+        if (id == null || !scenes.containsKey(id) || id.equals(currentSceneId)) {
+            return;
+        }
         BaseScene current = getCurrentScene();
         if (current != null) {
             current.hide();

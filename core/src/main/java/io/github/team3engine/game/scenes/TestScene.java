@@ -56,6 +56,7 @@ public class TestScene extends BaseScene {
 
     private final int screenWidth;
     private final int screenHeight;
+    private boolean deathHandled;
 
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
                      IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
@@ -83,6 +84,7 @@ public class TestScene extends BaseScene {
         super.onShow();
         enableTimer();
         fires.clear();
+        deathHandled = false;
 
         // --- Register score rules ---
         ScoreManager.getInstance().reset();
@@ -276,6 +278,7 @@ public class TestScene extends BaseScene {
         }
         ioManager.clearEvent(GameEvents.PLAYER_WIN);
         ioManager.clearEvent(GameEvents.NPC_RESCUED);
+        deathHandled = false;
     }
 
     @Override
@@ -295,7 +298,8 @@ public class TestScene extends BaseScene {
         groundDetector.checkFallCondition(player);
         groundDetector.checkGroundDetection(player);
 
-        if (player.isDead()) {
+        if (!deathHandled && !player.isAlive()) {
+            deathHandled = true;
             ioManager.broadcast(GameEvents.PLAYER_DEAD);
         }
     }

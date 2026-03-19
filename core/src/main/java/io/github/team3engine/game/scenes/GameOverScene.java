@@ -1,40 +1,45 @@
 package io.github.team3engine.game.scenes;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.graphics.Cursor;
 
-import io.github.team3engine.engine.scene.*;
-import io.github.team3engine.engine.io.IOManager;
-import io.github.team3engine.engine.audio.AudioManager;
+import io.github.team3engine.engine.scene.BaseScene;
+import io.github.team3engine.engine.scene.SceneManager;
 
 public class GameOverScene extends BaseScene {
     private final SceneManager sceneManager;
-    private final IOManager ioManager;
-    private final AudioManager audioManager;
     private final BitmapFont font;
+    private final GlyphLayout titleLayout = new GlyphLayout();
     private final int screenWidth;
     private final int screenHeight;
 
-    private SceneType retryLevel;
+    private String retrySceneId;
     private Skin skin;
 
-    public GameOverScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager, int screenWidth, int screenHeight, SceneType retryLevel) {
+    public GameOverScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, int screenWidth,
+            int screenHeight, String defaultRetrySceneId) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
-        this.ioManager = ioManager;
-        this.audioManager = audioManager;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-        this.retryLevel = retryLevel;
+        this.retrySceneId = defaultRetrySceneId;
+    }
+
+    public void setRetryScene(String retrySceneId) {
+        if (retrySceneId != null) {
+            this.retrySceneId = retrySceneId;
+        }
     }
 
     @Override
@@ -67,7 +72,7 @@ public class GameOverScene extends BaseScene {
             }
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                sceneManager.setScene(retryLevel.name());
+                sceneManager.setScene(retrySceneId);
             }
         });
 
@@ -103,6 +108,7 @@ public class GameOverScene extends BaseScene {
 
     @Override
     public void update(float delta) {
+        super.update(delta);
     }
 
     @Override
@@ -114,7 +120,10 @@ public class GameOverScene extends BaseScene {
     @Override
     protected void renderUI() {
         font.setColor(Color.RED);
-        font.draw(batch, "GAME OVER", screenWidth / 2 - 120f, screenHeight / 2 + 60f);
+        String title = "GAME OVER";
+        titleLayout.setText(font, title);
+        float titleX = (screenWidth - titleLayout.width) / 2f;
+        font.draw(batch, title, titleX, screenHeight / 2f + 60f);
     }
 
     @Override

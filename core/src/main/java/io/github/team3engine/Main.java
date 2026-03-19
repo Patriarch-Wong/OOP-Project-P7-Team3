@@ -68,8 +68,9 @@ public class Main extends ApplicationAdapter {
         ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, screenWidth,
                 screenHeight);
         sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
-        sceneManager.registerScene(SceneType.GAME_OVER.name(),
-                new GameOverScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight, SceneType.TEST_SCENE));
+        GameOverScene gameOverScene = new GameOverScene(batch, sharedFont, sceneManager, screenWidth, screenHeight,
+                SceneType.TEST_SCENE.name());
+        sceneManager.registerScene(SceneType.GAME_OVER.name(), gameOverScene);
 
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
 
@@ -88,8 +89,14 @@ public class Main extends ApplicationAdapter {
         });
         ioManager.registerEvent(GameEvents.PLAYER_JUMP, () -> audioManager.play("jump.mp3"));
         ioManager.registerEvent(GameEvents.PLAYER_DEAD, () -> {
+            String currentSceneId = sceneManager.getCurrentSceneId();
+            if (SceneType.GAME_OVER.name().equals(currentSceneId)) {
+                return;
+            }
+            if (isGameplayScene(currentSceneId)) {
+                gameOverScene.setRetryScene(currentSceneId);
+            }
             Gdx.app.log("Game", "Player died!");
-            // Show Game Over screen
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));
         });
         ioManager.registerEvent(GameEvents.GAME_PAUSE, () -> {
@@ -119,7 +126,7 @@ public class Main extends ApplicationAdapter {
         SceneManager sceneManager = engine.getSceneManager();
         IOManager ioManager = engine.getIOManager();
 
-        if (!SceneType.MAIN_MENU_SCENE.name().equals(sceneManager.getCurrentSceneId())) {
+        if (isGameplayScene(sceneManager.getCurrentSceneId())) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 if (isPaused) {
                     ioManager.broadcast(GameEvents.GAME_UNPAUSE);
@@ -151,5 +158,9 @@ public class Main extends ApplicationAdapter {
             uiManager.dispose();
         if (engine != null)
             engine.dispose();
+    }
+
+    private boolean isGameplayScene(String sceneId) {
+        return SceneType.SCENE_1.name().equals(sceneId) || SceneType.TEST_SCENE.name().equals(sceneId);
     }
 }
