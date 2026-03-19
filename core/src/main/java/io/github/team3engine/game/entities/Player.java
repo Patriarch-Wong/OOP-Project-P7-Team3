@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.Entity;
@@ -18,6 +20,7 @@ import io.github.team3engine.game.status.DamageReductionEffect;
 import io.github.team3engine.game.status.SlowEffect;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class Player extends CollidableEntity implements Damageable {
     private final float width;
@@ -26,6 +29,18 @@ public class Player extends CollidableEntity implements Damageable {
     private final Texture texture;
     private final float screenWidth;
     private final float screenHeight;
+
+    // Animation
+    private final List<Texture> allTextures = new ArrayList<>();
+    private final TextureRegion idleFrameEast;
+    private final TextureRegion idleFrameWest;
+    private final Animation<TextureRegion> runAnimation;
+    private final Animation<TextureRegion> jumpAnimation;
+    private final Animation<TextureRegion> crouchAnimation;
+    private float stateTime = 0f;
+    private float crouchStateTime = 0f;
+    private boolean wasCrouching = false;
+    private boolean facingRight = true;
 
     // HP system
     private float hp;
@@ -59,6 +74,22 @@ public class Player extends CollidableEntity implements Damageable {
         this.statusEffects = new StatusEffectManager(this);
         this.texture = new Texture("player.png");
         this.damageText = new FloatingText(1.2f, new Color(1f, 0.2f, 0.2f, 1f), 1.2f, new Vector2(0f, 20f));
+        
+        // Idle frames (single image per direction)
+        Texture idleE = loadTexture("player/rotations/east.png");
+        Texture idleW = loadTexture("player/rotations/west.png");
+        this.idleFrameEast = new TextureRegion(idleE);
+        this.idleFrameWest = new TextureRegion(idleW);
+
+        // Running animation (6 frames, east only — flip for west)
+        this.runAnimation = loadFrameAnimation("player/animations/running-6-frames/east/frame_", 6, 0.1f);
+
+        // Jumping animation (9 frames)
+        this.jumpAnimation = loadFrameAnimation("player/animations/jumping-1/east/frame_", 9, 0.08f);
+
+        // Crouching animation (5 frames)
+        this.crouchAnimation = loadFrameAnimation("player/animations/crouching/east/frame_", 5, 0.12f);
+        
         setPos(x, y);
         updateHitbox();
     }
@@ -151,9 +182,42 @@ public class Player extends CollidableEntity implements Damageable {
         hitbox.setPosition(position.x - width / 2f, position.y);
         hitbox.setSize(width, height);
     }
+    
+    /** Loads a texture and tracks it for disposal. */
+    private Texture loadTexture(String path) {
+        Texture t = new Texture(path);
+        allTextures.add(t);
+        return t;
+    }
+
+    /** Loads numbered frame PNGs (frame_000.png … frame_NNN.png) into an Animation. */
+    private Animation<TextureRegion> loadFrameAnimation(String pathPrefix, int count, float frameDuration) {
+        TextureRegion[] frames = new TextureRegion[count];
+        for (int i = 0; i < count; i++) {
+            Texture t = loadTexture(pathPrefix + String.format("%03d", i) + ".png");
+            frames[i] = new TextureRegion(t);
+        }
+        return new Animation<>(frameDuration, frames);
+    }
 
     @Override
     public void update(float dt) {
+        // Advance animation timer
+        stateTime += dt;
+
+        // Track crouch animation timer
+        boolean crouchingNow = movementState.isCrouching();
+        if (crouchingNow && !wasCrouching) {
+            crouchStateTime = 0f;
+        }
+        if (crouchingNow) {
+            crouchStateTime += dt;
+        }
+        wasCrouching = crouchingNow;
+
+        // Track facing direction
+        if (movementState.getVelocityX() > 0) facingRight = true;
+        else if (movementState.getVelocityX() < 0) facingRight = false;
         // Tick status effects
         statusEffects.update(dt);
 
@@ -179,14 +243,41 @@ public class Player extends CollidableEntity implements Damageable {
                 return; // skip this frame's render
             }
         }
+        TextureRegion frame = getCurrentFrame();
 
-        batch.draw(texture, position.x - width / 2f, position.y, width, height);
+        // Flip for facing direction
+        if (facingRight && frame.isFlipX()) frame.flip(true, false);
+        else if (!facingRight && !frame.isFlipX()) frame.flip(true, false);
+
+        // Scale draw size based on frame aspect ratio, keeping height fixed
+        float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
+        float drawHeight = height;
+        float drawWidth = drawHeight * frameAspect;
+
+        batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
         damageText.render(batch, position.x, position.y + height);
+    }
+    
+    /** Picks the correct animation frame based on current movement state. */
+    private TextureRegion getCurrentFrame() {
+        // Priority: jumping > crouching > running > idle
+        if (!movementState.isGrounded()) {
+            return jumpAnimation.getKeyFrame(stateTime, false);
+        }
+        if (movementState.isCrouching()) {
+            return crouchAnimation.getKeyFrame(crouchStateTime, false);
+        }
+        if (movementState.getVelocityX() != 0) {
+            return runAnimation.getKeyFrame(stateTime, true);
+        }
+        return facingRight ? idleFrameEast : idleFrameWest;
     }
 
     @Override
     public void dispose() {
-        texture.dispose();
+        for (Texture t : allTextures) {
+            t.dispose();
+        }
         statusEffects.clearAll();
         damageText.dispose();
     }
