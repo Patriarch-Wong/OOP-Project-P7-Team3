@@ -20,6 +20,12 @@ import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.scenes.*;
+import io.github.team3engine.engine.interfaces.ScoreRule;
+import io.github.team3engine.game.score.NpcRescueRule;
+import io.github.team3engine.game.score.ObjectiveRule;
+import io.github.team3engine.game.score.TimeBonusRule;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Initializes the GameEngine and uses its managers to register
@@ -59,9 +65,14 @@ public class Main extends ApplicationAdapter {
         // Register scenes
         sceneManager.registerScene(SceneType.MAIN_MENU_SCENE.name(),
                 new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight));
+        List<ScoreRule> testSceneRules = Arrays.asList(
+                new ObjectiveRule(),
+                new NpcRescueRule(),
+                new TimeBonusRule()
+        );
         sceneManager.registerScene(SceneType.TEST_SCENE.name(),
                 new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
-                        movementManager, screenWidth, screenHeight));
+                        movementManager, screenWidth, screenHeight, testSceneRules));
         sceneManager.registerScene(SceneType.SCENE_1.name(),
                 new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
                         movementManager, screenWidth, screenHeight));

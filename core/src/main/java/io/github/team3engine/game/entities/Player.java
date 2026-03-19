@@ -145,6 +145,8 @@ public class Player extends CollidableEntity implements Damageable {
     // --- Dimensions ---
 
     public float getWidth() { return width; }
+    public Texture getTexture() { return texture; }
+    public boolean isFacingRight() { return animator.isFacingRight(); }
 
     public float getHeight() { return height; }
 

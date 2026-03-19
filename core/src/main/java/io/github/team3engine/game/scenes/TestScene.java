@@ -20,16 +20,16 @@ import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.engine.scoring.ScoreContext;
+import io.github.team3engine.engine.interfaces.ScoreRule;
 import io.github.team3engine.engine.scoring.ScoreManager;
+import java.util.List;
 import io.github.team3engine.engine.status.StatusEffect;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
-import io.github.team3engine.game.score.NpcRescueRule;
-import io.github.team3engine.game.score.ObjectiveRule;
-import io.github.team3engine.game.score.TimeBonusRule;
 import io.github.team3engine.game.status.SlowEffect;
+import io.github.team3engine.game.ui.HUDRenderer;
 
 public class TestScene extends BaseScene implements GameplayScene {
     private static final float MAX_DELTA = 0.07f;
@@ -45,6 +45,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     private CollisionMediator mediator;
     private Texture platformTex;
     private final Array<Fire> fires = new Array<>();
+    private HUDRenderer hud;
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
@@ -57,13 +58,16 @@ public class TestScene extends BaseScene implements GameplayScene {
     private final int screenWidth;
     private final int screenHeight;
     private boolean deathHandled;
+    private final List<ScoreRule> scoreRules;
 
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
                      IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
                      CollisionManager collisionManager, MovementManager movementManager,
-                     int screenWidth, int screenHeight) {
+                     int screenWidth, int screenHeight,
+                     List<ScoreRule> scoreRules) {
         super(batch);
         this.font = sharedFont;
+        this.scoreRules = scoreRules;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
@@ -83,14 +87,21 @@ public class TestScene extends BaseScene implements GameplayScene {
     protected void onShow() {
         super.onShow();
         enableTimer();
+        if (hud == null) hud = new HUDRenderer(font, screenHeight);
+        hud.init(100f);
+        setScoreDisplay(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());
+        setRescuedDisplay(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
+        setRescuedDisplay(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
         fires.clear();
         deathHandled = false;
 
         // --- Register score rules ---
         ScoreManager.getInstance().reset();
-        ScoreManager.getInstance().addRule(new ObjectiveRule());
-        ScoreManager.getInstance().addRule(new NpcRescueRule());
-        ScoreManager.getInstance().addRule(new TimeBonusRule());
+        if (scoreRules != null) {
+            for (ScoreRule rule : scoreRules) {
+                ScoreManager.getInstance().addRule(rule);
+            }
+        }
 
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
@@ -157,6 +168,9 @@ public class TestScene extends BaseScene implements GameplayScene {
         // --- Pickups ---
         WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
         MaskPickup mask = new MaskPickup("mask", 550f, 75f);
+        mask.setOnTimerExtend(() -> {
+            if (getTimer() != null) getTimer().addTime(10f);
+        });
         entityManager.addEntity(towel);
         entityManager.addEntity(mask);
 
@@ -198,9 +212,12 @@ public class TestScene extends BaseScene implements GameplayScene {
             }
         });
 
-        mediator.addRule(MaskPickup.class, Player.class, (pickup, p) -> {
+        mediator.addRule(MaskPickup.class, Player.class, (pickup, playerTarget) -> {
             if (!pickup.isDestroyed()) {
-                pickup.onPickup(p);
+                pickup.setOnTimerExtend(() -> {
+                    if (getTimer() != null) getTimer().addTime(10f);
+                });
+                pickup.onPickup(playerTarget);
             }
         });
 
@@ -211,10 +228,10 @@ public class TestScene extends BaseScene implements GameplayScene {
         });
 
         mediator.addRule(NPC.class, Player.class, (npcEntity, p) -> {
-            if (!npcEntity.isDestroyed() && !p.isCarryingNPC()) {
+            if (npcEntity.getState() == NPC.State.WAITING && !p.isCarryingNPC()) {
                 p.pickUpNPC();
                 p.getStatusEffects().apply(new SlowEffect(0.3f, Float.MAX_VALUE));
-                npcEntity.destroy();
+                npcEntity.startFollowing(p);
             }
         });
 
@@ -278,6 +295,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
         ioManager.clearEvent(GameEvents.PLAYER_WIN);
         ioManager.clearEvent(GameEvents.NPC_RESCUED);
+        if (hud != null) { hud.dispose(); hud = null; }
         deathHandled = false;
     }
 
@@ -308,6 +326,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     public void update(float delta) {
         super.update(delta);  // ticks the timer
         delta = Math.min(delta, MAX_DELTA);
+        if (hud != null && player != null) hud.update(delta, player.getHp());
         growFires(delta);
         entityManager.updateAll(delta);
         playerInput.update(delta);
@@ -329,11 +348,9 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     @Override
     protected void renderUI() {
-        // HP
-        String hpText = "HP: " + (int) player.getHp() + " / " + (int) player.getMaxHp();
-        font.draw(batch, hpText, 20, screenHeight - 20);
+        if (hud == null || player == null) return;
 
-        // Buffs
+        // Build buffs string
         StringBuilder buffs = new StringBuilder();
         for (StatusEffect effect : player.getStatusEffects().getAll()) {
             if (buffs.length() > 0) buffs.append("  |  ");
@@ -342,21 +359,13 @@ public class TestScene extends BaseScene implements GameplayScene {
                 buffs.append(" ").append((int) Math.ceil(effect.getRemainingTime())).append("s");
             }
         }
-        if (buffs.length() > 0) {
-            font.draw(batch, buffs.toString(), 20, screenHeight - 40);
-        }
 
-        // Carrying status
-        if (player.isCarryingNPC()) {
-            font.draw(batch, "Carrying: Child", 20, screenHeight - 60);
-        }
-
-        // Rescued count
-        font.draw(batch, "Rescued: " + player.getRescuedCount() + "/1",
-                screenWidth - 150, screenHeight - 20);
-
-        // Instructions
-        font.draw(batch, "Rescue the NPC and reach the EXIT!", 200, screenHeight - 20);
+        hud.render(batch,
+            player.getHp(), player.getMaxHp(),
+            buffs.toString(),
+            player.isCarryingNPC(),
+            "Rescue the NPC and reach the EXIT!"
+        );
     }
 
     private void trackFire(Fire fire) {

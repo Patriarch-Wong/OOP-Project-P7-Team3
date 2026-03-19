@@ -50,4 +50,8 @@ public class Timer {
     public boolean isFinished() {
         return timeRemaining <= 0;
     }
+
+    public void addTime(float seconds) {
+        timeRemaining += seconds;
+    }
 }

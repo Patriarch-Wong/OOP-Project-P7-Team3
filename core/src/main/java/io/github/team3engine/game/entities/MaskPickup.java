@@ -10,30 +10,63 @@ import io.github.team3engine.engine.interfaces.Pickup;
 import io.github.team3engine.game.status.DamageReductionEffect;
 
 /**
- * Pickup that grants 50% damage reduction for 10 seconds.
+ * Pickup that grants damage reduction and optionally extends the scene timer.
+ * All values are configurable via constructor — no hardcoded game constants.
  */
 public class MaskPickup extends CollidableEntity implements Pickup {
     private static final float SIZE = 22f;
-    private static final float REDUCTION = 0.5f;
-    private static final float DURATION = 10f;
+
+    private final float reduction;       // damage reduction fraction e.g. 0.5 = 50%
+    private final float duration;        // how long the effect lasts in seconds
+    private final float timerExtend;     // seconds added to scene timer (0 = no extension)
 
     private final Texture texture;
-    private float bobTimer = 0f;
-    private final float baseY;
+    private float         bobTimer = 0f;
+    private final float   baseY;
 
-    public MaskPickup(String id, float x, float y) {
+    // Optional callback to extend the scene timer — wired from the scene
+    private Runnable onTimerExtend;
+
+    /**
+     * @param id           entity id
+     * @param x            x position
+     * @param y            y position
+     * @param reduction    damage reduction fraction (0.0 – 1.0)
+     * @param duration     effect duration in seconds
+     * @param timerExtend  seconds to add to scene timer on pickup (0 = none)
+     */
+    public MaskPickup(String id, float x, float y,
+                      float reduction, float duration, float timerExtend) {
         super(id);
-        this.baseY = y;
-        this.texture = new Texture("mask.png");
+        this.baseY       = y;
+        this.reduction   = reduction;
+        this.duration    = duration;
+        this.timerExtend = timerExtend;
+        this.texture     = new Texture("mask.png");
         setPos(x, y);
         updateHitbox();
+    }
+
+    /** Convenience constructor — 50% reduction, 10s duration, 10s timer extension. */
+    public MaskPickup(String id, float x, float y) {
+        this(id, x, y, 0.5f, 10f, 10f);
+    }
+
+    /** Wire up timer extension from the scene. */
+    public void setOnTimerExtend(Runnable callback) {
+        this.onTimerExtend = callback;
     }
 
     @Override
     public void onPickup(Entity collector) {
         if (collector instanceof Player) {
             Player player = (Player) collector;
-            player.getStatusEffects().apply(new DamageReductionEffect(REDUCTION, DURATION, "Mask"));
+            player.getStatusEffects().apply(
+                    new DamageReductionEffect(reduction, duration, "Mask"));
+
+            if (timerExtend > 0f && onTimerExtend != null) {
+                onTimerExtend.run();
+            }
         }
         destroy();
     }
@@ -46,8 +79,8 @@ public class MaskPickup extends CollidableEntity implements Pickup {
 
     @Override
     public void update(float dt) {
-        bobTimer += dt;
-        position.y = baseY + (float) Math.sin(bobTimer * 3f) * 4f;
+        bobTimer   += dt;
+        position.y  = baseY + (float) Math.sin(bobTimer * 3f) * 4f;
         updateHitbox();
     }
 
@@ -58,12 +91,8 @@ public class MaskPickup extends CollidableEntity implements Pickup {
     }
 
     @Override
-    public void dispose() {
-        texture.dispose();
-    }
+    public void dispose() { texture.dispose(); }
 
     @Override
-    public void onCollision(Collidable other) {
-        // Game logic handled by CollisionMediator
-    }
+    public void onCollision(Collidable other) {}
 }

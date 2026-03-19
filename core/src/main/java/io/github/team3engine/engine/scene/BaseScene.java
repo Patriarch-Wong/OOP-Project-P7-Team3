@@ -11,15 +11,20 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
+import java.util.function.Supplier;
+
 public abstract class BaseScene implements Updatable {
     protected final SpriteBatch batch;
     private Stage stage;
     private Timer timer;
     private boolean timerEnabled = false;
 
-    // Lazy-initialized: only allocated when enableTimer() is called
     private BitmapFont timerFont;
     private GlyphLayout timerLayout;
+
+    // Optional suppliers — set by game layer
+    private Supplier<String> scoreDisplay   = null;
+    private Supplier<String> rescuedDisplay = null;
 
     public BaseScene(SpriteBatch batch) {
         this.batch = batch;
@@ -32,13 +37,8 @@ public abstract class BaseScene implements Updatable {
         return stage;
     }
 
-    protected InputProcessor getInputProcessorForScene() {
-        return getStage();
-    }
-
-    public InputProcessor getInputProcessor() {
-        return getInputProcessorForScene();
-    }
+    protected InputProcessor getInputProcessorForScene() { return getStage(); }
+    public InputProcessor getInputProcessor() { return getInputProcessorForScene(); }
 
     public void show() {
         Gdx.input.setInputProcessor(getInputProcessorForScene());
@@ -47,38 +47,33 @@ public abstract class BaseScene implements Updatable {
 
     protected void onShow() {}
 
-    /**
-     * Call this in onShow() of any game scene to start a countdown timer.
-     * @param durationSeconds the countdown duration in seconds
-     */
     protected void enableTimer(float durationSeconds) {
         timer = new Timer(durationSeconds);
-        // Lazy-initialize font resources only when a timer is actually used
         if (timerFont == null) {
-            timerFont = new BitmapFont();
+            timerFont  = new BitmapFont();
             timerLayout = new GlyphLayout();
         }
         timerEnabled = true;
         timer.start();
     }
 
-    /**
-     * Convenience overload: starts a 60-second countdown.
-     */
-    protected void enableTimer() {
-        enableTimer(60f);
+    protected void enableTimer() { enableTimer(60f); }
+
+    /** e.g. setScoreDisplay(() -> "Score: " + ScoreManager.getInstance().getScore()); */
+    public void setScoreDisplay(Supplier<String> supplier) {
+        this.scoreDisplay = supplier;
+    }
+
+    /** e.g. setRescuedDisplay(() -> "Rescued: " + rescued + "/1"); */
+    public void setRescuedDisplay(Supplier<String> supplier) {
+        this.rescuedDisplay = supplier;
     }
 
     public void resize(int w, int h) {
-        if (stage != null) {
-            stage.getViewport().update(w, h, true);
-        }
+        if (stage != null) stage.getViewport().update(w, h, true);
     }
 
-    public void hide() {
-        onHide();
-    }
-
+    public void hide()  { onHide(); }
     protected void onHide() {}
 
     @Override
@@ -86,47 +81,55 @@ public abstract class BaseScene implements Updatable {
         if (timerEnabled) {
             timer.update(delta);
             if (timer.isFinished()) {
-                timerEnabled = false; // prevent repeated calls
+                timerEnabled = false;
                 onTimerFinished();
             }
         }
     }
 
     protected void onTimerFinished() {}
-
     public Timer getTimer() { return timer; }
 
-    protected final void clearScreen() {
-        clearScreen(0f, 0f, 0f, 1f);
-    }
+    protected final void clearScreen() { clearScreen(0f, 0f, 0f, 1f); }
 
     protected final void clearScreen(float r, float g, float b, float a) {
         Gdx.gl.glClearColor(r, g, b, a);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
-    /**
-     * Renders the countdown timer HUD in the top-right corner.
-     * Score rendering is the responsibility of game-layer subclasses via renderUI().
-     */
-    private void renderTimer() {
+    private void renderHUD() {
         if (!timerEnabled || timerFont == null) return;
 
         int seconds = (int) Math.ceil(timer.getTimeRemaining());
         int minutes = seconds / 60;
-        int secs = seconds % 60;
-        String timeText = String.format("Time: %d:%02d", minutes, secs);
+        int secs    = seconds % 60;
+        String timeText    = String.format("Time: %d:%02d", minutes, secs);
+        String scoreText   = (scoreDisplay   != null) ? scoreDisplay.get()   : null;
+        String rescuedText = (rescuedDisplay != null) ? rescuedDisplay.get() : null;
 
-        if (seconds <= 10) {
-            timerFont.setColor(Color.RED);
-        } else {
-            timerFont.setColor(Color.WHITE);
+        float x = Gdx.graphics.getWidth() - 10f;
+        float y = Gdx.graphics.getHeight() - 10f;
+
+        // Timer — right-aligned, top right
+        timerLayout.setText(timerFont, timeText);
+        timerFont.setColor(seconds <= 10 ? Color.RED : Color.WHITE);
+        timerFont.draw(batch, timeText, x - timerLayout.width, y);
+        y -= timerLayout.height + 6f;
+
+        // Score — right-aligned, below timer
+        if (scoreText != null) {
+            timerLayout.setText(timerFont, scoreText);
+            timerFont.setColor(Color.YELLOW);
+            timerFont.draw(batch, scoreText, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
         }
 
-        timerLayout.setText(timerFont, timeText);
-        float timerX = Gdx.graphics.getWidth() - timerLayout.width - 20f;
-        float timerY = Gdx.graphics.getHeight() - 10f;
-        timerFont.draw(batch, timeText, timerX, timerY);
+        // Rescued — right-aligned, below score
+        if (rescuedText != null) {
+            timerLayout.setText(timerFont, rescuedText);
+            timerFont.setColor(Color.WHITE);
+            timerFont.draw(batch, rescuedText, x - timerLayout.width, y);
+        }
 
         timerFont.setColor(Color.WHITE);
     }
@@ -138,7 +141,7 @@ public abstract class BaseScene implements Updatable {
         }
         batch.begin();
         renderUI();
-        renderTimer();
+        renderHUD();
         batch.end();
     }
 
@@ -150,13 +153,7 @@ public abstract class BaseScene implements Updatable {
     protected abstract void renderUI();
 
     public void dispose() {
-        if (timerFont != null) {
-            timerFont.dispose();
-            timerFont = null;
-        }
-        if (stage != null) {
-            stage.dispose();
-            stage = null;
-        }
+        if (timerFont != null) { timerFont.dispose(); timerFont = null; }
+        if (stage != null) { stage.dispose(); stage = null; }
     }
 }

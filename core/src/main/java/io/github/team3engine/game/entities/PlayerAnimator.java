@@ -86,6 +86,11 @@ public class PlayerAnimator {
         return facingRight;
     }
 
+    /** Force facing direction — used by NPC to mirror delayed player direction. */
+    public void setFacingRight(boolean value) {
+        this.facingRight = value;
+    }
+
     /** Loads a texture and tracks it for disposal. */
     private Texture loadTexture(String path) {
         Texture t = new Texture(path);

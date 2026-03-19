@@ -1,33 +1,32 @@
 package io.github.team3engine.game.scenes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.engine.scoring.ScoreManager;
 import io.github.team3engine.game.events.GameEvents;
+import io.github.team3engine.game.ui.SceneButtonFactory;
 
 public class ScoreBoardScene extends BaseScene {
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
     private final BitmapFont font;
+    private final GlyphLayout layout = new GlyphLayout();
     private final int screenWidth;
     private final int screenHeight;
 
-    // The next scene to go to when player clicks Next Level
     private String nextSceneId;
-
     private Skin skin;
 
     public ScoreBoardScene(SpriteBatch batch, BitmapFont sharedFont,
@@ -41,70 +40,33 @@ public class ScoreBoardScene extends BaseScene {
         this.screenHeight = screenHeight;
     }
 
-    // Call this before switching to ScoreBoardScene to set where Next Level goes
     public void setNextScene(String sceneId) {
         this.nextSceneId = sceneId;
     }
 
     @Override
     protected void onShow() {
-        super.onShow(); // no timer for scoreboard
+        super.onShow();
+        // Fix 2: reset font colour on entry
+        font.setColor(Color.WHITE);
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        float centerX = screenWidth / 2f;
+        float centerX = screenWidth  / 2f;
         float centerY = screenHeight / 2f;
 
-        // Next Level button
-        TextButton nextButton = new TextButton("Next Level", skin);
-        nextButton.setSize(200, 50);
-        nextButton.setPosition(centerX - 110f, centerY - 60f);
+        // Fix 3: mirror GameOverScene button layout exactly
+        float gap    = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = centerX - totalW / 2f;
+        float btnY   = centerY - 100f;
 
-        nextButton.addListener(new ClickListener() {
-            @Override
-            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-                if (pointer == -1) {
-                    nextButton.setColor(0.7f, 0.7f, 1f, 1f);
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                }
-            }
-            @Override
-            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-                if (pointer == -1) {
-                    nextButton.setColor(1f, 1f, 1f, 1f);
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
-                }
-            }
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast(GameEvents.SCOREBOARD_NEXT);
-            }
-        });
+        TextButton nextButton = SceneButtonFactory.create("Next Level", skin, () ->
+                ioManager.broadcast(GameEvents.SCOREBOARD_NEXT));
+        nextButton.setPosition(startX, btnY);
 
-        // Main Menu button
-        TextButton menuButton = new TextButton("Main Menu", skin);
-        menuButton.setSize(200, 50);
-        menuButton.setPosition(centerX + 20f, centerY - 60f);
-
-        menuButton.addListener(new ClickListener() {
-            @Override
-            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-                if (pointer == -1) {
-                    menuButton.setColor(0.7f, 0.7f, 1f, 1f);
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                }
-            }
-            @Override
-            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-                if (pointer == -1) {
-                    menuButton.setColor(1f, 1f, 1f, 1f);
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
-                }
-            }
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast(GameEvents.SCOREBOARD_MENU);
-            }
-        });
+        TextButton menuButton = SceneButtonFactory.create("Main Menu", skin, () ->
+                ioManager.broadcast(GameEvents.SCOREBOARD_MENU));
+        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
 
         getStage().addActor(nextButton);
         getStage().addActor(menuButton);
@@ -115,7 +77,6 @@ public class ScoreBoardScene extends BaseScene {
                 Gdx.app.postRunnable(() -> sceneManager.setScene(nextSceneId));
             }
         });
-
         ioManager.registerEvent(GameEvents.SCOREBOARD_MENU, () -> {
             ScoreManager.getInstance().reset();
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
@@ -127,17 +88,14 @@ public class ScoreBoardScene extends BaseScene {
         ioManager.clearEvent(GameEvents.SCOREBOARD_NEXT);
         ioManager.clearEvent(GameEvents.SCOREBOARD_MENU);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
-        if (skin != null) {
-            skin.dispose();
-            skin = null;
-        }
+        if (skin != null) { skin.dispose(); skin = null; }
         Stage s = getStage();
         if (s != null) s.clear();
     }
 
     @Override
     public void update(float delta) {
-        // no super.update() — no timer on scoreboard
+        // no timer on scoreboard
     }
 
     @Override
@@ -149,21 +107,34 @@ public class ScoreBoardScene extends BaseScene {
     @Override
     protected void renderUI() {
         ScoreManager sm = ScoreManager.getInstance();
-        float centerX = screenWidth / 2f;
+        float centerX = screenWidth  / 2f;
         float centerY = screenHeight / 2f;
 
-        font.draw(batch, "=== SCOREBOARD ===",         centerX - 90f, centerY + 120f);
-        font.draw(batch, "Final Score:  " + sm.getFinalScore(),  centerX - 80f, centerY + 80f);
-        font.draw(batch, "High Score:   " + sm.getHighScore(),   centerX - 80f, centerY + 55f);
-        font.draw(batch, "Choose your next action:",   centerX - 90f, centerY + 10f);
+        // Fix 2: always start white
+        font.setColor(Color.WHITE);
+
+        String title = "=== SCOREBOARD ===";
+        layout.setText(font, title);
+        font.draw(batch, title, centerX - layout.width / 2f, centerY + 120f);
+
+        String finalLine = "Final Score:  " + sm.getFinalScore();
+        layout.setText(font, finalLine);
+        font.draw(batch, finalLine, centerX - layout.width / 2f, centerY + 75f);
+
+        String highLine = "High Score:   " + sm.getHighScore();
+        layout.setText(font, highLine);
+        font.draw(batch, highLine, centerX - layout.width / 2f, centerY + 50f);
+
+        String chooseLine = "Choose your next action:";
+        layout.setText(font, chooseLine);
+        font.draw(batch, chooseLine, centerX - layout.width / 2f, centerY + 10f);
+
+        font.setColor(Color.WHITE); // reset after
     }
 
     @Override
     public void dispose() {
-        if (skin != null) {
-            skin.dispose();
-            skin = null;
-        }
+        if (skin != null) { skin.dispose(); skin = null; }
         super.dispose();
     }
 }
