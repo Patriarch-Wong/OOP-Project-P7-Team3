@@ -31,7 +31,7 @@ import io.github.team3engine.game.score.ObjectiveRule;
 import io.github.team3engine.game.score.TimeBonusRule;
 import io.github.team3engine.game.status.SlowEffect;
 
-public class TestScene extends BaseScene {
+public class TestScene extends BaseScene implements GameplayScene {
     private static final float MAX_DELTA = 0.07f;
     private static final float FIRE_GROW_X_PER_SEC = 0.18f;
     private static final float FIRE_GROW_Y_PER_SEC = 0.06f;
@@ -320,10 +320,11 @@ public class TestScene extends BaseScene {
     @Override
     protected void onTimerFinished() {
         Gdx.app.log("Game", "Time's up! Game Over.");
-        // Still show scoreboard so player sees their score
-        ScoreBoardScene board = (ScoreBoardScene) sceneManager.getScene(SceneType.SCORE_BOARD.name());
-        if (board != null) board.setNextScene(SceneType.TEST_SCENE.name());
-        Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
+        GameOverScene gameOverScene = (GameOverScene) sceneManager.getScene(SceneType.GAME_OVER.name());
+        if (gameOverScene != null) {
+            gameOverScene.setRetryScene(SceneType.TEST_SCENE.name());
+        }
+        Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));
     }
 
     @Override

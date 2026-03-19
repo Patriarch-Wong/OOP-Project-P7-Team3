@@ -16,6 +16,7 @@ import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
+import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.scenes.*;
@@ -89,11 +90,12 @@ public class Main extends ApplicationAdapter {
         });
         ioManager.registerEvent(GameEvents.PLAYER_JUMP, () -> audioManager.play("jump.mp3"));
         ioManager.registerEvent(GameEvents.PLAYER_DEAD, () -> {
+            BaseScene currentScene = sceneManager.getCurrentScene();
             String currentSceneId = sceneManager.getCurrentSceneId();
             if (SceneType.GAME_OVER.name().equals(currentSceneId)) {
                 return;
             }
-            if (isGameplayScene(currentSceneId)) {
+            if (isGameplayScene(currentScene) && currentSceneId != null) {
                 gameOverScene.setRetryScene(currentSceneId);
             }
             Gdx.app.log("Game", "Player died!");
@@ -125,8 +127,9 @@ public class Main extends ApplicationAdapter {
         float deltaTime = Gdx.graphics.getDeltaTime();
         SceneManager sceneManager = engine.getSceneManager();
         IOManager ioManager = engine.getIOManager();
+        BaseScene currentScene = sceneManager.getCurrentScene();
 
-        if (isGameplayScene(sceneManager.getCurrentSceneId())) {
+        if (isGameplayScene(currentScene)) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 if (isPaused) {
                     ioManager.broadcast(GameEvents.GAME_UNPAUSE);
@@ -160,7 +163,7 @@ public class Main extends ApplicationAdapter {
             engine.dispose();
     }
 
-    private boolean isGameplayScene(String sceneId) {
-        return SceneType.SCENE_1.name().equals(sceneId) || SceneType.TEST_SCENE.name().equals(sceneId);
+    private boolean isGameplayScene(BaseScene scene) {
+        return scene instanceof GameplayScene;
     }
 }

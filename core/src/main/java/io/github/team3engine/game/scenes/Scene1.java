@@ -175,7 +175,7 @@ public class Scene1 extends BaseScene {
             Gdx.app.log("Game", "Player won!");
             audioManager.play("victory.mp3");
             onPlayerEscaped();
-            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCENE_1.name()));
+            Gdx.app.postRunnable(sceneManager::reloadCurrentScene);
         });
 
         // --- Collision rules (Mediator pattern) ---
@@ -298,11 +298,7 @@ public class Scene1 extends BaseScene {
     @Override
     protected void onTimerFinished() {
         Gdx.app.log("Game", "Time's up!");
-        GameOverScene gameOverScene = (GameOverScene) sceneManager.getScene(SceneType.GAME_OVER.name());
-        if (gameOverScene != null) {
-            gameOverScene.setRetryScene(SceneType.SCENE_1.name());
-        }
-        Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));
+        // Demo scene behavior: no Game Over routing here.
     }
 
     @Override

@@ -64,6 +64,19 @@ public class SceneManager implements Updatable, FrameRenderable, Disposable {
         }
     }
 
+    /**
+     * Reloads the active scene by running its hide/show lifecycle.
+     * No-op when there is no active scene.
+     */
+    public void reloadCurrentScene() {
+        BaseScene current = getCurrentScene();
+        if (current == null) {
+            return;
+        }
+        current.hide();
+        current.show();
+    }
+
     public BaseScene getScene(String id) {
         return scenes.get(id);
     }
