@@ -56,6 +56,9 @@ www-test/
 ## TeaVM:
 # Not sure yet...
 
+## VS Code:
+.vscode/
+
 ## IntelliJ, Android Studio:
 .idea/
 *.ipr
@@ -162,6 +165,16 @@ Thumbs.db
 ## You could also add that configuration to the text in nativeimage.gradle .
 ## You should delete or comment out the next line if you have configuration in a different resource-config.json .
 **/resource-config.json
+
+## AI Files:
+.claude/
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+docs/
+
+## Project Guidelines:
+Guidelines_TeamProject_Part2_Deliverables.pdf
 
 ## Sensitive / Secrets:
 .env
