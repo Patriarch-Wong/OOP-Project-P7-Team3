@@ -22,8 +22,8 @@ public class NPC extends CollidableEntity {
 
     public enum State { WAITING, FOLLOWING }
 
-    private static final float WIDTH      = 20f;
-    private static final float HEIGHT     = 36f;
+    private static final float WIDTH      = 20f * 1.5f;
+    private static final float HEIGHT     = 36f * 1.5f;
     private static final float ARROW_SIZE = 8f;
     private static final float LABEL_GAP  = 6f;
 
@@ -67,7 +67,7 @@ public class NPC extends CollidableEntity {
         this.font          = new BitmapFont();
         this.layout        = new GlyphLayout();
         this.animator      = new PlayerAnimator(
-            "npc/rotations/east.png", "npc/rotations/west.png",
+            "npc/rotations/east.png", "npc/rotations/west.png", "npc/rotations/south.png",
             "npc/running-6-frames/east/frame_", 6, 0.1f
         );
         setPos(x, y);
@@ -138,26 +138,21 @@ public class NPC extends CollidableEntity {
     // ── Waiting ───────────────────────────────────────────────────────────
 
     private void renderWaiting(SpriteBatch batch) {
-        batch.end();
-        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-        shapeRenderer.setTransformMatrix(batch.getTransformMatrix());
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        // Draw the idle (south-facing) sprite
+        TextureRegion frame = animator.getCurrentFrame(false);
+        float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
+        float drawHeight = HEIGHT;
+        float drawWidth  = drawHeight * frameAspect;
+        batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
 
-        shapeRenderer.setColor(0.95f, 0.61f, 0.07f, 1f);
-        shapeRenderer.rect(position.x - WIDTH / 2f, position.y, WIDTH, HEIGHT);
-
-        float headRadius = WIDTH * 0.4f;
-        shapeRenderer.circle(position.x, position.y + HEIGHT + headRadius * 0.3f, headRadius);
-        shapeRenderer.end();
-
-        batch.begin();
+        // Bobbing "HELP!" label above sprite
         float helpBob = (float) Math.sin(bobTimer * 4f) * 3f;
         String helpText = "HELP!";
         layout.setText(font, helpText);
         font.setColor(1f, 0.8f, 0f, 1f);
         font.draw(batch, helpText,
                 position.x - layout.width / 2f,
-                position.y + HEIGHT + headRadius * 2f + 14f + helpBob);
+                position.y + drawHeight + LABEL_GAP + helpBob);
         font.setColor(Color.WHITE);
     }
 
