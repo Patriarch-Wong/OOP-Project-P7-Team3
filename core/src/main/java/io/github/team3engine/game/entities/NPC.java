@@ -210,10 +210,11 @@ public class NPC extends CollidableEntity implements io.github.team3engine.game.
     // ── Waiting ───────────────────────────────────────────────────────────
 
     private void renderWaiting(SpriteBatch batch) {
-        batch.end();
-        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-        shapeRenderer.setTransformMatrix(batch.getTransformMatrix());
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        TextureRegion frame = animator.getCurrentFrame(false);
+        float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
+        float drawHeight = HEIGHT;
+        float drawWidth  = drawHeight * frameAspect;
+        batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
 
         // Health bar above waiting NPC
         drawHealthBar(batch, position.y + drawHeight + 4f);

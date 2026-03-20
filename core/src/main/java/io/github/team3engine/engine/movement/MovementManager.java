@@ -2,11 +2,13 @@ package io.github.team3engine.engine.movement;
 
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.interfaces.IMovementInput;
+import io.github.team3engine.game.entities.Player;
+import io.github.team3engine.game.status.SlowEffect;
 
 public class MovementManager {
     // Movement configuration (shared across all entities)
     private float maxWalkSpeed = 300f;
-private float maxCrawlSpeed = 120f; // slower than walking
+    private float maxCrawlSpeed = 120f; // slower than walking
     private float maxFallSpeed = -600f;
     private float acceleration = 700f;
     private float deceleration = 700f;
@@ -45,12 +47,20 @@ private float maxCrawlSpeed = 120f; // slower than walking
         }
 
         // Clamp horizontal speed
-float currentMaxSpeed = state.isCrouching() ? maxCrawlSpeed : maxWalkSpeed;
-velocityX = clamp(velocityX, -currentMaxSpeed, currentMaxSpeed);
-if (state.isCrouching()) {
-    velocityX = clamp(velocityX, -maxCrawlSpeed, maxCrawlSpeed);
-} 
-// Jump cooldown: tick down each frame
+        float currentMaxSpeed = state.isCrouching() ? maxCrawlSpeed : maxWalkSpeed;
+        
+        // Apply slow effect if player has one (e.g., when carrying NPC)
+        if (entity instanceof Player) {
+            Player player = (Player) entity;
+            SlowEffect slow = player.getStatusEffects().getEffect(SlowEffect.class);
+            if (slow != null) {
+                currentMaxSpeed *= slow.getSpeedMultiplier();
+            }
+        }
+        
+        velocityX = clamp(velocityX, -currentMaxSpeed, currentMaxSpeed); 
+
+        // Jump cooldown: tick down each frame
         float jumpCooldown = state.getJumpCooldownRemaining();
         jumpCooldown -= deltaTime;
         if (jumpCooldown < 0f)
@@ -58,7 +68,8 @@ if (state.isCrouching()) {
         state.setJumpCooldownRemaining(jumpCooldown);
 
         // Jump
-if (input.isJump() && state.isGrounded() && jumpCooldown <= 0f && !state.isCrouching()){            velocityY = jumpForce;
+        if (input.isJump() && state.isGrounded() && jumpCooldown <= 0f && !state.isCrouching()) {
+            velocityY = jumpForce;
             state.setJumpCooldownRemaining(jumpCooldownDuration);
             state.setGrounded(false);
         }

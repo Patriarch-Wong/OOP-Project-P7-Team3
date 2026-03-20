@@ -48,16 +48,18 @@ public class GameOverScene extends BaseScene {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        retryButton = SceneButtonFactory.create("Retry", skin, () -> {
+        float gap    = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = screenWidth / 2f - totalW / 2f;
+        float btnY   = screenHeight / 2f - 100f;
+
+        TextButton retryButton = SceneButtonFactory.create("Retry", skin, () -> {
             BaseScene scene = sceneManager.getScene(retrySceneId);
             if (scene instanceof TestScene) {
                 ((TestScene) scene).setLevel(retryLevel);
             }
             sceneManager.setScene(retrySceneId);
         });
-
-        TextButton retryButton = SceneButtonFactory.create("Retry", skin,
-                () -> sceneManager.setScene(retrySceneId));
         retryButton.setPosition(startX, btnY);
 
         TextButton menuButton = SceneButtonFactory.create("Main Menu", skin,
