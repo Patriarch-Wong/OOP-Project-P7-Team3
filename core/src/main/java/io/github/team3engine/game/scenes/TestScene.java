@@ -170,7 +170,8 @@ public class TestScene extends BaseScene implements GameplayScene {
         player = new Player("player", levelConfig.playerStartX, levelConfig.playerStartY, 20f, 36f, levelConfig.playerMaxHp, levelConfig.worldWidth, levelConfig.worldHeight);
         entityManager.addEntity(player);
         player.getMovementState().reset();
-        movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
+        player.resetMovementRules();
+        movementInput = new MovementInput(player, ioManager, playerInput);
         groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
 
         // --- Camera ---
@@ -368,7 +369,15 @@ public class TestScene extends BaseScene implements GameplayScene {
         batch.end();
         drawStageAndUI(delta);
 
-        movementManager.applyMovement(player, player.getMovementState(), movementInput, delta);
+        if (player.applyJumpIfRequested()) {
+            ioManager.broadcast(GameEvents.PLAYER_JUMP);
+        }
+        movementManager.applyMovement(
+                player,
+                player.getMovementState(),
+                player.getMovementConfig(),
+                movementInput,
+                delta);
 
         groundDetector.checkFallCondition(player);
         groundDetector.checkGroundDetection(player);
@@ -406,6 +415,7 @@ public class TestScene extends BaseScene implements GameplayScene {
             entityManager.updateAll(delta);
             playerInput.update(delta);
             movementInput.update();
+            player.updateMovementRules(movementInput, delta);
             collisionManager.update(delta);
             Array<Collidable[]> pairs = collisionManager.resolveCollisions();
             mediator.resolve(pairs);
@@ -489,7 +499,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
         float slowMultiplier = StatusEffectMath.strongestSlowMultiplier(
                 player.getStatusEffects().getAllEffects(SlowEffect.class));
-        player.getMovementState().setSpeedMultiplier(slowMultiplier);
+        player.setExternalSpeedMultiplier(slowMultiplier);
     }
 
     private void growFires(float delta) {

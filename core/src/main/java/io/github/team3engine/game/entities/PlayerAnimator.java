@@ -3,7 +3,6 @@ package io.github.team3engine.game.entities;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import io.github.team3engine.engine.movement.MovementState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,23 +65,11 @@ public class PlayerAnimator {
         this.crouchAnimation = null;
     }
 
-    /** Updates animation timers and facing direction based on movement state. */
-    public void update(MovementState movementState, float dt) {
+    /** Updates animation timers and facing direction based on Player-owned movement state. */
+    public void update(Player player, float dt) {
         stateTime += dt;
-
-        // Track crouch animation timer
-        boolean crouchingNow = movementState.isCrouching();
-        if (crouchingNow && !wasCrouching) {
-            crouchStateTime = 0f;
-        }
-        if (crouchingNow) {
-            crouchStateTime += dt;
-        }
-        wasCrouching = crouchingNow;
-
-        // Track facing direction
-        if (movementState.getVelocityX() > 0) facingRight = true;
-        else if (movementState.getVelocityX() < 0) facingRight = false;
+        updateCrouchState(player.isCrouching(), dt);
+        updateFacingDirection(player.getMovementState().getVelocityX());
     }
 
     /** Simple update for entities without MovementState (e.g. NPCs). */
@@ -91,25 +78,10 @@ public class PlayerAnimator {
         this.facingRight = facingRight;
     }
 
-    /** Returns the correct animation frame based on current movement state. */
-    public TextureRegion getCurrentFrame(MovementState movementState) {
-        // Priority: jumping > crouching > running > idle
-        TextureRegion frame;
-        if (jumpAnimation != null && !movementState.isGrounded()) {
-            frame = jumpAnimation.getKeyFrame(stateTime, false);
-        } else if (crouchAnimation != null && movementState.isCrouching()) {
-            frame = crouchAnimation.getKeyFrame(crouchStateTime, false);
-        } else if (movementState.getVelocityX() != 0) {
-            frame = runAnimation.getKeyFrame(stateTime, true);
-        } else {
-            frame = facingRight ? idleFrameEast : idleFrameWest;
-        }
-
-        // Flip for facing direction
-        if (facingRight && frame.isFlipX()) frame.flip(true, false);
-        else if (!facingRight && !frame.isFlipX()) frame.flip(true, false);
-
-        return frame;
+    /** Returns the correct animation frame based on Player-owned movement state. */
+    public TextureRegion getCurrentFrame(Player player) {
+        return getCurrentFrame(player.isGrounded(), player.isCrouching(),
+                player.getMovementState().getVelocityX(), stateTime, crouchStateTime);
     }
 
     /** Simple frame getter for entities without MovementState (e.g. NPCs). */
@@ -158,5 +130,39 @@ public class PlayerAnimator {
         for (Texture t : allTextures) {
             t.dispose();
         }
+    }
+
+    private void updateCrouchState(boolean crouchingNow, float dt) {
+        if (crouchingNow && !wasCrouching) {
+            crouchStateTime = 0f;
+        }
+        if (crouchingNow) {
+            crouchStateTime += dt;
+        }
+        wasCrouching = crouchingNow;
+    }
+
+    private void updateFacingDirection(float velocityX) {
+        if (velocityX > 0) facingRight = true;
+        else if (velocityX < 0) facingRight = false;
+    }
+
+    private TextureRegion getCurrentFrame(boolean grounded, boolean crouching, float velocityX,
+                                          float currentStateTime, float currentCrouchStateTime) {
+        TextureRegion frame;
+        if (jumpAnimation != null && !grounded) {
+            frame = jumpAnimation.getKeyFrame(currentStateTime, false);
+        } else if (crouchAnimation != null && crouching) {
+            frame = crouchAnimation.getKeyFrame(currentCrouchStateTime, false);
+        } else if (velocityX != 0) {
+            frame = runAnimation.getKeyFrame(currentStateTime, true);
+        } else {
+            frame = facingRight ? idleFrameEast : idleFrameWest;
+        }
+
+        if (facingRight && frame.isFlipX()) frame.flip(true, false);
+        else if (!facingRight && !frame.isFlipX()) frame.flip(true, false);
+
+        return frame;
     }
 }

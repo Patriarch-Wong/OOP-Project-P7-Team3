@@ -131,7 +131,9 @@ public class Scene1 extends BaseScene implements GameplayScene {
         bucket.getMovementState().reset();
 
         // Create movement input tied to this player's movement state
-        movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
+        player.resetMovementRules();
+        bucket.getMovementState().setSpeedMultiplier(1f);
+        movementInput = new MovementInput(player, ioManager, playerInput);
         groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
 
         float scaleX = gw / 19f;
@@ -260,13 +262,23 @@ public class Scene1 extends BaseScene implements GameplayScene {
         batch.end();
         drawStageAndUI(delta);
 
-        // Apply movement to player using the player's movement state
-        movementManager.applyMovement(player, player.getMovementState(), movementInput, delta);
+        if (player.applyJumpIfRequested()) {
+            ioManager.broadcast(GameEvents.PLAYER_JUMP);
+        }
+        movementManager.applyMovement(
+                player,
+                player.getMovementState(),
+                player.getMovementConfig(),
+                movementInput,
+                delta);
         player.update(0f);
 
-        // Apply AI movement to bucket
-        bucketAI.update(bucket.getX(), delta);
-        movementManager.applyMovement(bucket, bucket.getMovementState(), bucketAI, delta);
+        movementManager.applyMovement(
+                bucket,
+                bucket.getMovementState(),
+                bucket.getMovementConfig(),
+                bucketAI,
+                delta);
         bucket.update(0f);
 
         checkFallCondition();
@@ -285,9 +297,13 @@ public class Scene1 extends BaseScene implements GameplayScene {
             }
         }
 
-        entityManager.updateAll(dt);
         playerInput.update(dt);
         movementInput.update();
+        player.updateMovementRules(movementInput, dt);
+        if (bucketAI != null && bucket != null) {
+            bucketAI.update(bucket.getX(), dt);
+        }
+        entityManager.updateAll(dt);
         collisionManager.update(dt);
 
         // Platform.onCollision() still runs for physics pushout

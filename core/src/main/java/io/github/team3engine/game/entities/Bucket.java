@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
+import io.github.team3engine.engine.movement.MovementConfig;
 import io.github.team3engine.engine.movement.MovementState;
 
 /**
@@ -21,6 +22,7 @@ public class Bucket extends CollidableEntity {
 
     // Movement state for AI-controlled movement
     private MovementState movementState;
+    private final MovementConfig movementConfig;
     private final float screenWidth;
     private final float screenHeight;
 
@@ -30,6 +32,7 @@ public class Bucket extends CollidableEntity {
         this.width = texture.getWidth();
         this.height = texture.getHeight();
         this.movementState = new MovementState();
+        this.movementConfig = new MovementConfig(300f, -600f, 700f, 700f, -1100f);
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         setPos(x, y);
@@ -46,6 +49,10 @@ public class Bucket extends CollidableEntity {
 
     public float getHeight() {
         return height;
+    }
+
+    public MovementConfig getMovementConfig() {
+        return movementConfig;
     }
 
     /**
@@ -88,4 +95,5 @@ public class Bucket extends CollidableEntity {
     public void onCollision(Collidable other) {
         // Collision sound is played by CollisionManager; no extra behavior here
     }
+
 }

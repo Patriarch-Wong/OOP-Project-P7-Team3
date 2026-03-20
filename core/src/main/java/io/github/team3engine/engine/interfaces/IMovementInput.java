@@ -7,8 +7,7 @@ package io.github.team3engine.engine.interfaces;
 public interface IMovementInput {
     /** Horizontal intent: -1 left, 0 none, 1 right. */
     float getMovementAxis();
+
     /** True when jump is requested. */
     boolean isJump();
-    boolean isCrawl();
-    
 }
