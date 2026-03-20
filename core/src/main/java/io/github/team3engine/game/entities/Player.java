@@ -14,13 +14,14 @@ import io.github.team3engine.engine.interfaces.Damageable;
 import io.github.team3engine.engine.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementState;
 import io.github.team3engine.engine.status.StatusEffectManager;
+import io.github.team3engine.game.interfaces.Followable;
 import io.github.team3engine.game.ui.FloatingText;
 import io.github.team3engine.game.status.DamageReductionEffect;
 import io.github.team3engine.game.status.SlowEffect;
 
 import java.util.List;
 
-public class Player extends CollidableEntity implements Damageable {
+public class Player extends CollidableEntity implements Damageable, Followable {
     private final float width;
     private final float height;
     private float baseSpeed = 220f;
@@ -144,19 +145,34 @@ public class Player extends CollidableEntity implements Damageable {
 
     // --- Dimensions ---
 
-    public float getWidth() { return width; }
-    public Texture getTexture() { return texture; }
+    public float getWidth() { return getDrawWidth(); }
     public boolean isFacingRight() { return animator.isFacingRight(); }
 
     public float getHeight() { return height; }
 
     // --- Entity overrides ---
 
+    // Fraction of sprite height the character actually occupies (bottom-anchored).
+    // The top ~25% of each 48x48 frame is empty space above the head.
+    private static final float HITBOX_HEIGHT_RATIO = 0.75f;
+
     @Override
     protected void updateHitbox() {
-        // position is bottom-center of the player
-        hitbox.setPosition(position.x - width / 2f, position.y);
-        hitbox.setSize(width, height);
+        float hitboxWidth = getDrawWidth();
+        float hitboxHeight = height * HITBOX_HEIGHT_RATIO;
+        hitbox.setPosition(position.x - hitboxWidth / 2f, position.y);
+        hitbox.setSize(hitboxWidth, hitboxHeight);
+    }
+
+    /** Returns the rendered sprite width based on the current animation frame's aspect ratio. */
+    private float getDrawWidth() {
+        // Before animator is initialized (during constructor), fall back to width field
+        if (animator == null || movementState == null) {
+            return width;
+        }
+        TextureRegion frame = animator.getCurrentFrame(movementState);
+        float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
+        return height * frameAspect;
     }
 
     @Override
@@ -172,9 +188,10 @@ public class Player extends CollidableEntity implements Damageable {
             invincibilityTimer -= dt;
         }
 
-        // Clamp to screen
-        position.x = Math.max(width / 2f, Math.min(screenWidth - width / 2f, position.x));
-        position.y = Math.max(0f, Math.min(screenHeight - height, position.y));
+        // Clamp to screen using actual draw width
+        float halfW = getDrawWidth() / 2f;
+        position.x = Math.max(halfW, Math.min(screenWidth - halfW, position.x));
+        position.y = Math.max(0f, Math.min(screenHeight - height * HITBOX_HEIGHT_RATIO, position.y));
         updateHitbox();
 
         damageText.update(dt);
@@ -189,12 +206,10 @@ public class Player extends CollidableEntity implements Damageable {
                 return; // skip this frame's render
             }
         }
-        TextureRegion frame = animator.getCurrentFrame(movementState);
-        // Scale draw size based on frame aspect ratio, keeping height fixed
-        float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
+        float drawWidth = getDrawWidth();
         float drawHeight = height;
-        float drawWidth = drawHeight * frameAspect;
 
+        TextureRegion frame = animator.getCurrentFrame(movementState);
         batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
         damageText.render(batch, position.x, position.y + height);
     }
@@ -216,7 +231,7 @@ public class Player extends CollidableEntity implements Damageable {
      * Check if the top of the player touches a solid surface above.
      */
     public boolean touchesCeiling(EntityManager entityManager) {
-        float playerTop = this.getY() + this.height;
+        float playerTop = this.getY() + this.height * HITBOX_HEIGHT_RATIO;
         float tolerance = 6f;
 
         for (Entity e : entityManager.getAll()) {
@@ -231,8 +246,9 @@ public class Player extends CollidableEntity implements Damageable {
 
             boolean underPlatform = playerTop >= platformBottom - tolerance &&
                     playerTop <= platformBottom + tolerance;
-            boolean horizontallyAligned = playerCenterX >= platformLeft - width / 2f &&
-                    playerCenterX <= platformRight + width / 2f;
+            float halfDrawW = getDrawWidth() / 2f;
+            boolean horizontallyAligned = playerCenterX >= platformLeft - halfDrawW &&
+                    playerCenterX <= platformRight + halfDrawW;
 
             if (underPlatform && horizontallyAligned) {
                 return true;

@@ -43,14 +43,16 @@ public class MovementInput implements IMovementInput {
         }
 
         crouch = playerInput.isDownHeld();
-        if (crouch && movementState.isGrounded() &&  movementState.setCrouching(crouch)) {
+        if (crouch && movementState.isGrounded()) {
+            // movementState.setCrouching(true);
             io.broadcast(GameEvents.PLAYER_CROUCH);
-        } 
+        }
+
         else {
             movementState.setCrouching(false);
         }
     }
-        
+
     @Override
     public float getMovementAxis() {
         return movementAxis;
@@ -60,4 +62,8 @@ public class MovementInput implements IMovementInput {
     public boolean isJump() {
         return jump;
     }
+    @Override
+public boolean isCrawl() {
+    return crouch; // or whatever variable you use
+}
 }

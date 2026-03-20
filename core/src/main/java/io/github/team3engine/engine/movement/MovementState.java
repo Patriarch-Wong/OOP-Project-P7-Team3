@@ -40,9 +40,9 @@ public class MovementState {
         return isCrouching;
     }
 
-    public boolean setCrouching(boolean crouching) {
+    public void setCrouching(boolean crouching) {
         this.isCrouching = crouching;
-        return crouching;
+        this.isCrouching=crouching;
     }
 
     public boolean isMovementEnabled() {
@@ -68,6 +68,7 @@ public class MovementState {
         velocityX = 0f;
         velocityY = 0f;
         isGrounded = true;
+        isCrouching = false;
         jumpCooldownRemaining = 0f;
         movementEnabled = true;
     }

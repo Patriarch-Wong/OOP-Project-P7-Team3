@@ -23,6 +23,8 @@ public class HUDRenderer {
     private static final float GHOST_DELAY    = 0.6f;
     private static final float GHOST_DRAIN    = 0.35f;
     private static final float BLINK_DURATION = 0.4f;
+    private static final Color CARRYING_COLOR = new Color(0.4f, 1f, 0.4f, 1f);
+    private static final Color BUFF_COLOR = new Color(0.9f, 0.8f, 0.3f, 1f);
 
     private float ghostHp;
     private float ghostDelay;
@@ -32,6 +34,7 @@ public class HUDRenderer {
     private final ShapeRenderer shape;
     private final BitmapFont    font;
     private final GlyphLayout   layout;
+    private final Color hpColor = new Color(Color.WHITE);
 
     private final float barX;
     private final float barY;
@@ -123,14 +126,14 @@ public class HUDRenderer {
 
         // Carrying tag right of HP numbers
         if (carrying) {
-            font.setColor(new Color(0.4f, 1f, 0.4f, 1f));
+            font.setColor(CARRYING_COLOR);
             font.draw(batch, "  [Carrying NPC]", barX + 90f, labelY);
             font.setColor(Color.WHITE);
         }
 
         // Buffs below bar
         if (buffs != null && !buffs.isEmpty()) {
-            font.setColor(new Color(0.9f, 0.8f, 0.3f, 1f));
+            font.setColor(BUFF_COLOR);
             font.draw(batch, buffs, barX, barY - 4f);
             font.setColor(Color.WHITE);
         }
@@ -145,13 +148,18 @@ public class HUDRenderer {
     }
 
     private Color getHpColor(float frac, boolean blinking) {
-        if (blinking) return new Color(1f, 0.1f, 0.1f, 1f);
+        if (blinking) {
+            hpColor.set(1f, 0.1f, 0.1f, 1f);
+            return hpColor;
+        }
         if (frac > 0.5f) {
             float t = (frac - 0.5f) * 2f;
-            return new Color(1f - t, 1f, 0f, 1f);
+            hpColor.set(1f - t, 1f, 0f, 1f);
+            return hpColor;
         } else {
             float t = frac * 2f;
-            return new Color(1f, t, 0f, 1f);
+            hpColor.set(1f, t, 0f, 1f);
+            return hpColor;
         }
     }
 

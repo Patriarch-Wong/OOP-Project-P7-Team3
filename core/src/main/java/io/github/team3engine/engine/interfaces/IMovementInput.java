@@ -9,4 +9,6 @@ public interface IMovementInput {
     float getMovementAxis();
     /** True when jump is requested. */
     boolean isJump();
+    boolean isCrawl();
+    
 }

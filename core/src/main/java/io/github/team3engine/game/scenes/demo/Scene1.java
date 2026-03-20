@@ -1,4 +1,9 @@
-package io.github.team3engine.game.scenes;
+package io.github.team3engine.game.scenes.demo;
+
+import io.github.team3engine.game.scenes.GameOverScene;
+import io.github.team3engine.game.scenes.GameplayScene;
+import io.github.team3engine.game.scenes.SceneType;
+import io.github.team3engine.game.scenes.ScoreBoardScene;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +34,7 @@ import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
 import io.github.team3engine.game.factories.*;
 
-public class Scene1 extends BaseScene {
+public class Scene1 extends BaseScene implements GameplayScene {
     private static final float MAX_DELTA = 0.07f;
 
     private Texture image;
@@ -55,7 +60,7 @@ public class Scene1 extends BaseScene {
     private final int screenWidth;
     private final int screenHeight;
 
-    CollisionMediator mediator;
+    private CollisionMediator mediator;
     private Map<String, Float> hazardCooldowns = new HashMap<>();
     private com.badlogic.gdx.utils.Timer.Task fireResetTask;
 
@@ -230,6 +235,7 @@ public class Scene1 extends BaseScene {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
+        batch.setColor(Color.WHITE);
         if (image != null) {
             batch.draw(image, 140, 210);
         }
