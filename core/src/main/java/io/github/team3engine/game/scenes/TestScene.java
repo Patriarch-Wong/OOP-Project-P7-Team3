@@ -26,7 +26,7 @@ import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.score.ScoreContext;
 import io.github.team3engine.game.interfaces.ScoreRule;
 import io.github.team3engine.game.score.ScoreManager;
-import io.github.team3engine.game.scene.Timer;
+import io.github.team3engine.game.util.Timer;
 import java.util.List;
 import io.github.team3engine.game.status.StatusEffect;
 import io.github.team3engine.game.entities.*;
@@ -126,7 +126,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
         timer.start();
 
-        if (hud == null) hud = new HUDRenderer(font);
+        if (hud == null) hud = new HUDRenderer(font, screenHeight);
         hud.init(levelConfig.playerMaxHp);
         fires.clear();
         deathHandled = false;

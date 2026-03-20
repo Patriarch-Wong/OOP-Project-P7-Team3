@@ -31,7 +31,7 @@ import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.score.ScoreContext;
 import io.github.team3engine.game.score.ScoreManager;
-import io.github.team3engine.game.scene.Timer;
+import io.github.team3engine.game.util.Timer;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
 import io.github.team3engine.game.factories.*;

@@ -8,11 +8,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.github.team3engine.engine.interfaces.Resizable;
 import io.github.team3engine.engine.interfaces.Updatable;
 import io.github.team3engine.engine.interfaces.VolumeControl;
 
-public class UIManager implements Updatable, Resizable {
+public class UIManager implements Updatable {
     private Stage stage;
     private Skin skin;
     private Table rootTable;
@@ -89,13 +88,6 @@ public class UIManager implements Updatable, Resizable {
 
     public void draw() {
         stage.draw();
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        if (stage != null) {
-            stage.getViewport().update(width, height, true);
-        }
     }
 
     public void dispose() {

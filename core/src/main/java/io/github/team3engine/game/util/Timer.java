@@ -1,4 +1,4 @@
-package io.github.team3engine.game.scene;
+package io.github.team3engine.game.util;
 
 public class Timer {
 

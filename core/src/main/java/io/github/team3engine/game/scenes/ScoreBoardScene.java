@@ -28,8 +28,6 @@ public class ScoreBoardScene extends BaseScene {
     private String nextSceneId;
     private int nextLevel = 2;
     private Skin skin;
-    private TextButton nextButton;
-    private TextButton menuButton;
 
     public ScoreBoardScene(SpriteBatch batch, BitmapFont sharedFont,
                            SceneManager sceneManager, IOManager ioManager,
@@ -56,12 +54,24 @@ public class ScoreBoardScene extends BaseScene {
         font.setColor(Color.WHITE);
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        nextButton = SceneButtonFactory.create("Next Level", skin, () ->
-                ioManager.broadcast(GameEvents.SCOREBOARD_NEXT));
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+        float centerX = screenWidth  / 2f;
+        float centerY = screenHeight / 2f;
 
-        menuButton = SceneButtonFactory.create("Main Menu", skin, () ->
+        // Fix 3: mirror GameOverScene button layout exactly
+        float gap    = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = centerX - totalW / 2f;
+        float btnY   = centerY - 100f;
+
+        TextButton nextButton = SceneButtonFactory.create("Next Level", skin, () ->
+                ioManager.broadcast(GameEvents.SCOREBOARD_NEXT));
+        nextButton.setPosition(startX, btnY);
+
+        TextButton menuButton = SceneButtonFactory.create("Main Menu", skin, () ->
                 ioManager.broadcast(GameEvents.SCOREBOARD_MENU));
-        layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
 
         getStage().addActor(nextButton);
         getStage().addActor(menuButton);
@@ -104,11 +114,6 @@ public class ScoreBoardScene extends BaseScene {
     }
 
     @Override
-    protected void onResize(int width, int height) {
-        layoutButtons(width, height);
-    }
-
-    @Override
     protected void renderUI() {
         float centerX = Gdx.graphics.getWidth() / 2f;
         float centerY = Gdx.graphics.getHeight() / 2f;
@@ -133,21 +138,6 @@ public class ScoreBoardScene extends BaseScene {
         font.draw(batch, chooseLine, centerX - layout.width / 2f, centerY + 10f);
 
         font.setColor(Color.WHITE); // reset after
-    }
-
-    private void layoutButtons(int width, int height) {
-        if (nextButton == null || menuButton == null) {
-            return;
-        }
-        float centerX = width / 2f;
-        float centerY = height / 2f;
-        float gap = 20f;
-        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
-        float startX = centerX - totalW / 2f;
-        float btnY = centerY - 100f;
-
-        nextButton.setPosition(startX, btnY);
-        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
     }
 
     @Override

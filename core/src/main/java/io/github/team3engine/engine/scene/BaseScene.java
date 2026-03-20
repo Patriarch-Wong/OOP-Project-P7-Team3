@@ -7,10 +7,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.github.team3engine.engine.interfaces.Resizable;
 import io.github.team3engine.engine.interfaces.Updatable;
 
-public abstract class BaseScene implements Updatable, Resizable {
+public abstract class BaseScene implements Updatable {
+
     protected final SpriteBatch batch;
     private Stage stage;
 
@@ -31,20 +31,13 @@ public abstract class BaseScene implements Updatable, Resizable {
     public void show() {
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
-        // Scenes can be entered after a window resize while they were inactive.
-        // Sync stage viewport + scene layout on entry to prevent stale HUD/UI placement.
-        resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     protected void onShow() {}
 
-    @Override
     public void resize(int w, int h) {
         if (stage != null) stage.getViewport().update(w, h, true);
-        onResize(w, h);
     }
-
-    protected void onResize(int width, int height) {}
 
     public void hide()  { onHide(); }
     protected void onHide() {}
@@ -65,8 +58,6 @@ public abstract class BaseScene implements Updatable, Resizable {
             stage.act(delta);
             stage.draw();
         }
-        // UI/HUD should track the live window size independently from gameplay projection.
-        batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.setColor(Color.WHITE);
         batch.begin();
         renderUI();

@@ -22,8 +22,8 @@ public class NPC extends CollidableEntity implements io.github.team3engine.game.
 
     public enum State { WAITING, FOLLOWING, DEAD }
 
-    private static final float WIDTH      = 20f * 1.5f;
-    private static final float HEIGHT     = 36f * 1.5f;
+    private static final float WIDTH      = 20f;
+    private static final float HEIGHT     = 36f;
     private static final float ARROW_SIZE = 8f;
     private static final float LABEL_GAP  = 6f;
     private static final float HEALTH_BAR_WIDTH = 30f;
@@ -80,7 +80,7 @@ public class NPC extends CollidableEntity implements io.github.team3engine.game.
         this.font          = new BitmapFont();
         this.layout        = new GlyphLayout();
         this.animator      = new PlayerAnimator(
-            "npc/rotations/east.png", "npc/rotations/west.png", "npc/rotations/south.png",
+            "npc/rotations/east.png", "npc/rotations/west.png",
             "npc/running-6-frames/east/frame_", 6, 0.1f
         );
         setPos(x, y);
@@ -210,11 +210,10 @@ public class NPC extends CollidableEntity implements io.github.team3engine.game.
     // ── Waiting ───────────────────────────────────────────────────────────
 
     private void renderWaiting(SpriteBatch batch) {
-        // Draw the idle (south-facing) sprite
         TextureRegion frame = animator.getCurrentFrame(false);
         float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
         float drawHeight = HEIGHT;
-        float drawWidth  = drawHeight * frameAspect;
+        float drawWidth = drawHeight * frameAspect;
         batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
 
         // Health bar above waiting NPC
