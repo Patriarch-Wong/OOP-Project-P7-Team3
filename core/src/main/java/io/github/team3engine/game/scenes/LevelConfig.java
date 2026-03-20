@@ -96,7 +96,7 @@ public class LevelConfig {
                 .npcMaxHp(80f)
                 .playerStartX(200f)
                 .playerStartY(40f)
-                .exitX(1950f)
+                .exitX(1800f)
                 .npcX(1000f)
                 .npcY(190f)
                 .groundSegments(40f, new float[]{0, 650, 1100, 1500}, new float[]{250, 400, 350, 400, 500})
@@ -115,25 +115,25 @@ public class LevelConfig {
 
     private static LevelConfig createLevel3() {
         return new Builder(3, 3000f, 900f)
-                .timerDuration(60f)
-                .playerMaxHp(80f)
+        		.timerDuration(60f)
+                .playerMaxHp(50f)
                 .npcMaxHp(50f)
                 .playerStartX(200f)
                 .playerStartY(40f)
-                .exitX(2800f)
-                .exitY(120f)
-                .npcX(1000f)
-                .npcY(40f)
+                .exitX(1800f)
+                .exitY(420f)
+                .npcX(1400f)
+                .npcY(300f)
                 .groundSegments(40f, new float[]{0, 500, 1100, 1700, 2300}, new float[]{400, 450, 500, 500, 500})
                 .platforms(
-                    new float[]{600, 1200, 1800, 2300, 2600},
-                    new float[]{80, 100, 110, 120, 120},
-                    new float[]{200, 200, 180, 180, 180}
+                    new float[]{200, 600, 1000, 1200, 1600, 1700},
+                    new float[]{150, 250, 280, 380, 440, 400},
+                    new float[]{200, 200, 400, 300, 180, 200}
                 )
-                .groundFires(new float[]{150, 400, 700, 900, 1300, 1500, 1900, 2100, 2500, 2700})
-                .ceilingFires(new float[]{300, 700, 1300, 1900, 2500},
-                               new float[]{80, 100, 110, 120, 120})
-                .towels(new float[]{500, 1000, 1500, 2000}, new float[]{130, 150, 160, 170})
+                .groundFires(new float[]{150, 380, 700,750,800,850,900, 1300, 1500, 1900, 2100, 2500, 2700})
+                .ceilingFires(new float[]{200, 600, 1200, 1250, 1300, 1900, 2500},
+                               new float[]{150, 250, 375, 375, 375,120, 120})
+                .towels(new float[]{500, 1000, 1500, 2000}, new float[]{130, 350, 160, 170})
                 .masks(new float[]{800, 1400, 1900, 2400}, new float[]{130, 150, 160, 170})
                 .nextScene(SceneType.SCORE_BOARD.name())
                 .displayName("Level 3 - The Ascent")
