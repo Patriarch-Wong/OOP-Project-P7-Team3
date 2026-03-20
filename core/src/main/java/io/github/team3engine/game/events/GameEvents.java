@@ -12,6 +12,8 @@ public enum GameEvents {
     PLAYER_HIT_FIRE,
     PLAYER_WIN,
     NPC_RESCUED,
+    
+    ITEM_COLLECTED,
 
     GAME_PAUSE,
     GAME_UNPAUSE,

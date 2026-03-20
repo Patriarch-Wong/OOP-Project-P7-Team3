@@ -261,18 +261,21 @@ public class TestScene extends BaseScene implements GameplayScene {
         mediator.addRule(Fire.class, Damageable.class, (fire, target) -> {
             if (!target.isInvincible()) {
                 target.takeDamage(fire.getDamage());
+                ioManager.broadcast(GameEvents.PLAYER_HIT_FIRE);
             }
         });
 
         mediator.addRule(MaskPickup.class, Player.class, (pickup, playerTarget) -> {
             if (!pickup.isDestroyed()) {
                 pickup.onPickup(playerTarget);
+                ioManager.broadcast(GameEvents.ITEM_COLLECTED);
             }
         });
 
         mediator.addRule(WetTowelPickup.class, Player.class, (pickup, p) -> {
             if (!pickup.isDestroyed()) {
                 pickup.onPickup(p);
+                ioManager.broadcast(GameEvents.ITEM_COLLECTED);
             }
         });
 

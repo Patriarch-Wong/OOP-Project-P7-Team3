@@ -108,6 +108,10 @@ public class Main extends ApplicationAdapter {
             }
         });
         ioManager.registerEvent(GameEvents.PLAYER_JUMP, () -> audioManager.play("jump.mp3"));
+        ioManager.registerEvent(GameEvents.ITEM_COLLECTED, () ->
+        audioManager.play("item_collect.mp3"));
+        ioManager.registerEvent(GameEvents.PLAYER_HIT_FIRE, () ->
+        audioManager.play("oof.mp3"));
         ioManager.registerEvent(GameEvents.PLAYER_DEAD, () -> {
             BaseScene currentScene = sceneManager.getCurrentScene();
             String currentSceneId = sceneManager.getCurrentSceneId();
