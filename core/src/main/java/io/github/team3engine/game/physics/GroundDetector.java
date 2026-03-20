@@ -119,7 +119,6 @@ public class GroundDetector {
      * and update grounded state accordingly. Also handles ceiling hits.
      */
     public void checkGroundDetection(Player player) {
-        boolean isOnFloor = player.getY() <= 1f;
         boolean isOnPlatform = false;
         float playerBottom = player.getY();
         float sinkTolerance = 5f;
@@ -143,7 +142,7 @@ public class GroundDetector {
             }
         }
 
-        if (isOnFloor || isOnPlatform) {
+        if (isOnPlatform) {
             movementManager.setGrounded(player.getMovementState(), true);
         } else {
             movementManager.setGrounded(player.getMovementState(), false);

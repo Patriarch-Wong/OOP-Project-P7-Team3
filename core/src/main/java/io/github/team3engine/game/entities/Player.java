@@ -108,6 +108,11 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     @Override
     public boolean isInvincible() { return invincibilityTimer > 0f; }
 
+    public void kill() {
+        hp = 0f;
+        invincibilityTimer = 0f;
+    }
+
     // --- Status Effects ---
 
     public StatusEffectManager getStatusEffects() { return statusEffects; }
@@ -203,7 +208,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
         // Clamp to world bounds using actual draw width
         float halfW = getDrawWidth() / 2f;
         position.x = Math.max(halfW, Math.min(worldWidth - halfW, position.x));
-        position.y = Math.max(0f, Math.min(worldHeight - height * HITBOX_HEIGHT_RATIO, position.y));
+        position.y = Math.min(worldHeight - height * HITBOX_HEIGHT_RATIO, position.y);
         updateHitbox();
 
         damageText.update(dt);
