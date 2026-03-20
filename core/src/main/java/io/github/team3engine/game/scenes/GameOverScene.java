@@ -12,12 +12,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
+import io.github.team3engine.game.score.ScoreManager;
 import io.github.team3engine.game.ui.SceneButtonFactory;
 
 public class GameOverScene extends BaseScene {
     private final SceneManager sceneManager;
     private final BitmapFont font;
     private final GlyphLayout titleLayout = new GlyphLayout();
+    private final ScoreManager scoreManager;
     private final int screenWidth;
     private final int screenHeight;
 
@@ -26,13 +28,15 @@ public class GameOverScene extends BaseScene {
     private Skin skin;
 
     public GameOverScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
-                         int screenWidth, int screenHeight, String defaultRetrySceneId) {
+                         int screenWidth, int screenHeight, String defaultRetrySceneId,
+                         ScoreManager scoreManager) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.retrySceneId = defaultRetrySceneId;
+        this.scoreManager = scoreManager;
     }
 
     public void setRetryScene(String retrySceneId) {
@@ -89,8 +93,15 @@ public class GameOverScene extends BaseScene {
         String title = "GAME OVER";
         titleLayout.setText(font, title);
         float titleX = (screenWidth - titleLayout.width) / 2f;
-        font.draw(batch, title, titleX, screenHeight / 2f + 60f);
-        font.setColor(Color.WHITE); // reset after use
+        font.draw(batch, title, titleX, screenHeight / 2f + 100f);
+        
+        font.setColor(Color.WHITE);
+        String scoreText = "Final Score: " + scoreManager.getScore();
+        titleLayout.setText(font, scoreText);
+        float scoreX = (screenWidth - titleLayout.width) / 2f;
+        font.draw(batch, scoreText, scoreX, screenHeight / 2f + 40f);
+        
+        font.setColor(Color.WHITE);
     }
 
     @Override

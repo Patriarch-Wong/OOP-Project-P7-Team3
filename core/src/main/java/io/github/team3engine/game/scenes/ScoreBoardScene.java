@@ -48,6 +48,7 @@ public class ScoreBoardScene extends BaseScene {
     }
 
     public void setNextLevel(int level) {
+        Gdx.app.log("ScoreBoard", "setNextLevel called with: " + level);
         this.nextLevel = level;
     }
 
@@ -81,12 +82,30 @@ public class ScoreBoardScene extends BaseScene {
         getStage().addActor(menuButton);
 
         ioManager.registerEvent(GameEvents.SCOREBOARD_NEXT, () -> {
-            if (nextSceneId != null) {
-                BaseScene scene = sceneManager.getScene(nextSceneId);
-                if (scene instanceof TestScene) {
-                    ((TestScene) scene).setLevel(nextLevel);
+            Gdx.app.log("ScoreBoard", "SCOREBOARD_NEXT event fired, nextLevel=" + nextLevel + ", nextSceneId=" + nextSceneId);
+            System.out.println("DEBUG: SCOREBOARD_NEXT clicked, nextLevel=" + nextLevel);
+            try {
+                if (nextSceneId != null) {
+                    BaseScene scene = sceneManager.getScene(nextSceneId);
+                    Gdx.app.log("ScoreBoard", "Got scene: " + (scene != null ? scene.getClass().getSimpleName() : "null"));
+                    System.out.println("DEBUG: Got scene, setting level...");
+                    if (scene instanceof TestScene) {
+                        Gdx.app.log("ScoreBoard", "Calling setLevel(" + nextLevel + ")");
+                        ((TestScene) scene).setLevel(nextLevel);
+                        Gdx.app.log("ScoreBoard", "setLevel completed");
+                        System.out.println("DEBUG: setLevel completed, about to switch scene");
+                    }
+                    Gdx.app.postRunnable(() -> {
+                        System.out.println("DEBUG: postRunnable executing, switching to " + nextSceneId);
+                        Gdx.app.log("ScoreBoard", "About to setScene: " + nextSceneId);
+                        sceneManager.setScene(nextSceneId);
+                        Gdx.app.log("ScoreBoard", "setScene completed");
+                    });
                 }
-                Gdx.app.postRunnable(() -> sceneManager.setScene(nextSceneId));
+            } catch (Exception e) {
+                System.err.println("ERROR in SCOREBOARD_NEXT:");
+                e.printStackTrace();
+                Gdx.app.error("ScoreBoard", "Error in SCOREBOARD_NEXT", e);
             }
         });
         ioManager.registerEvent(GameEvents.SCOREBOARD_MENU, () -> {

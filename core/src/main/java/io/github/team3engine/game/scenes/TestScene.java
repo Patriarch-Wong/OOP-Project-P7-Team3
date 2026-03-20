@@ -72,6 +72,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     private final int screenWidth;
     private final int screenHeight;
     private boolean deathHandled;
+    private boolean rulesRegistered = false;
     private final List<ScoreRule> scoreRules;
 
     // Timer managed locally
@@ -109,7 +110,19 @@ public class TestScene extends BaseScene implements GameplayScene {
     }
 
     public void setLevel(int levelNumber) {
-        this.levelConfig = LevelConfig.getAllLevels()[levelNumber - 1];
+        Gdx.app.log("TestScene", "setLevel called with: " + levelNumber);
+        LevelConfig[] allLevels = LevelConfig.getAllLevels();
+        if (levelNumber < 1 || levelNumber > allLevels.length) {
+            Gdx.app.error("TestScene", "Invalid level number: " + levelNumber + ", max is " + allLevels.length);
+            return;
+        }
+        this.levelConfig = allLevels[levelNumber - 1];
+        Gdx.app.log("TestScene", "Level set to: " + levelConfig.levelNumber + " - " + levelConfig.displayName);
+    }
+
+    public void resetForNewGame() {
+        rulesRegistered = false;
+        setLevel(1);
     }
 
     @Override
@@ -120,25 +133,33 @@ public class TestScene extends BaseScene implements GameplayScene {
     @Override
     protected void onShow() {
         super.onShow();
-        // Set up timer with level-specific duration
-        timer = new Timer(levelConfig.timerDuration);
-        if (timerFont == null) {
-            timerFont = new BitmapFont();
-            timerLayout = new GlyphLayout();
+        try {
+            Gdx.app.log("TestScene", "onShow started, level=" + levelConfig.levelNumber);
+            timer = new Timer(levelConfig.timerDuration);
+            if (timerFont == null) {
+                timerFont = new BitmapFont();
+                timerFont.getData().setScale(1.5f);
+                timerLayout = new GlyphLayout();
+            }
+            timer.start();
+
+            if (hud == null) hud = new HUDRenderer(font, screenHeight);
+            hud.init(levelConfig.playerMaxHp);
+            fires.clear();
+            deathHandled = false;
+            Gdx.app.log("TestScene", "onShow completed, level=" + levelConfig.levelNumber);
+        } catch (Exception e) {
+            Gdx.app.error("TestScene", "Error in onShow", e);
+            e.printStackTrace();
         }
-        timer.start();
 
-        if (hud == null) hud = new HUDRenderer(font, screenHeight);
-        hud.init(levelConfig.playerMaxHp);
-        fires.clear();
-        deathHandled = false;
-
-        // --- Register score rules ---
-        // Don't reset score - accumulate across levels
-        if (scoreRules != null) {
+        // --- Register score rules (only once) ---
+        // Score accumulates across levels and retries
+        if (!rulesRegistered && scoreRules != null) {
             for (ScoreRule rule : scoreRules) {
                 scoreManager.addRule(rule);
             }
+            rulesRegistered = true;
         }
 
         playerInput = new PlayerInput();
@@ -177,9 +198,9 @@ public class TestScene extends BaseScene implements GameplayScene {
         // --- Fire hazards ---
         Texture fire_texture = new Texture(Gdx.files.internal("ui/sprites/fire_spritesheet.png"));
 
-        // Ground fires
+        // Ground fires - placed on top of ground (y = groundHeight)
         for (int i = 0; i < levelConfig.groundFireX.length; i++) {
-            Fire fire = new Fire("ground_fire_" + i, levelConfig.groundFireX[i], 40f, 22f, 32f, fire_texture, 8, 1, false);
+            Fire fire = new Fire("ground_fire_" + i, levelConfig.groundFireX[i], 38f, 22f, 32f, fire_texture, 8, 1, false);
             trackFire(fire);
             entityManager.addEntity(fire);
             collisionManager.register(fire);
@@ -215,7 +236,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         collisionManager.register(npc);
 
         // --- Exit door ---
-        ExitDoor exit = new ExitDoor("exit_door", levelConfig.exitX, 40f, 40f, 60f, 1, ioManager);
+        ExitDoor exit = new ExitDoor("exit_door", levelConfig.exitX, levelConfig.exitY, 40f, 60f, 1, ioManager);
         entityManager.addEntity(exit);
         collisionManager.register(exit);
 
@@ -287,8 +308,10 @@ public class TestScene extends BaseScene implements GameplayScene {
             ScoreBoardScene board = (ScoreBoardScene) sceneManager.getScene(SceneType.SCORE_BOARD.name());
             if (board != null) {
                 if (levelConfig.levelNumber < 3) {
+                    int nextLvl = levelConfig.levelNumber + 1;
+                    Gdx.app.log("Game", "Setting up next level: " + nextLvl);
                     board.setNextScene(SceneType.TEST_SCENE.name());
-                    board.setNextLevel(levelConfig.levelNumber + 1);
+                    board.setNextLevel(nextLvl);
                 } else {
                     board.setNextScene(SceneType.CONGRATULATION.name());
                 }
@@ -330,10 +353,11 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     @Override
     public void render(float delta) {
-        delta = Math.min(delta, MAX_DELTA);
+        try {
+            delta = Math.min(delta, MAX_DELTA);
 
-        Gdx.gl.glClearColor(0.1f, 0.05f, 0.0f, 1f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            Gdx.gl.glClearColor(0.1f, 0.05f, 0.0f, 1f);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         updateCamera(delta);
 
@@ -357,30 +381,39 @@ public class TestScene extends BaseScene implements GameplayScene {
             deathHandled = true;
             ioManager.broadcast(GameEvents.PLAYER_DEAD);
         }
+        } catch (Exception e) {
+            Gdx.app.error("TestScene", "Error in render", e);
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void update(float delta) {
-        super.update(delta);
-        delta = Math.min(delta, MAX_DELTA);
+        try {
+            super.update(delta);
+            delta = Math.min(delta, MAX_DELTA);
 
-        // Tick the timer
-        if (timer != null) {
-            timer.update(delta);
-            if (timer.isFinished()) {
-                onTimerFinished();
+            // Tick the timer
+            if (timer != null) {
+                timer.update(delta);
+                if (timer.isFinished()) {
+                    onTimerFinished();
+                }
             }
-        }
 
-        if (hud != null && player != null) hud.update(delta, player.getHp());
-        growFires(delta);
-        entityManager.updateAll(delta);
-        playerInput.update(delta);
-        movementInput.update();
-        collisionManager.update(delta);
-        Array<Collidable[]> pairs = collisionManager.resolveCollisions();
-        mediator.resolve(pairs);
-        syncPlayerSpeedMultiplier();
+            if (hud != null && player != null) hud.update(delta, player.getHp());
+            growFires(delta);
+            entityManager.updateAll(delta);
+            playerInput.update(delta);
+            movementInput.update();
+            collisionManager.update(delta);
+            Array<Collidable[]> pairs = collisionManager.resolveCollisions();
+            mediator.resolve(pairs);
+            syncPlayerSpeedMultiplier();
+        } catch (Exception e) {
+            Gdx.app.error("TestScene", "Error in update", e);
+            e.printStackTrace();
+        }
     }
 
     private void onTimerFinished() {

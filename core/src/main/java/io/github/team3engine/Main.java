@@ -85,7 +85,7 @@ public class Main extends ApplicationAdapter {
         ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, scoreManager);
         sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
         GameOverScene gameOverScene = new GameOverScene(batch, sharedFont, sceneManager, screenWidth, screenHeight,
-                SceneType.TEST_SCENE.name());
+                SceneType.TEST_SCENE.name(), scoreManager);
         sceneManager.registerScene(SceneType.GAME_OVER.name(), gameOverScene);
 
         // Register CongratulationScene

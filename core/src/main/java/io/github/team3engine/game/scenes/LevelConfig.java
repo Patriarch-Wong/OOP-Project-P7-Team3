@@ -10,6 +10,7 @@ public class LevelConfig {
     public final float playerStartX;
     public final float playerStartY;
     public final float exitX;
+    public final float exitY;
     public final float npcX;
     public final float npcY;
     public final float[] groundSegmentsX;
@@ -37,6 +38,7 @@ public class LevelConfig {
         this.playerStartX = builder.playerStartX;
         this.playerStartY = builder.playerStartY;
         this.exitX = builder.exitX;
+        this.exitY = builder.exitY;
         this.npcX = builder.npcX;
         this.npcY = builder.npcY;
         this.groundSegmentsX = builder.groundSegmentsX;
@@ -113,25 +115,28 @@ public class LevelConfig {
 
     private static LevelConfig createLevel3() {
         return new Builder(3, 3000f, 900f)
-                .timerDuration(30f)
+                .timerDuration(60f)
                 .playerMaxHp(80f)
                 .npcMaxHp(50f)
                 .playerStartX(200f)
                 .playerStartY(40f)
-                .exitX(1950f)
+                .exitX(2800f)
+                .exitY(120f)
                 .npcX(1000f)
-                .npcY(190f)
-                .groundSegments(40f, new float[]{0, 350, 750, 1100, 1500}, new float[]{250, 400, 350, 400, 500})
-                .platforms(new float[]{300, 350, 620, 900, 1150, 1400, 1900},
-                           new float[]{130, 210, 300, 180, 260, 150, 220},
-                           new float[]{200, 220, 200, 180, 200, 250, 200})
-                .groundFires(new float[]{150, 400, 440, 480, 520 , 600, 800, 1150,1200 ,1250, 1300, 1600, 1700})
-                .ceilingFires(new float[]{280, 360, 750, 950, 1180, 1430},
-                               new float[]{130, 210, 300, 180, 260, 150})
-                .towels(new float[]{180,650, 920, 1420}, new float[]{175, 225, 195})
-                .masks(new float[]{550, 1170}, new float[]{75, 305})
+                .npcY(40f)
+                .groundSegments(40f, new float[]{0, 500, 1100, 1700, 2300}, new float[]{400, 450, 500, 500, 500})
+                .platforms(
+                    new float[]{600, 1200, 1800, 2300, 2600},
+                    new float[]{80, 100, 110, 120, 120},
+                    new float[]{200, 200, 180, 180, 180}
+                )
+                .groundFires(new float[]{150, 400, 700, 900, 1300, 1500, 1900, 2100, 2500, 2700})
+                .ceilingFires(new float[]{300, 700, 1300, 1900, 2500},
+                               new float[]{80, 100, 110, 120, 120})
+                .towels(new float[]{500, 1000, 1500, 2000}, new float[]{130, 150, 160, 170})
+                .masks(new float[]{800, 1400, 1900, 2400}, new float[]{130, 150, 160, 170})
                 .nextScene(SceneType.SCORE_BOARD.name())
-                .displayName("Level 3 - The Escape")
+                .displayName("Level 3 - The Ascent")
                 .build();
     }
 
@@ -145,6 +150,7 @@ public class LevelConfig {
         private float playerStartX = 200f;
         private float playerStartY = 0f;
         private float exitX;
+        private float exitY = 40f;
         private float npcX = 500f;
         private float npcY = 0f;
         private float[] groundSegmentsX = {};
@@ -174,6 +180,7 @@ public class LevelConfig {
         public Builder playerStartX(float x) { this.playerStartX = x; return this; }
         public Builder playerStartY(float y) { this.playerStartY = y; return this; }
         public Builder exitX(float x) { this.exitX = x; return this; }
+        public Builder exitY(float y) { this.exitY = y; return this; }
         public Builder npcX(float x) { this.npcX = x; return this; }
         public Builder npcY(float y) { this.npcY = y; return this; }
         public Builder groundSegments(float height, float[] x, float[] width) {
