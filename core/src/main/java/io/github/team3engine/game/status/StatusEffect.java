@@ -2,20 +2,28 @@ package io.github.team3engine.game.status;
 
 import io.github.team3engine.engine.entity.Entity;
 
+import java.util.Objects;
+
 /**
  * A timed effect applied to an entity. Subclasses define what happens
  * on apply, each tick, and on removal.
  */
 public abstract class StatusEffect {
+    private final String effectKey;
     protected final float duration;
     protected float elapsed;
 
     /**
      * @param duration effect duration in seconds. Use Float.MAX_VALUE for permanent effects.
      */
-    public StatusEffect(float duration) {
+    public StatusEffect(String effectKey, float duration) {
+        this.effectKey = Objects.requireNonNull(effectKey, "effectKey");
         this.duration = duration;
         this.elapsed = 0f;
+    }
+
+    public final String getEffectKey() {
+        return effectKey;
     }
 
     public void tick(float dt) {

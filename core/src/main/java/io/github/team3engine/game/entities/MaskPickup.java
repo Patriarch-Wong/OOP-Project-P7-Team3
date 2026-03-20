@@ -15,6 +15,7 @@ import io.github.team3engine.game.status.DamageReductionEffect;
  */
 public class MaskPickup extends CollidableEntity implements Pickup {
     private static final float SIZE = 22f;
+    public static final String EFFECT_KEY = "dr:mask";
 
     private final float reduction;       // damage reduction fraction e.g. 0.5 = 50%
     private final float duration;        // how long the effect lasts in seconds
@@ -66,7 +67,7 @@ public class MaskPickup extends CollidableEntity implements Pickup {
         if (collector instanceof Player) {
             Player player = (Player) collector;
             player.getStatusEffects().apply(
-                    new DamageReductionEffect(reduction, duration, "Mask"));
+                    new DamageReductionEffect(EFFECT_KEY, reduction, duration, "Mask"));
 
             if (timerExtend > 0f && onTimerExtend != null) {
                 onTimerExtend.run();

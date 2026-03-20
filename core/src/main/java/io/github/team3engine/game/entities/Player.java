@@ -18,6 +18,7 @@ import io.github.team3engine.game.interfaces.Followable;
 import io.github.team3engine.game.ui.FloatingText;
 import io.github.team3engine.game.status.DamageReductionEffect;
 import io.github.team3engine.game.status.SlowEffect;
+import io.github.team3engine.game.status.StatusEffectMath;
 
 import java.util.List;
 
@@ -77,12 +78,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
 
         // Apply damage reduction from all active effects (multiplicative stacking)
         List<DamageReductionEffect> reductions = statusEffects.getAllEffects(DamageReductionEffect.class);
-        for (DamageReductionEffect reduction : reductions) {
-            amount *= reduction.getDamageMultiplier();
-        }
-
-        // final damage after buffs/debuffs
-        float finalDamage = amount;
+        float finalDamage = StatusEffectMath.applyDamageReductions(amount, reductions);
 
         if (finalDamage > 0.01f) {
             damageText.show(String.format("-%.0f", finalDamage));
@@ -120,10 +116,8 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     /** Get effective move speed after applying slow effects. */
     public float getEffectiveSpeed() {
         float speed = baseSpeed;
-        SlowEffect slow = statusEffects.getEffect(SlowEffect.class);
-        if (slow != null) {
-            speed *= slow.getSpeedMultiplier();
-        }
+        List<SlowEffect> slows = statusEffects.getAllEffects(SlowEffect.class);
+        speed *= StatusEffectMath.strongestSlowMultiplier(slows);
         return speed;
     }
 

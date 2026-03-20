@@ -5,6 +5,7 @@ public class MovementState {
 
     private float velocityX = 0f;
     private float velocityY = 0f;
+    private float speedMultiplier = 1f;
     
     private boolean isGrounded = true;
     private boolean isCrouching = false;
@@ -28,6 +29,14 @@ public class MovementState {
         this.velocityY = velocityY;
     }
 
+    public float getSpeedMultiplier() {
+        return speedMultiplier;
+    }
+
+    public void setSpeedMultiplier(float speedMultiplier) {
+        this.speedMultiplier = Math.max(0f, speedMultiplier);
+    }
+
     public boolean isGrounded() {
         return isGrounded;
     }
@@ -42,7 +51,6 @@ public class MovementState {
 
     public void setCrouching(boolean crouching) {
         this.isCrouching = crouching;
-        this.isCrouching=crouching;
     }
 
     public boolean isMovementEnabled() {
@@ -67,6 +75,7 @@ public class MovementState {
     public void reset() {
         velocityX = 0f;
         velocityY = 0f;
+        speedMultiplier = 1f;
         isGrounded = true;
         isCrouching = false;
         jumpCooldownRemaining = 0f;

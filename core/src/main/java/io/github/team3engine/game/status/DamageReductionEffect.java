@@ -8,12 +8,15 @@ import io.github.team3engine.game.status.StatusEffect;
  * E.g. reductionFactor=0.5 means 50% less damage.
  */
 public class DamageReductionEffect extends StatusEffect {
+    private static final float MIN_FACTOR = 0f;
+    private static final float MAX_FACTOR = 1f;
+
     private final float reductionFactor;
     private final String name;
 
-    public DamageReductionEffect(float reductionFactor, float duration, String name) {
-        super(duration);
-        this.reductionFactor = reductionFactor;
+    public DamageReductionEffect(String effectKey, float reductionFactor, float duration, String name) {
+        super(effectKey, duration);
+        this.reductionFactor = clamp(reductionFactor, MIN_FACTOR, MAX_FACTOR);
         this.name = name;
     }
 
@@ -32,4 +35,8 @@ public class DamageReductionEffect extends StatusEffect {
 
     @Override
     public void onRemove(Entity target) { }
+
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
 }

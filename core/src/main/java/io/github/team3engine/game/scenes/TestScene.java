@@ -34,15 +34,16 @@ import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
 import io.github.team3engine.game.status.SlowEffect;
+import io.github.team3engine.game.status.StatusEffectMath;
 import io.github.team3engine.game.ui.HUDRenderer;
 
 public class TestScene extends BaseScene implements GameplayScene {
+    private static final String CARRY_SLOW_KEY = "slow:carry_npc";
     private static final float MAX_DELTA = 0.07f;
     private static final float FIRE_GROW_X_PER_SEC = 0.18f;
     private static final float FIRE_GROW_Y_PER_SEC = 0.06f;
     private static final float FIRE_MAX_SCALE_X = 2f;
     private static final float FIRE_MAX_SCALE_Y = 2f;
-    private static final float FALL_DEATH_BUFFER = 0f;
     
     private static final float CAMERA_LERP = 5f;
     
@@ -57,7 +58,6 @@ public class TestScene extends BaseScene implements GameplayScene {
     private HUDRenderer hud;
     private LevelConfig levelConfig;
     private NPC npc;
-    private Texture backgroundTex;
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
@@ -123,7 +123,6 @@ public class TestScene extends BaseScene implements GameplayScene {
         timer = new Timer(levelConfig.timerDuration);
         if (timerFont == null) {
             timerFont = new BitmapFont();
-            timerFont.getData().setScale(1.5f);
             timerLayout = new GlyphLayout();
         }
         timer.start();
@@ -156,9 +155,6 @@ public class TestScene extends BaseScene implements GameplayScene {
         camera = new OrthographicCamera(screenWidth, screenHeight);
         camera.position.set(player.getX() + player.getWidth()/2f, player.getY() + player.getHeight()/2f, 0);
         camera.update();
-
-        // --- Background ---
-        backgroundTex = new Texture(Gdx.files.internal("burning_bg.png"));
 
         // --- Platforms ---
         platformTex = new Texture(Gdx.files.internal("platform.png"));
@@ -249,7 +245,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         mediator.addRule(NPC.class, Player.class, (npcEntity, p) -> {
             if (npcEntity.getState() == NPC.State.WAITING && !p.isCarryingNPC()) {
                 p.pickUpNPC();
-                p.getStatusEffects().apply(new SlowEffect(0.3f, Float.MAX_VALUE));
+                p.getStatusEffects().apply(new SlowEffect(CARRY_SLOW_KEY, 0.3f, Float.MAX_VALUE));
                 npcEntity.startFollowing(p);
             }
         });
@@ -260,10 +256,7 @@ public class TestScene extends BaseScene implements GameplayScene {
                 int actualRescued = npcSurvived ? 1 : 0;
                 
                 p.rescueNPC();
-                SlowEffect slow = p.getStatusEffects().getEffect(SlowEffect.class);
-                if (slow != null) {
-                    p.getStatusEffects().remove(slow);
-                }
+                p.getStatusEffects().removeByKey(CARRY_SLOW_KEY);
                 ioManager.broadcast(GameEvents.NPC_RESCUED);
             }
             // if (p.getRescuedCount() >= door.getRequiredRescues()) {
@@ -328,10 +321,6 @@ public class TestScene extends BaseScene implements GameplayScene {
             platformTex.dispose();
             platformTex = null;
         }
-        if (backgroundTex != null) {
-            backgroundTex.dispose();
-            backgroundTex = null;
-        }
         ioManager.clearEvent(GameEvents.PLAYER_WIN);
         ioManager.clearEvent(GameEvents.NPC_RESCUED);
         if (hud != null) { hud.dispose(); hud = null; }
@@ -350,12 +339,6 @@ public class TestScene extends BaseScene implements GameplayScene {
         batch.begin();
         batch.setProjectionMatrix(camera.combined);
         batch.setColor(Color.WHITE);
-
-        // Draw background scaled to world size
-        if (backgroundTex != null) {
-            batch.draw(backgroundTex, 0, 0, levelConfig.worldWidth, levelConfig.worldHeight);
-        }
-
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
@@ -364,10 +347,6 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         groundDetector.checkFallCondition(player);
         groundDetector.checkGroundDetection(player);
-
-        if (!deathHandled && hasPlayerFallenOutOfScreen()) {
-            player.kill();
-        }
 
         if (!deathHandled && !player.isAlive()) {
             deathHandled = true;
@@ -396,6 +375,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         collisionManager.update(delta);
         Array<Collidable[]> pairs = collisionManager.resolveCollisions();
         mediator.resolve(pairs);
+        syncPlayerSpeedMultiplier();
     }
 
     private void onTimerFinished() {
@@ -426,7 +406,7 @@ public class TestScene extends BaseScene implements GameplayScene {
             player.getHp(), player.getMaxHp(),
             buffs.toString(),
             player.isCarryingNPC(),
-            "Level " + levelConfig.levelNumber + "/3"
+            "Rescue the NPC and reach the EXIT!"
         );
 
         // Render timer top-right
@@ -465,6 +445,15 @@ public class TestScene extends BaseScene implements GameplayScene {
         fires.add(fire);
     }
 
+    private void syncPlayerSpeedMultiplier() {
+        if (player == null) {
+            return;
+        }
+        float slowMultiplier = StatusEffectMath.strongestSlowMultiplier(
+                player.getStatusEffects().getAllEffects(SlowEffect.class));
+        player.getMovementState().setSpeedMultiplier(slowMultiplier);
+    }
+
     private void growFires(float delta) {
         float growX = FIRE_GROW_X_PER_SEC * delta;
         float growY = FIRE_GROW_Y_PER_SEC * delta;
@@ -489,10 +478,6 @@ public class TestScene extends BaseScene implements GameplayScene {
         camera.position.y = Math.max(halfViewportH, Math.min(levelConfig.worldHeight - halfViewportH, camera.position.y));
 
         camera.update();
-    }
-
-    private boolean hasPlayerFallenOutOfScreen() {
-        return player != null && player.getY() + player.getHeight() < -FALL_DEATH_BUFFER;
     }
 
     @Override

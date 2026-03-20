@@ -16,6 +16,7 @@ public class WetTowelPickup extends CollidableEntity implements Pickup {
     private static final float SIZE = 22f;
     private static final float REDUCTION = 0.3f;
     private static final float DURATION = 15f;
+    public static final String EFFECT_KEY = "dr:towel";
 
     private final Texture texture;
     private float bobTimer = 0f;
@@ -33,7 +34,7 @@ public class WetTowelPickup extends CollidableEntity implements Pickup {
     public void onPickup(Entity collector) {
         if (collector instanceof Player) {
             Player player = (Player) collector;
-            player.getStatusEffects().apply(new DamageReductionEffect(REDUCTION, DURATION, "Towel"));
+            player.getStatusEffects().apply(new DamageReductionEffect(EFFECT_KEY, REDUCTION, DURATION, "Towel"));
         }
         destroy();
     }

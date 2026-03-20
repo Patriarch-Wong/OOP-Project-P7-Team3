@@ -2,8 +2,6 @@ package io.github.team3engine.engine.movement;
 
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.interfaces.IMovementInput;
-import io.github.team3engine.game.entities.Player;
-import io.github.team3engine.game.status.SlowEffect;
 
 public class MovementManager {
     // Movement configuration (shared across all entities)
@@ -48,17 +46,8 @@ public class MovementManager {
 
         // Clamp horizontal speed
         float currentMaxSpeed = state.isCrouching() ? maxCrawlSpeed : maxWalkSpeed;
-        
-        // Apply slow effect if player has one (e.g., when carrying NPC)
-        if (entity instanceof Player) {
-            Player player = (Player) entity;
-            SlowEffect slow = player.getStatusEffects().getEffect(SlowEffect.class);
-            if (slow != null) {
-                currentMaxSpeed *= slow.getSpeedMultiplier();
-            }
-        }
-        
-        velocityX = clamp(velocityX, -currentMaxSpeed, currentMaxSpeed); 
+        currentMaxSpeed *= state.getSpeedMultiplier();
+        velocityX = clamp(velocityX, -currentMaxSpeed, currentMaxSpeed);
 
         // Jump cooldown: tick down each frame
         float jumpCooldown = state.getJumpCooldownRemaining();

@@ -3,6 +3,7 @@ package io.github.team3engine.game.status;
 import io.github.team3engine.engine.entity.Entity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,6 +20,12 @@ public class StatusEffectManager {
     }
 
     public void apply(StatusEffect effect) {
+        if (effect == null) {
+            return;
+        }
+
+        removeByKey(effect.getEffectKey());
+        effect.elapsed = 0f;
         effects.add(effect);
         effect.onApply(owner);
     }
@@ -27,6 +34,23 @@ public class StatusEffectManager {
         if (effects.remove(effect)) {
             effect.onRemove(owner);
         }
+    }
+
+    public boolean removeByKey(String effectKey) {
+        if (effectKey == null) {
+            return false;
+        }
+        boolean removed = false;
+        Iterator<StatusEffect> it = effects.iterator();
+        while (it.hasNext()) {
+            StatusEffect effect = it.next();
+            if (effect.getEffectKey().equals(effectKey)) {
+                effect.onRemove(owner);
+                it.remove();
+                removed = true;
+            }
+        }
+        return removed;
     }
 
     public void update(float dt) {
@@ -60,11 +84,23 @@ public class StatusEffectManager {
         for (StatusEffect e : effects) {
             if (type.isInstance(e)) matched.add(type.cast(e));
         }
-        return matched;
+        return Collections.unmodifiableList(matched);
     }
 
     public List<StatusEffect> getAll() {
-        return effects;
+        return Collections.unmodifiableList(new ArrayList<>(effects));
+    }
+
+    public StatusEffect getEffect(String effectKey) {
+        if (effectKey == null) {
+            return null;
+        }
+        for (StatusEffect effect : effects) {
+            if (effect.getEffectKey().equals(effectKey)) {
+                return effect;
+            }
+        }
+        return null;
     }
 
     public void clearAll() {
