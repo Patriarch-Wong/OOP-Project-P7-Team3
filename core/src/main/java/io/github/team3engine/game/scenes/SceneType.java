@@ -6,5 +6,6 @@ public enum SceneType {
     TEST_SCENE,
     MAIN_MENU_SCENE,
     SCORE_BOARD,
-    GAME_OVER
+    GAME_OVER,
+    CONGRATULATION
 }

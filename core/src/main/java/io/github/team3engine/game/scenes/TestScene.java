@@ -290,7 +290,7 @@ public class TestScene extends BaseScene implements GameplayScene {
                     board.setNextScene(SceneType.TEST_SCENE.name());
                     board.setNextLevel(levelConfig.levelNumber + 1);
                 } else {
-                    board.setNextScene(SceneType.MAIN_MENU_SCENE.name());
+                    board.setNextScene(SceneType.CONGRATULATION.name());
                 }
             }
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
