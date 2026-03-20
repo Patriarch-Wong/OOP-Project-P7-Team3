@@ -4,22 +4,8 @@ import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.interfaces.IMovementInput;
 
 public class MovementManager {
-    // Movement configuration (shared across all entities)
-    private float maxWalkSpeed = 300f;
-    private float maxCrawlSpeed = 120f; // slower than walking
-    private float maxFallSpeed = -600f;
-    private float acceleration = 700f;
-    private float deceleration = 700f;
-
-    private float jumpForce = 550.0f;
-    private float gravity = -1100.0f;
-    private float jumpCooldownDuration = 0.6f;
-
-    // Apply movement to an entity based on its MovementState and input.
-    public void applyMovement(Entity entity, MovementState state, IMovementInput input, float deltaTime) {
-        // Update crouch/crawl state
-        boolean isCrawling = input.isCrawl();
-        state.setCrouching(isCrawling);
+    // Apply movement to an entity based on its MovementState, config, and input.
+    public void applyMovement(Entity entity, MovementState state, MovementConfig config, IMovementInput input, float deltaTime) {
         if (!state.isMovementEnabled()) {
             return;
         }
@@ -30,62 +16,34 @@ public class MovementManager {
         // Horizontal movement
         float axis = input.getMovementAxis();
         if (Math.abs(axis) > 0.01f) {
-            velocityX += axis * acceleration * deltaTime;
+            velocityX += axis * config.getAcceleration() * deltaTime;
         } else {
             // Decelerate when no input
-            if (velocityX > 0) {
-                velocityX -= deceleration * deltaTime;
-                if (velocityX < 0)
-                    velocityX = 0;
-            } else if (velocityX < 0) {
-                velocityX += deceleration * deltaTime;
-                if (velocityX > 0)
-                    velocityX = 0;
+            if (velocityX > 0f) {
+                velocityX -= config.getDeceleration() * deltaTime;
+                if (velocityX < 0f) {
+                    velocityX = 0f;
+                }
+            } else if (velocityX < 0f) {
+                velocityX += config.getDeceleration() * deltaTime;
+                if (velocityX > 0f) {
+                    velocityX = 0f;
+                }
             }
         }
 
-        // Clamp horizontal speed
-        float currentMaxSpeed = state.isCrouching() ? maxCrawlSpeed : maxWalkSpeed;
-        currentMaxSpeed *= state.getSpeedMultiplier();
-        velocityX = clamp(velocityX, -currentMaxSpeed, currentMaxSpeed);
+        float maxSpeed = config.getMaxSpeed() * state.getSpeedMultiplier();
+        velocityX = clamp(velocityX, -maxSpeed, maxSpeed);
 
-        // Jump cooldown: tick down each frame
-        float jumpCooldown = state.getJumpCooldownRemaining();
-        jumpCooldown -= deltaTime;
-        if (jumpCooldown < 0f)
-            jumpCooldown = 0f;
-        state.setJumpCooldownRemaining(jumpCooldown);
+        // Gravity always applies in the engine layer.
+        velocityY += config.getGravity() * deltaTime;
+        velocityY = Math.max(velocityY, config.getMaxFallSpeed());
 
-        // Jump
-        if (input.isJump() && state.isGrounded() && jumpCooldown <= 0f && !state.isCrouching()) {
-            velocityY = jumpForce;
-            state.setJumpCooldownRemaining(jumpCooldownDuration);
-            state.setGrounded(false);
-        }
-
-        // Gravity (always applies)
-        velocityY += gravity * deltaTime;
-        velocityY = Math.max(velocityY, maxFallSpeed);
-
-        // Update state
         state.setVelocityX(velocityX);
         state.setVelocityY(velocityY);
 
-        // Apply movement to entity position
         entity.getPos().x += velocityX * deltaTime;
         entity.getPos().y += velocityY * deltaTime;
-    }
-
-    /**
-     * Set grounded state for an entity.
-     * Only zeros downward velocity when landing.
-     */
-    public void setGrounded(MovementState state, boolean grounded) {
-        state.setGrounded(grounded);
-        // Only zero downward velocity when landing; don't zero upward velocity
-        if (grounded && state.getVelocityY() < 0f) {
-            state.setVelocityY(0f);
-        }
     }
 
     // True when vertical velocity is upward.
@@ -111,74 +69,18 @@ public class MovementManager {
     //Disable movement for an entity and zero horizontal velocity.
     public void disableMovement(MovementState state) {
         state.setMovementEnabled(false);
-        state.setVelocityX(0);
+        state.setVelocityX(0f);
     }
 
     //Handle ceiling collision (cancel upward velocity).
     public void hitCeiling(MovementState state) {
-        if (state.getVelocityY() > 0)
-            state.setVelocityY(0);
+        if (state.getVelocityY() > 0f) {
+            state.setVelocityY(0f);
+        }
     }
 
     // Utility (private, not part of UML)
     private float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
-    }
-
-    // Configuration getters/setters 
-    public float getmaxWalkSpeed() {
-        return maxWalkSpeed;
-    }
-
-    public void setmaxWalkSpeed(float maxWalkSpeed) {
-        this.maxWalkSpeed = maxWalkSpeed;
-    }
-
-    public float getMaxFallSpeed() {
-        return maxFallSpeed;
-    }
-
-    public void setMaxFallSpeed(float maxFallSpeed) {
-        this.maxFallSpeed = maxFallSpeed;
-    }
-
-    public float getAcceleration() {
-        return acceleration;
-    }
-
-    public void setAcceleration(float acceleration) {
-        this.acceleration = acceleration;
-    }
-
-    public float getDeceleration() {
-        return deceleration;
-    }
-
-    public void setDeceleration(float deceleration) {
-        this.deceleration = deceleration;
-    }
-
-    public float getJumpForce() {
-        return jumpForce;
-    }
-
-    public void setJumpForce(float jumpForce) {
-        this.jumpForce = jumpForce;
-    }
-
-    public float getGravity() {
-        return gravity;
-    }
-
-    public void setGravity(float gravity) {
-        this.gravity = gravity;
-    }
-
-    public float getJumpCooldownDuration() {
-        return jumpCooldownDuration;
-    }
-
-    public void setJumpCooldownDuration(float jumpCooldownDuration) {
-        this.jumpCooldownDuration = jumpCooldownDuration;
     }
 }

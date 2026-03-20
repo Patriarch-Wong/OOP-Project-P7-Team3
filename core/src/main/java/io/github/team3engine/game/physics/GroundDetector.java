@@ -83,9 +83,9 @@ public class GroundDetector {
         }
 
         if (isOnFloor || isOnPlatform) {
-            movementManager.setGrounded(player.getMovementState(), true);
+            player.setGrounded(true);
         } else {
-            movementManager.setGrounded(player.getMovementState(), false);
+            player.setGrounded(false);
         }
 
         if (player.touchesCeiling(entityManager)) {
@@ -143,9 +143,9 @@ public class GroundDetector {
         }
 
         if (isOnPlatform) {
-            movementManager.setGrounded(player.getMovementState(), true);
+            player.setGrounded(true);
         } else {
-            movementManager.setGrounded(player.getMovementState(), false);
+            player.setGrounded(false);
         }
 
         if (player.touchesCeiling(entityManager)) {

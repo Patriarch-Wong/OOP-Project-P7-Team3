@@ -38,11 +38,6 @@ public class AIMovement implements IMovementInput {
         return false;
     }
 
-    @Override
-    public boolean isCrawl() {
-        return false; // default behavior
-    }
-
     // Configuration methods
     public void setDirection(float direction) {
         this.movementAxis = direction;

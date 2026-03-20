@@ -12,6 +12,7 @@ import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.game.interfaces.Damageable;
 import io.github.team3engine.game.interfaces.Solid;
+import io.github.team3engine.engine.movement.MovementConfig;
 import io.github.team3engine.engine.movement.MovementState;
 import io.github.team3engine.game.status.StatusEffectManager;
 import io.github.team3engine.game.interfaces.Followable;
@@ -47,10 +48,25 @@ public class Player extends CollidableEntity implements Damageable, Followable {
 
     // Movement
     private final MovementState movementState;
+    private final MovementConfig movementConfig;
+    private boolean grounded = true;
+    private boolean crouching = false;
+    private float jumpCooldownRemaining = 0f;
+    private boolean jumpRequested = false;
+    private float externalSpeedMultiplier = 1f;
 
     // NPC carry
     private boolean carryingNPC = false;
     private int rescuedCount = 0;
+
+    private static final float WALK_SPEED = 300f;
+    private static final float CRAWL_SPEED = 120f;
+    private static final float ACCELERATION = 700f;
+    private static final float DECELERATION = 700f;
+    private static final float GRAVITY = -1100f;
+    private static final float MAX_FALL_SPEED = -600f;
+    private static final float JUMP_FORCE = 550f;
+    private static final float JUMP_COOLDOWN_DURATION = 0.6f;
 
     public Player(String id, float x, float y, float width, float height,
                   float maxHp, float worldWidth, float worldHeight) {
@@ -62,6 +78,8 @@ public class Player extends CollidableEntity implements Damageable, Followable {
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
         this.movementState = new MovementState();
+        this.movementConfig = new MovementConfig(
+                WALK_SPEED, MAX_FALL_SPEED, ACCELERATION, DECELERATION, GRAVITY);
         this.statusEffects = new StatusEffectManager(this);
         this.texture = new Texture("player.png");
         this.damageText = new FloatingText(1.2f, new Color(1f, 0.2f, 0.2f, 1f), 1.2f, new Vector2(0f, 20f));
@@ -124,10 +142,120 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     // --- Movement ---
 
     public MovementState getMovementState() { return movementState; }
+    public MovementConfig getMovementConfig() { return movementConfig; }
 
     public float getBaseSpeed() { return baseSpeed; }
 
     public void setBaseSpeed(float speed) { this.baseSpeed = speed; }
+
+    public boolean consumeJumpRequest() {
+        boolean requested = jumpRequested;
+        jumpRequested = false;
+        return requested;
+    }
+
+    public boolean isCrouching() {
+        return crouching;
+    }
+
+    public void setCrouching(boolean crouching) {
+        this.crouching = crouching && grounded;
+        refreshSpeedMultiplier();
+        updateHitbox();
+    }
+
+    public boolean isGrounded() {
+        return grounded;
+    }
+
+    public void setGrounded(boolean grounded) {
+        this.grounded = grounded;
+        if (grounded && movementState.getVelocityY() < 0f) {
+            movementState.setVelocityY(0f);
+        }
+        if (!grounded) {
+            this.crouching = false;
+            refreshSpeedMultiplier();
+        }
+        updateHitbox();
+    }
+
+    public boolean canJump() {
+        return grounded && jumpCooldownRemaining <= 0f && !crouching;
+    }
+
+    public void requestJump() {
+        if (!canJump()) {
+            return;
+        }
+        jumpRequested = true;
+        jumpCooldownRemaining = JUMP_COOLDOWN_DURATION;
+    }
+
+    public void tickJumpCooldown(float dt) {
+        if (jumpCooldownRemaining <= 0f) {
+            jumpCooldownRemaining = 0f;
+            return;
+        }
+        jumpCooldownRemaining = Math.max(0f, jumpCooldownRemaining - dt);
+    }
+
+    public float getJumpCooldownRemaining() {
+        return jumpCooldownRemaining;
+    }
+
+    public void setJumpCooldownRemaining(float jumpCooldownRemaining) {
+        this.jumpCooldownRemaining = Math.max(0f, jumpCooldownRemaining);
+    }
+
+    public void resetMovementRules() {
+        grounded = true;
+        crouching = false;
+        jumpRequested = false;
+        jumpCooldownRemaining = 0f;
+        externalSpeedMultiplier = 1f;
+        refreshSpeedMultiplier();
+        updateHitbox();
+    }
+
+    public void updateMovementRules(MovementInput input, float dt) {
+        if (input == null) {
+            tickJumpCooldown(dt);
+            return;
+        }
+        updateMovementRules(input.isJumpIntent(), input.isCrouchIntent(), dt);
+    }
+
+    public void updateMovementRules(boolean jumpIntent, boolean crouchIntent, float dt) {
+        tickJumpCooldown(dt);
+        setCrouching(crouchIntent);
+        if (jumpIntent) {
+            requestJump();
+        }
+    }
+
+    public boolean applyJumpIfRequested() {
+        if (!consumeJumpRequest()) {
+            return false;
+        }
+        movementState.setVelocityY(JUMP_FORCE);
+        setGrounded(false);
+        return true;
+    }
+
+    public float getJumpForce() {
+        return JUMP_FORCE;
+    }
+
+    public void setExternalSpeedMultiplier(float multiplier) {
+        externalSpeedMultiplier = Math.max(0f, multiplier);
+        refreshSpeedMultiplier();
+    }
+
+    private void refreshSpeedMultiplier() {
+        float crouchMultiplier = crouching ? (CRAWL_SPEED / WALK_SPEED) : 1f;
+        movementState.setSpeedMultiplier(externalSpeedMultiplier * crouchMultiplier);
+    }
 
     // --- NPC Carry ---
 
@@ -150,12 +278,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     public float getHeight() { return height; }
 
     public float getHitboxHeight() {
-        boolean isCrouching = movementState != null && movementState.isCrouching();
-        return height * (isCrouching ? CROUCHING_HEIGHT_RATIO : HITBOX_HEIGHT_RATIO);
-    }
-
-    public boolean isCrouching() {
-        return movementState != null && movementState.isCrouching();
+        return height * (crouching ? CROUCHING_HEIGHT_RATIO : HITBOX_HEIGHT_RATIO);
     }
 
     // --- Entity overrides ---
@@ -168,10 +291,8 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     @Override
     protected void updateHitbox() {
         float hitboxWidth = getDrawWidth();
-        boolean isCrouching = movementState != null && movementState.isCrouching();
-        float hitboxHeight = height * (isCrouching ? CROUCHING_HEIGHT_RATIO : HITBOX_HEIGHT_RATIO);
-        float yOffset = isCrouching ? 0f : 0f;
-        hitbox.setPosition(position.x - hitboxWidth / 2f, position.y + yOffset);
+        float hitboxHeight = getHitboxHeight();
+        hitbox.setPosition(position.x - hitboxWidth / 2f, position.y);
         hitbox.setSize(hitboxWidth, hitboxHeight);
     }
 
@@ -181,7 +302,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
         if (animator == null || movementState == null) {
             return width;
         }
-        TextureRegion frame = animator.getCurrentFrame(movementState);
+        TextureRegion frame = animator.getCurrentFrame(this);
         float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
         return height * frameAspect;
     }
@@ -189,7 +310,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     @Override
     public void update(float dt) {
         // Update animations
-        animator.update(movementState, dt);
+        animator.update(this, dt);
         
         // Tick status effects
         statusEffects.update(dt);
@@ -202,7 +323,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
         // Clamp to world bounds using actual draw width
         float halfW = getDrawWidth() / 2f;
         position.x = Math.max(halfW, Math.min(worldWidth - halfW, position.x));
-        position.y = Math.min(worldHeight - height * HITBOX_HEIGHT_RATIO, position.y);
+        position.y = Math.min(worldHeight - getHitboxHeight(), position.y);
         updateHitbox();
 
         damageText.update(dt);
@@ -220,7 +341,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
         float drawWidth = getDrawWidth();
         float drawHeight = height;
 
-        TextureRegion frame = animator.getCurrentFrame(movementState);
+        TextureRegion frame = animator.getCurrentFrame(this);
         batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
         damageText.render(batch, position.x, position.y + height);
     }
@@ -242,7 +363,7 @@ public class Player extends CollidableEntity implements Damageable, Followable {
      * Check if the top of the player touches a solid surface above.
      */
     public boolean touchesCeiling(EntityManager entityManager) {
-        float playerTop = this.getY() + this.height * HITBOX_HEIGHT_RATIO;
+        float playerTop = this.getY() + getHitboxHeight();
         float tolerance = 6f;
 
         for (Entity e : entityManager.getAll()) {
@@ -267,4 +388,5 @@ public class Player extends CollidableEntity implements Damageable, Followable {
         }
         return false;
     }
+
 }

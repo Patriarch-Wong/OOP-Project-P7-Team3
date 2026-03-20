@@ -15,6 +15,7 @@ import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.*;
 import io.github.team3engine.game.entities.*;
+import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.factories.StaticEntityFactory;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
@@ -81,7 +82,8 @@ public class Scene2 extends BaseScene {
         player.getMovementState().reset();
         
         // Create movement input tied to this player's movement state
-        movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
+        player.resetMovementRules();
+        movementInput = new MovementInput(player, ioManager, playerInput);
         groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
 
         float scaleX = gw / 19f;
@@ -154,9 +156,15 @@ public class Scene2 extends BaseScene {
         batch.end();
         drawStageAndUI(delta);
 
-        // Apply movement using the player's movement state
-        movementManager.applyMovement(player, player.getMovementState(), movementInput, delta);
-        // syncs player to prevent falling through other entity like platform
+        if (player.applyJumpIfRequested()) {
+            ioManager.broadcast(GameEvents.PLAYER_JUMP);
+        }
+        movementManager.applyMovement(
+                player,
+                player.getMovementState(),
+                player.getMovementConfig(),
+                movementInput,
+                delta);
         player.update(0f);
 
         checkFallCondition();
@@ -165,9 +173,10 @@ public class Scene2 extends BaseScene {
 
     @Override
     public void update(float delta) {
-        entityManager.updateAll(delta);
         playerInput.update(delta);
         movementInput.update();
+        player.updateMovementRules(movementInput, delta);
+        entityManager.updateAll(delta);
         collisionManager.update(delta);
     }
 

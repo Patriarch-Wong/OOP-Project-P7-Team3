@@ -13,6 +13,7 @@ import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.game.interfaces.Solid;
+import io.github.team3engine.engine.movement.MovementConfig;
 import io.github.team3engine.engine.movement.MovementState;
 
 /**
@@ -25,7 +26,7 @@ import io.github.team3engine.engine.movement.MovementState;
 public class Circle extends CollidableEntity {
 
     protected float radius;
-    protected float moveSpeed = 220f;
+    protected float moveSpeed = 300f;
     protected final com.badlogic.gdx.math.Circle circle;
     protected final ShapeRenderer shapeRenderer;
     protected Color color;
@@ -33,12 +34,27 @@ public class Circle extends CollidableEntity {
     private final float screenHeight;
     // Movement state for this entity
     private MovementState movementState;
+    private final MovementConfig movementConfig;
+    private boolean grounded = true;
+    private boolean crouching = false;
+    private float jumpCooldownRemaining = 0f;
+    private boolean jumpRequested = false;
+    private static final float WALK_SPEED = 300f;
+    private static final float CRAWL_SPEED = 120f;
+    private static final float ACCELERATION = 700f;
+    private static final float DECELERATION = 700f;
+    private static final float GRAVITY = -1100f;
+    private static final float MAX_FALL_SPEED = -600f;
+    private static final float JUMP_FORCE = 550f;
+    private static final float JUMP_COOLDOWN_DURATION = 0.6f;
 
 
     public Circle(String id, float radius, float screenWidth, float screenHeight) {
         super(id);
         this.radius = radius;
         this.movementState = new MovementState();
+        this.movementConfig = new MovementConfig(
+                WALK_SPEED, MAX_FALL_SPEED, ACCELERATION, DECELERATION, GRAVITY);
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.circle = new com.badlogic.gdx.math.Circle(position.x, position.y, radius);
@@ -85,6 +101,108 @@ public class Circle extends CollidableEntity {
      */
     public MovementState getMovementState() {
         return movementState;
+    }
+
+    public MovementConfig getMovementConfig() {
+        return movementConfig;
+    }
+
+    public boolean consumeJumpRequest() {
+        boolean requested = jumpRequested;
+        jumpRequested = false;
+        return requested;
+    }
+
+    public boolean isCrouching() {
+        return crouching;
+    }
+
+    public void setCrouching(boolean crouching) {
+        this.crouching = crouching && grounded;
+        movementState.setSpeedMultiplier(this.crouching ? (CRAWL_SPEED / WALK_SPEED) : 1f);
+        updateHitbox();
+    }
+
+    public boolean isGrounded() {
+        return grounded;
+    }
+
+    public void setGrounded(boolean grounded) {
+        this.grounded = grounded;
+        if (grounded && movementState.getVelocityY() < 0f) {
+            movementState.setVelocityY(0f);
+        }
+        if (!grounded) {
+            this.crouching = false;
+            movementState.setSpeedMultiplier(1f);
+        }
+        updateHitbox();
+    }
+
+    public boolean canJump() {
+        return grounded && jumpCooldownRemaining <= 0f && !crouching;
+    }
+
+    public void requestJump() {
+        if (!canJump()) {
+            return;
+        }
+        jumpRequested = true;
+        jumpCooldownRemaining = JUMP_COOLDOWN_DURATION;
+    }
+
+    public void tickJumpCooldown(float dt) {
+        if (jumpCooldownRemaining <= 0f) {
+            jumpCooldownRemaining = 0f;
+            return;
+        }
+        jumpCooldownRemaining = Math.max(0f, jumpCooldownRemaining - dt);
+    }
+
+    public float getJumpCooldownRemaining() {
+        return jumpCooldownRemaining;
+    }
+
+    public void setJumpCooldownRemaining(float jumpCooldownRemaining) {
+        this.jumpCooldownRemaining = Math.max(0f, jumpCooldownRemaining);
+    }
+
+    public void resetMovementRules() {
+        grounded = true;
+        crouching = false;
+        jumpRequested = false;
+        jumpCooldownRemaining = 0f;
+        movementState.setSpeedMultiplier(1f);
+        updateHitbox();
+    }
+
+    public void updateMovementRules(MovementInput input, float dt) {
+        if (input == null) {
+            tickJumpCooldown(dt);
+            return;
+        }
+        updateMovementRules(input.isJumpIntent(), input.isCrouchIntent(), dt);
+    }
+
+    public void updateMovementRules(boolean jumpIntent, boolean crouchIntent, float dt) {
+        tickJumpCooldown(dt);
+        setCrouching(crouchIntent);
+        if (jumpIntent) {
+            requestJump();
+        }
+    }
+
+    public boolean applyJumpIfRequested() {
+        if (!consumeJumpRequest()) {
+            return false;
+        }
+        movementState.setVelocityY(JUMP_FORCE);
+        setGrounded(false);
+        return true;
+    }
+
+    public float getJumpForce() {
+        return JUMP_FORCE;
     }
 
     @Override
@@ -169,4 +287,5 @@ public class Circle extends CollidableEntity {
         }
         return false;
     }
+
 }

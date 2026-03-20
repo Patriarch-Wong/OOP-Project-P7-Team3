@@ -6,13 +6,8 @@ public class MovementState {
     private float velocityX = 0f;
     private float velocityY = 0f;
     private float speedMultiplier = 1f;
-    
-    private boolean isGrounded = true;
-    private boolean isCrouching = false;
     private boolean movementEnabled = true;
-    private float jumpCooldownRemaining = 0f;
 
-    // Getters and Setters
     public float getVelocityX() {
         return velocityX;
     }
@@ -37,36 +32,12 @@ public class MovementState {
         this.speedMultiplier = Math.max(0f, speedMultiplier);
     }
 
-    public boolean isGrounded() {
-        return isGrounded;
-    }
-
-    public void setGrounded(boolean grounded) {
-        this.isGrounded = grounded;
-    }
-
-    public boolean isCrouching() {
-        return isCrouching;
-    }
-
-    public void setCrouching(boolean crouching) {
-        this.isCrouching = crouching;
-    }
-
     public boolean isMovementEnabled() {
         return movementEnabled;
     }
 
     public void setMovementEnabled(boolean movementEnabled) {
         this.movementEnabled = movementEnabled;
-    }
-
-    public float getJumpCooldownRemaining() {
-        return jumpCooldownRemaining;
-    }
-
-    public void setJumpCooldownRemaining(float jumpCooldownRemaining) {
-        this.jumpCooldownRemaining = jumpCooldownRemaining;
     }
 
     /**
@@ -76,9 +47,6 @@ public class MovementState {
         velocityX = 0f;
         velocityY = 0f;
         speedMultiplier = 1f;
-        isGrounded = true;
-        isCrouching = false;
-        jumpCooldownRemaining = 0f;
         movementEnabled = true;
     }
 }
