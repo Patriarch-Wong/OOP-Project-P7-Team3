@@ -54,6 +54,8 @@ public class ScoreBoardScene extends BaseScene {
         font.setColor(Color.WHITE);
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
         float centerX = screenWidth  / 2f;
         float centerY = screenHeight / 2f;
 
