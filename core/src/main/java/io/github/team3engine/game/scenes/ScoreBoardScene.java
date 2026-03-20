@@ -151,17 +151,17 @@ public class ScoreBoardScene extends BaseScene {
         layout.setText(font, title);
         font.draw(batch, title, centerX - layout.width / 2f, centerY + 120f);
 
-        String finalLine = "Final Score:  " + scoreManager.getFinalScore();
-        layout.setText(font, finalLine);
-        font.draw(batch, finalLine, centerX - layout.width / 2f, centerY + 75f);
+        String currentScore = "Current Score:  " + scoreManager.getFinalScore();
+        layout.setText(font, currentScore);
+        font.draw(batch, currentScore, centerX - layout.width / 2f, centerY + 75f);
 
-        String highLine = "High Score:   " + scoreManager.getHighScore();
-        layout.setText(font, highLine);
-        font.draw(batch, highLine, centerX - layout.width / 2f, centerY + 50f);
+        String highScore = "High Score:   " + scoreManager.getHighScore();
+        layout.setText(font, highScore);
+        font.draw(batch, highScore, centerX - layout.width / 2f, centerY + 50f);
 
-        String chooseLine = "Choose your next action:";
-        layout.setText(font, chooseLine);
-        font.draw(batch, chooseLine, centerX - layout.width / 2f, centerY + 10f);
+        String chooseNextAction = "Choose your next action:";
+        layout.setText(font, chooseNextAction);
+        font.draw(batch, chooseNextAction, centerX - layout.width / 2f, centerY + 10f);
 
         font.setColor(Color.WHITE); // reset after
     }

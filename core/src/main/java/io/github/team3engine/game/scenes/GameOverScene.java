@@ -51,6 +51,7 @@ public class GameOverScene extends BaseScene {
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
         retryButton = SceneButtonFactory.create("Retry", skin, () -> {
+            scoreManager.resetScore();
             BaseScene scene = sceneManager.getScene(retrySceneId);
             if (scene instanceof TestScene) {
                 ((TestScene) scene).setLevel(retryLevel);
