@@ -18,20 +18,18 @@ public class CongratulationScene extends BaseScene {
     private final SceneManager sceneManager;
     private final BitmapFont font;
     private final GlyphLayout titleLayout = new GlyphLayout();
-    private final int screenWidth;
-    private final int screenHeight;
 
     private String retrySceneId;
     private int retryLevel = 1;
     private Skin skin;
+    private TextButton retryButton;
+    private TextButton menuButton;
 
     public CongratulationScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
                                int screenWidth, int screenHeight, String defaultRetrySceneId) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
         this.retrySceneId = defaultRetrySceneId;
     }
 
@@ -48,28 +46,20 @@ public class CongratulationScene extends BaseScene {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        float centerX = screenWidth / 2f;
-        float centerY = screenHeight / 2f;
-        float gap = 20f;
-        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
-        float startX = centerX - totalW / 2f;
-        float btnY = centerY - 100f;
-
-        TextButton retryButton = SceneButtonFactory.create("Retry", skin, () -> {
+        retryButton = SceneButtonFactory.create("Retry", skin, () -> {
             BaseScene scene = sceneManager.getScene(retrySceneId);
             if (scene instanceof TestScene) {
                 ((TestScene) scene).setLevel(retryLevel);
             }
             sceneManager.setScene(retrySceneId);
         });
-        retryButton.setPosition(startX, btnY);
 
-        TextButton menuButton = SceneButtonFactory.create("Main Menu", skin,
+        menuButton = SceneButtonFactory.create("Main Menu", skin,
                 () -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
-        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
 
         getStage().addActor(retryButton);
         getStage().addActor(menuButton);
+        layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     @Override
@@ -84,7 +74,15 @@ public class CongratulationScene extends BaseScene {
     }
 
     @Override
+    protected void onResize(int width, int height) {
+        layoutButtons(width, height);
+    }
+
+    @Override
     protected void renderUI() {
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+
         font.setColor(Color.GREEN);
         String title = "Congratulations!";
         titleLayout.setText(font, title);
@@ -94,9 +92,11 @@ public class CongratulationScene extends BaseScene {
     }
 
     @Override
-    public void onHide() {
+    protected void onHide() {
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (skin != null) { skin.dispose(); skin = null; }
+        retryButton = null;
+        menuButton = null;
         Stage s = getStage();
         if (s != null) s.clear();
     }
@@ -104,5 +104,20 @@ public class CongratulationScene extends BaseScene {
     @Override
     public void dispose() {
         super.dispose();
+    }
+
+    private void layoutButtons(int width, int height) {
+        if (retryButton == null || menuButton == null) {
+            return;
+        }
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float gap = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = centerX - totalW / 2f;
+        float btnY = centerY - 100f;
+
+        retryButton.setPosition(startX, btnY);
+        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
     }
 }

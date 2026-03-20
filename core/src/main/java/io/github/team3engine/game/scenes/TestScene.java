@@ -151,7 +151,7 @@ public class TestScene extends BaseScene implements GameplayScene {
             }
             timer.start();
 
-            if (hud == null) hud = new HUDRenderer(font, screenHeight);
+            if (hud == null) hud = new HUDRenderer(font);
             hud.init(levelConfig.playerMaxHp);
             fires.clear();
             deathHandled = false;

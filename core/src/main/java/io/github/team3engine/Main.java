@@ -171,6 +171,16 @@ public class Main extends ApplicationAdapter {
     }
 
     @Override
+    public void resize(int width, int height) {
+        if (engine != null && engine.getSceneManager() != null) {
+            engine.getSceneManager().resize(width, height);
+        }
+        if (uiManager != null) {
+            uiManager.resize(width, height);
+        }
+    }
+
+    @Override
     public void dispose() {
         Gdx.input.setInputProcessor(null);
         if (batch != null)

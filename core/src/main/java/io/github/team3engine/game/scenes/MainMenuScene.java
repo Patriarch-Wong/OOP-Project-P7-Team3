@@ -35,6 +35,8 @@ public class MainMenuScene extends BaseScene {
     private Texture       background;
     private ShapeRenderer shape;
     private Skin          skin;
+    private TextButton    scene1Button;
+    private TextButton    testSceneButton;
 
     private float currentOffsetX = 0f;
     private float currentOffsetY = 0f;
@@ -63,25 +65,15 @@ public class MainMenuScene extends BaseScene {
 
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        float sw      = Gdx.graphics.getWidth();
-        float sh      = Gdx.graphics.getHeight();
-        float centerX = sw / 2f;
-        float centerY = sh / 2f;
-        float gap     = 16f;
-        float btnH    = SceneButtonFactory.BUTTON_HEIGHT;
-
-        TextButton scene1Button = SceneButtonFactory.create("Scene 1", skin,
+        scene1Button = SceneButtonFactory.create("Scene 1", skin,
                 () -> ioManager.broadcast(GameEvents.START_GAME));
-        scene1Button.setPosition(centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
-                centerY + gap / 2f);
 
-        TextButton testSceneButton = SceneButtonFactory.create("Test Scene", skin,
+        testSceneButton = SceneButtonFactory.create("Test Scene", skin,
                 () -> ioManager.broadcast(GameEvents.START_GAME_TEST));
-        testSceneButton.setPosition(centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
-                centerY - btnH - gap / 2f);
 
         getStage().addActor(scene1Button);
         getStage().addActor(testSceneButton);
+        layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         ioManager.registerEvent(GameEvents.START_GAME, () -> {
             Gdx.app.log("Game", "Starting game - Test Scene at Level 1");
@@ -121,6 +113,7 @@ public class MainMenuScene extends BaseScene {
 
         clearScreen(0.05f, 0.05f, 0.08f, 1f);
 
+        batch.getProjectionMatrix().setToOrtho2D(0, 0, sw, sh);
         batch.begin();
 
         float drawW = sw * ZOOM;
@@ -139,6 +132,7 @@ public class MainMenuScene extends BaseScene {
         // Dark overlay
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shape.setProjectionMatrix(batch.getProjectionMatrix());
         shape.begin(ShapeRenderer.ShapeType.Filled);
         shape.setColor(0f, 0f, 0f, 0.55f);
         shape.rect(0, 0, sw, sh);
@@ -167,6 +161,11 @@ public class MainMenuScene extends BaseScene {
     }
 
     @Override
+    protected void onResize(int width, int height) {
+        layoutButtons(width, height);
+    }
+
+    @Override
     public void onHide() {
         ioManager.clearEvent(GameEvents.START_GAME);
         ioManager.clearEvent(GameEvents.START_GAME_TEST);
@@ -174,8 +173,25 @@ public class MainMenuScene extends BaseScene {
         if (skin       != null) { skin.dispose();       skin       = null; }
         if (shape      != null) { shape.dispose();      shape      = null; }
         if (background != null) { background.dispose(); background = null; }
+        scene1Button = null;
+        testSceneButton = null;
         Stage s = getStage();
         if (s != null) s.clear();
+    }
+
+    private void layoutButtons(int width, int height) {
+        if (scene1Button == null || testSceneButton == null) {
+            return;
+        }
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float gap = 16f;
+        float btnH = SceneButtonFactory.BUTTON_HEIGHT;
+
+        scene1Button.setPosition(centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
+                centerY + gap / 2f);
+        testSceneButton.setPosition(centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
+                centerY - btnH - gap / 2f);
     }
 
     @Override

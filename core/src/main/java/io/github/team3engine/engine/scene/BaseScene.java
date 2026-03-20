@@ -10,7 +10,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 import io.github.team3engine.engine.interfaces.Resizable;
 
-public abstract class BaseScene implements Updatable {
+public abstract class BaseScene implements Updatable, Resizable {
 
     protected final SpriteBatch batch;
     private Stage stage;
@@ -32,13 +32,20 @@ public abstract class BaseScene implements Updatable {
     public void show() {
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
+        // A scene may be shown after being inactive during window resize.
+        // Re-sync viewport and scene layout on every entry.
+        resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     protected void onShow() {}
 
+    @Override
     public void resize(int w, int h) {
         if (stage != null) stage.getViewport().update(w, h, true);
+        onResize(w, h);
     }
+
+    protected void onResize(int width, int height) {}
 
     public void hide()  { onHide(); }
     protected void onHide() {}
@@ -59,6 +66,7 @@ public abstract class BaseScene implements Updatable {
             stage.act(delta);
             stage.draw();
         }
+        batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.setColor(Color.WHITE);
         batch.begin();
         renderUI();

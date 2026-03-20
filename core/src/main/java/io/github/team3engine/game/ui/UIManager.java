@@ -90,6 +90,12 @@ public class UIManager implements Updatable {
         stage.draw();
     }
 
+    public void resize(int width, int height) {
+        if (stage != null) {
+            stage.getViewport().update(width, height, true);
+        }
+    }
+
     public void dispose() {
         stage.dispose();
         skin.dispose();

@@ -28,8 +28,8 @@ public class ScoreBoardScene extends BaseScene {
     private String nextSceneId;
     private int nextLevel = 2;
     private Skin skin;
-    private int screenWidth;
-    private int screenHeight;
+    private TextButton nextButton;
+    private TextButton menuButton;
 
     public ScoreBoardScene(SpriteBatch batch, BitmapFont sharedFont,
                            SceneManager sceneManager, IOManager ioManager,
@@ -39,8 +39,6 @@ public class ScoreBoardScene extends BaseScene {
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.scoreManager = scoreManager;
-        this.screenWidth = Gdx.graphics.getWidth();
-        this.screenHeight = Gdx.graphics.getHeight();
     }
 
     public void setNextScene(String sceneId) {
@@ -70,16 +68,15 @@ public class ScoreBoardScene extends BaseScene {
         float startX = centerX - totalW / 2f;
         float btnY   = centerY - 100f;
 
-        TextButton nextButton = SceneButtonFactory.create("Next Level", skin, () ->
+        nextButton = SceneButtonFactory.create("Next Level", skin, () ->
                 ioManager.broadcast(GameEvents.SCOREBOARD_NEXT));
-        nextButton.setPosition(startX, btnY);
 
-        TextButton menuButton = SceneButtonFactory.create("Main Menu", skin, () ->
+        menuButton = SceneButtonFactory.create("Main Menu", skin, () ->
                 ioManager.broadcast(GameEvents.SCOREBOARD_MENU));
-        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
 
         getStage().addActor(nextButton);
         getStage().addActor(menuButton);
+        layoutButtons((int) screenWidth, (int) screenHeight);
 
         ioManager.registerEvent(GameEvents.SCOREBOARD_NEXT, () -> {
             Gdx.app.log("ScoreBoard", "SCOREBOARD_NEXT event fired, nextLevel=" + nextLevel + ", nextSceneId=" + nextSceneId);
@@ -120,6 +117,8 @@ public class ScoreBoardScene extends BaseScene {
         ioManager.clearEvent(GameEvents.SCOREBOARD_MENU);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (skin != null) { skin.dispose(); skin = null; }
+        nextButton = null;
+        menuButton = null;
         Stage s = getStage();
         if (s != null) s.clear();
     }
@@ -133,6 +132,11 @@ public class ScoreBoardScene extends BaseScene {
     public void render(float delta) {
         clearScreen(0.05f, 0.05f, 0.15f, 1f);
         drawStageAndUI(delta);
+    }
+
+    @Override
+    protected void onResize(int width, int height) {
+        layoutButtons(width, height);
     }
 
     @Override
@@ -166,5 +170,20 @@ public class ScoreBoardScene extends BaseScene {
     public void dispose() {
         if (skin != null) { skin.dispose(); skin = null; }
         super.dispose();
+    }
+
+    private void layoutButtons(int width, int height) {
+        if (nextButton == null || menuButton == null) {
+            return;
+        }
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float gap = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = centerX - totalW / 2f;
+        float btnY = centerY - 100f;
+
+        nextButton.setPosition(startX, btnY);
+        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
     }
 }
