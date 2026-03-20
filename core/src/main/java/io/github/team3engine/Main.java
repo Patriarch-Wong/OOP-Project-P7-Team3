@@ -20,6 +20,7 @@ import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.scenes.*;
+import io.github.team3engine.game.scenes.demo.Scene1;
 import io.github.team3engine.engine.interfaces.ScoreRule;
 import io.github.team3engine.game.score.NpcRescueRule;
 import io.github.team3engine.game.score.ObjectiveRule;

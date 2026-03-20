@@ -1,4 +1,6 @@
-package io.github.team3engine.game.scenes;
+package io.github.team3engine.game.scenes.demo;
+
+import io.github.team3engine.game.scenes.SceneType;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
