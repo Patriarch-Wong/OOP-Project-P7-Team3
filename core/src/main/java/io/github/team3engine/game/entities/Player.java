@@ -14,13 +14,14 @@ import io.github.team3engine.engine.interfaces.Damageable;
 import io.github.team3engine.engine.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementState;
 import io.github.team3engine.engine.status.StatusEffectManager;
+import io.github.team3engine.game.interfaces.Followable;
 import io.github.team3engine.game.ui.FloatingText;
 import io.github.team3engine.game.status.DamageReductionEffect;
 import io.github.team3engine.game.status.SlowEffect;
 
 import java.util.List;
 
-public class Player extends CollidableEntity implements Damageable {
+public class Player extends CollidableEntity implements Damageable, Followable {
     private final float width;
     private final float height;
     private float baseSpeed = 220f;
@@ -145,7 +146,6 @@ public class Player extends CollidableEntity implements Damageable {
     // --- Dimensions ---
 
     public float getWidth() { return width; }
-    public Texture getTexture() { return texture; }
     public boolean isFacingRight() { return animator.isFacingRight(); }
 
     public float getHeight() { return height; }

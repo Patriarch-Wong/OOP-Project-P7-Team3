@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
+import io.github.team3engine.game.interfaces.Followable;
 
 /**
  * NPC that can be rescued.
@@ -41,7 +42,7 @@ public class NPC extends CollidableEntity {
     private final float followOffsetY;  // vertical offset
     private final float lerpSpeed;      // how fast NPC chases target (higher = snappier)
 
-    private Player followTarget;
+    private Followable followTarget;
     private float  prevX      = 0f;
     private boolean facingRight = true;
     private boolean isMoving    = false;
@@ -82,8 +83,8 @@ public class NPC extends CollidableEntity {
     public State   getState()    { return state; }
     public boolean isFollowing() { return state == State.FOLLOWING; }
 
-    public void startFollowing(Player player) {
-        this.followTarget = player;
+    public void startFollowing(Followable target) {
+        this.followTarget = target;
         this.state        = State.FOLLOWING;
         this.prevX        = position.x;
         updateHitbox();

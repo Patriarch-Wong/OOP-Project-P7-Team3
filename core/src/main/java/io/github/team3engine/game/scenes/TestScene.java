@@ -89,9 +89,9 @@ public class TestScene extends BaseScene implements GameplayScene {
         enableTimer();
         if (hud == null) hud = new HUDRenderer(font, screenHeight);
         hud.init(100f);
-        setScoreDisplay(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());
-        setRescuedDisplay(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
-        setRescuedDisplay(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
+        clearHudLines();
+        addHudLine(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());
+        addHudLine(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
         fires.clear();
         deathHandled = false;
 
@@ -169,7 +169,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
         MaskPickup mask = new MaskPickup("mask", 550f, 75f);
         mask.setOnTimerExtend(() -> {
-            if (getTimer() != null) getTimer().addTime(10f);
+            if (getTimer() != null) getTimer().addTime(mask.getTimerExtend());
         });
         entityManager.addEntity(towel);
         entityManager.addEntity(mask);
@@ -214,9 +214,6 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         mediator.addRule(MaskPickup.class, Player.class, (pickup, playerTarget) -> {
             if (!pickup.isDestroyed()) {
-                pickup.setOnTimerExtend(() -> {
-                    if (getTimer() != null) getTimer().addTime(10f);
-                });
                 pickup.onPickup(playerTarget);
             }
         });
@@ -307,6 +304,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);

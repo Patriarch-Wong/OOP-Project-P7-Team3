@@ -68,6 +68,7 @@ public class MovementState {
         velocityX = 0f;
         velocityY = 0f;
         isGrounded = true;
+        isCrouching = false;
         jumpCooldownRemaining = 0f;
         movementEnabled = true;
     }

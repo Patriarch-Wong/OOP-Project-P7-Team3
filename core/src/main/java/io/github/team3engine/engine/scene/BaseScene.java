@@ -11,6 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 public abstract class BaseScene implements Updatable {
@@ -22,9 +24,8 @@ public abstract class BaseScene implements Updatable {
     private BitmapFont timerFont;
     private GlyphLayout timerLayout;
 
-    // Optional suppliers — set by game layer
-    private Supplier<String> scoreDisplay   = null;
-    private Supplier<String> rescuedDisplay = null;
+    // Optional game-provided HUD lines rendered below the timer (top-right).
+    private final List<Supplier<String>> hudLines = new ArrayList<>();
 
     public BaseScene(SpriteBatch batch) {
         this.batch = batch;
@@ -59,14 +60,14 @@ public abstract class BaseScene implements Updatable {
 
     protected void enableTimer() { enableTimer(60f); }
 
-    /** e.g. setScoreDisplay(() -> "Score: " + ScoreManager.getInstance().getScore()); */
-    public void setScoreDisplay(Supplier<String> supplier) {
-        this.scoreDisplay = supplier;
+    public void addHudLine(Supplier<String> supplier) {
+        if (supplier != null) {
+            hudLines.add(supplier);
+        }
     }
 
-    /** e.g. setRescuedDisplay(() -> "Rescued: " + rescued + "/1"); */
-    public void setRescuedDisplay(Supplier<String> supplier) {
-        this.rescuedDisplay = supplier;
+    public void clearHudLines() {
+        hudLines.clear();
     }
 
     public void resize(int w, int h) {
@@ -104,9 +105,6 @@ public abstract class BaseScene implements Updatable {
         int minutes = seconds / 60;
         int secs    = seconds % 60;
         String timeText    = String.format("Time: %d:%02d", minutes, secs);
-        String scoreText   = (scoreDisplay   != null) ? scoreDisplay.get()   : null;
-        String rescuedText = (rescuedDisplay != null) ? rescuedDisplay.get() : null;
-
         float x = Gdx.graphics.getWidth() - 10f;
         float y = Gdx.graphics.getHeight() - 10f;
 
@@ -116,19 +114,15 @@ public abstract class BaseScene implements Updatable {
         timerFont.draw(batch, timeText, x - timerLayout.width, y);
         y -= timerLayout.height + 6f;
 
-        // Score — right-aligned, below timer
-        if (scoreText != null) {
-            timerLayout.setText(timerFont, scoreText);
-            timerFont.setColor(Color.YELLOW);
-            timerFont.draw(batch, scoreText, x - timerLayout.width, y);
-            y -= timerLayout.height + 6f;
-        }
-
-        // Rescued — right-aligned, below score
-        if (rescuedText != null) {
-            timerLayout.setText(timerFont, rescuedText);
+        for (Supplier<String> supplier : hudLines) {
+            String text = supplier == null ? null : supplier.get();
+            if (text == null || text.isEmpty()) {
+                continue;
+            }
+            timerLayout.setText(timerFont, text);
             timerFont.setColor(Color.WHITE);
-            timerFont.draw(batch, rescuedText, x - timerLayout.width, y);
+            timerFont.draw(batch, text, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
         }
 
         timerFont.setColor(Color.WHITE);
@@ -139,7 +133,9 @@ public abstract class BaseScene implements Updatable {
             stage.act(delta);
             stage.draw();
         }
+        batch.setColor(Color.WHITE);
         batch.begin();
+        batch.setColor(Color.WHITE);
         renderUI();
         renderHUD();
         batch.end();
