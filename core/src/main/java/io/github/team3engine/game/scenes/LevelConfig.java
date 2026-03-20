@@ -74,11 +74,11 @@ public class LevelConfig {
             .npcX(1000f)
             .npcY(40f)
             .groundSegments(40f, new float[]{0, 350, 750, 1100, 1500}, new float[]{250, 400, 350, 400, 500})
-            .platforms(new float[]{80, 350, 620, 900, 1150, 1400, 1700},
+            .platforms(new float[]{0, 350, 620, 900, 1150, 1400, 1900},
                        new float[]{130, 210, 300, 180, 260, 150, 220},
                        new float[]{200, 220, 200, 180, 200, 250, 200})
             .groundFires(new float[]{150, 400, 480, 800, 1150, 1250, 1600, 1700})
-            .ceilingFires(new float[]{200, 360, 650, 950, 1180, 1430},
+            .ceilingFires(new float[]{100, 360, 750, 950, 1180, 1430},
                            new float[]{130, 210, 300, 180, 260, 150})
             .towels(new float[]{180, 920, 1420}, new float[]{175, 225, 195})
             .masks(new float[]{550, 1170}, new float[]{75, 305})
@@ -89,51 +89,50 @@ public class LevelConfig {
 
     private static LevelConfig createLevel2() {
         return new Builder(2, 2500f, 800f)
-            .timerDuration(90f)
-            .playerMaxHp(120f)
-            .npcMaxHp(80f)
-            .playerStartX(200f)
-            .playerStartY(40f)
-            .exitX(2450f)
-            .npcX(1000f)
-            .npcY(40f)
-            .groundSegments(40f, new float[]{0, 300, 650, 1000, 1350, 1700}, new float[]{300, 350, 350, 350, 350, 400})
-            .platforms(new float[]{100, 380, 700, 1050, 1400, 1750},
-                       new float[]{150, 230, 320, 200, 280, 160},
-                       new float[]{180, 200, 200, 180, 200, 220})
-            .groundFires(new float[]{150, 350, 450, 700, 750, 1050, 1100, 1400, 1450, 1750, 1800, 1850})
-            .ceilingFires(new float[]{150, 400, 720, 1070, 1420, 1770},
-                           new float[]{150, 230, 320, 200, 280, 160})
-            .towels(new float[]{200, 750, 1450}, new float[]{195, 265, 205})
-            .masks(new float[]{500, 1100, 1800}, new float[]{85, 85, 205})
-            .nextScene(SceneType.SCORE_BOARD.name())
-            .displayName("Level 2 - Rising Heat")
-            .build();
+                .timerDuration(60f)
+                .playerMaxHp(100f)
+                .npcMaxHp(100f)
+                .playerStartX(200f)
+                .playerStartY(40f)
+                .exitX(1950f)
+                .npcX(1000f)
+                .npcY(190f)
+                .groundSegments(40f, new float[]{0, 350, 750, 1100, 1500}, new float[]{250, 400, 350, 400, 500})
+                .platforms(new float[]{200, 350, 620, 900, 1150, 1400, 1900},
+                           new float[]{130, 210, 300, 180, 260, 150, 220},
+                           new float[]{200, 220, 200, 180, 200, 250, 200})
+                .groundFires(new float[]{150, 400, 440, 480, 520 , 600, 800, 1150,1200 ,1250, 1300, 1600, 1700})
+                .ceilingFires(new float[]{280, 360, 750, 950, 1180, 1430},
+                               new float[]{130, 210, 300, 180, 260, 150})
+                .towels(new float[]{180, 920, 1420}, new float[]{175, 225, 195})
+                .masks(new float[]{550, 1170}, new float[]{75, 305})
+                .nextScene(SceneType.SCORE_BOARD.name())
+                .displayName("Level 2 - The Escape")
+                .build();
     }
 
     private static LevelConfig createLevel3() {
         return new Builder(3, 3000f, 900f)
-            .timerDuration(90f)
-            .playerMaxHp(150f)
-            .npcMaxHp(60f)
-            .playerStartX(200f)
-            .playerStartY(40f)
-            .exitX(2950f)
-            .npcX(1200f)
-            .npcY(40f)
-            .groundSegments(40f, new float[]{0, 250, 550, 850, 1150, 1450, 1750, 2050}, 
-                            new float[]{250, 300, 300, 300, 300, 300, 300, 350})
-            .platforms(new float[]{80, 320, 620, 920, 1220, 1520, 1820, 2120},
-                       new float[]{160, 250, 340, 220, 300, 180, 260, 200},
-                       new float[]{160, 180, 200, 180, 200, 180, 200, 180})
-            .groundFires(new float[]{100, 150, 300, 350, 600, 650, 700, 900, 950, 1000, 1200, 1250, 1500, 1550, 1800, 1850, 1900, 2100, 2150})
-            .ceilingFires(new float[]{120, 340, 640, 940, 1240, 1540, 1840, 2140},
-                           new float[]{160, 250, 340, 220, 300, 180, 260, 200})
-            .towels(new float[]{180, 680, 1280, 1880}, new float[]{205, 285, 245, 205})
-            .masks(new float[]{400, 1000, 1600, 2200}, new float[]{95, 95, 95, 245})
-            .nextScene(SceneType.SCORE_BOARD.name())
-            .displayName("Level 3 - Inferno")
-            .build();
+                .timerDuration(30f)
+                .playerMaxHp(80f)
+                .npcMaxHp(50f)
+                .playerStartX(200f)
+                .playerStartY(40f)
+                .exitX(1950f)
+                .npcX(1000f)
+                .npcY(190f)
+                .groundSegments(40f, new float[]{0, 350, 750, 1100, 1500}, new float[]{250, 400, 350, 400, 500})
+                .platforms(new float[]{300, 350, 620, 900, 1150, 1400, 1900},
+                           new float[]{130, 210, 300, 180, 260, 150, 220},
+                           new float[]{200, 220, 200, 180, 200, 250, 200})
+                .groundFires(new float[]{150, 400, 440, 480, 520 , 600, 800, 1150,1200 ,1250, 1300, 1600, 1700})
+                .ceilingFires(new float[]{280, 360, 750, 950, 1180, 1430},
+                               new float[]{130, 210, 300, 180, 260, 150})
+                .towels(new float[]{180,650, 920, 1420}, new float[]{175, 225, 195})
+                .masks(new float[]{550, 1170}, new float[]{75, 305})
+                .nextScene(SceneType.SCORE_BOARD.name())
+                .displayName("Level 3 - The Escape")
+                .build();
     }
 
     public static class Builder {
