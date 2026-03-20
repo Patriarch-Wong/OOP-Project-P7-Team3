@@ -327,11 +327,13 @@ public class TestScene extends BaseScene implements GameplayScene {
                     Gdx.app.log("Game", "Setting up next level: " + nextLvl);
                     board.setNextScene(SceneType.TEST_SCENE.name());
                     board.setNextLevel(nextLvl);
-                } else {
-                    board.setNextScene(SceneType.CONGRATULATION.name());
                 }
             }
-            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
+            if (levelConfig.levelNumber >= 3) {
+                Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.CONGRATULATION.name()));
+            } else {
+                Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
+            }
         });
 
         ioManager.registerEvent(GameEvents.NPC_RESCUED, () -> {

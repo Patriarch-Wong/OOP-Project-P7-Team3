@@ -12,33 +12,25 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
+import io.github.team3engine.game.score.ScoreManager;
 import io.github.team3engine.game.ui.SceneButtonFactory;
 
 public class CongratulationScene extends BaseScene {
     private final SceneManager sceneManager;
     private final BitmapFont font;
     private final GlyphLayout titleLayout = new GlyphLayout();
+    private final ScoreManager scoreManager;
 
-    private String retrySceneId;
-    private int retryLevel = 1;
     private Skin skin;
-    private TextButton retryButton;
     private TextButton menuButton;
 
     public CongratulationScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
-                               int screenWidth, int screenHeight, String defaultRetrySceneId) {
+                               int screenWidth, int screenHeight, String defaultRetrySceneId,
+                               ScoreManager scoreManager) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
-        this.retrySceneId = defaultRetrySceneId;
-    }
-
-    public void setRetryScene(String retrySceneId) {
-        if (retrySceneId != null) this.retrySceneId = retrySceneId;
-    }
-
-    public void setRetryLevel(int level) {
-        this.retryLevel = level;
+        this.scoreManager = scoreManager;
     }
 
     @Override
@@ -46,18 +38,9 @@ public class CongratulationScene extends BaseScene {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        retryButton = SceneButtonFactory.create("Retry", skin, () -> {
-            BaseScene scene = sceneManager.getScene(retrySceneId);
-            if (scene instanceof TestScene) {
-                ((TestScene) scene).setLevel(retryLevel);
-            }
-            sceneManager.setScene(retrySceneId);
-        });
-
         menuButton = SceneButtonFactory.create("Main Menu", skin,
                 () -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
 
-        getStage().addActor(retryButton);
         getStage().addActor(menuButton);
         layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
@@ -80,22 +63,31 @@ public class CongratulationScene extends BaseScene {
 
     @Override
     protected void renderUI() {
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
+        float centerX = Gdx.graphics.getWidth() / 2f;
+        float centerY = Gdx.graphics.getHeight() / 2f;
 
         font.setColor(Color.GREEN);
         String title = "Congratulations!";
         titleLayout.setText(font, title);
-        float titleX = (screenWidth - titleLayout.width) / 2f;
-        font.draw(batch, title, titleX, screenHeight / 2f + 60f);
-        font.setColor(Color.WHITE); // reset after use
+        float titleX = (centerX - titleLayout.width / 2f);
+        font.draw(batch, title, titleX, centerY + 120f);
+
+        font.setColor(Color.WHITE);
+        String finalLine = "Final Score:  " + scoreManager.getFinalScore();
+        GlyphLayout scoreLayout = new GlyphLayout();
+        scoreLayout.setText(font, finalLine);
+        font.draw(batch, finalLine, centerX - scoreLayout.width / 2f, centerY + 75f);
+
+        String highLine = "High Score:   " + scoreManager.getHighScore();
+        GlyphLayout highLayout = new GlyphLayout();
+        highLayout.setText(font, highLine);
+        font.draw(batch, highLine, centerX - highLayout.width / 2f, centerY + 50f);
     }
 
     @Override
     protected void onHide() {
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (skin != null) { skin.dispose(); skin = null; }
-        retryButton = null;
         menuButton = null;
         Stage s = getStage();
         if (s != null) s.clear();
@@ -107,17 +99,13 @@ public class CongratulationScene extends BaseScene {
     }
 
     private void layoutButtons(int width, int height) {
-        if (retryButton == null || menuButton == null) {
+        if (menuButton == null) {
             return;
         }
         float centerX = width / 2f;
-        float centerY = height / 2f;
-        float gap = 20f;
-        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
-        float startX = centerX - totalW / 2f;
-        float btnY = centerY - 100f;
+        float btnY = height / 2f - 100f;
+        float btnX = centerX - SceneButtonFactory.BUTTON_WIDTH / 2f;
 
-        retryButton.setPosition(startX, btnY);
-        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
+        menuButton.setPosition(btnX, btnY);
     }
 }

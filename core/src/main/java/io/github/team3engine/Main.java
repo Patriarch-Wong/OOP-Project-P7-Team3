@@ -89,7 +89,7 @@ public class Main extends ApplicationAdapter {
         sceneManager.registerScene(SceneType.GAME_OVER.name(), gameOverScene);
 
         // Register CongratulationScene
-        CongratulationScene congratulationScene = new CongratulationScene(batch, sharedFont, sceneManager, screenWidth, screenHeight, SceneType.TEST_SCENE.name());
+        CongratulationScene congratulationScene = new CongratulationScene(batch, sharedFont, sceneManager, screenWidth, screenHeight, SceneType.TEST_SCENE.name(), scoreManager);
         sceneManager.registerScene(SceneType.CONGRATULATION.name(), congratulationScene);
 
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
