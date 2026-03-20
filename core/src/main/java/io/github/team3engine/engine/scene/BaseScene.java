@@ -10,11 +10,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.team3engine.engine.interfaces.Updatable;
 import io.github.team3engine.engine.interfaces.Resizable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
-public abstract class BaseScene implements Updatable, Resizable {
+public abstract class BaseScene implements Updatable {
 
     protected final SpriteBatch batch;
     private Stage stage;
@@ -40,7 +36,6 @@ public abstract class BaseScene implements Updatable, Resizable {
 
     protected void onShow() {}
 
-    @Override
     public void resize(int w, int h) {
         if (stage != null) stage.getViewport().update(w, h, true);
     }

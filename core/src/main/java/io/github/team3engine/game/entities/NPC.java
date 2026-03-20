@@ -213,7 +213,11 @@ public class NPC extends CollidableEntity implements io.github.team3engine.game.
         TextureRegion frame = animator.getCurrentFrame(false);
         float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
         float drawHeight = HEIGHT;
+<<<<<<< HEAD
         float drawWidth  = drawHeight * frameAspect;
+=======
+        float drawWidth = drawHeight * frameAspect;
+>>>>>>> c4f77c89c951594cb716c982c30fb572ab708932
         batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
 
         // Health bar above waiting NPC

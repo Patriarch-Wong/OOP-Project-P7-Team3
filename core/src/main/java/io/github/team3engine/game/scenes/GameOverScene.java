@@ -48,10 +48,19 @@ public class GameOverScene extends BaseScene {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
+<<<<<<< HEAD
         float gap    = 20f;
         float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
         float startX = screenWidth / 2f - totalW / 2f;
         float btnY   = screenHeight / 2f - 100f;
+=======
+        float centerX = screenWidth / 2f;
+        float centerY = screenHeight / 2f;
+        float gap = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = centerX - totalW / 2f;
+        float btnY = centerY - 100f;
+>>>>>>> c4f77c89c951594cb716c982c30fb572ab708932
 
         TextButton retryButton = SceneButtonFactory.create("Retry", skin, () -> {
             BaseScene scene = sceneManager.getScene(retrySceneId);
