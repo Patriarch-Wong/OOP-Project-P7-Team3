@@ -87,7 +87,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     protected void onShow() {
         super.onShow();
         enableTimer();
-        if (hud == null) hud = new HUDRenderer(font, screenHeight);
+        if (hud == null) hud = new HUDRenderer(font);
         hud.init(100f);
         clearHudLines();
         addHudLine(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());

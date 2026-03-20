@@ -34,6 +34,9 @@ public class Main extends ApplicationAdapter {
     private BitmapFont sharedFont;
     private UIManager uiManager;
     private boolean isPaused = false;
+    // Keep gameplay rendering anchored to the original startup resolution.
+    private int fixedViewportWidth;
+    private int fixedViewportHeight;
 
     private static final float FOOTSTEP_INTERVAL = 0.4f;
     private float footstepTimer = 0;
@@ -58,10 +61,12 @@ public class Main extends ApplicationAdapter {
         // Store width and height once
         int screenWidth = Gdx.graphics.getWidth();
         int screenHeight = Gdx.graphics.getHeight();
+        fixedViewportWidth = screenWidth;
+        fixedViewportHeight = screenHeight;
 
         // Register scenes
         sceneManager.registerScene(SceneType.MAIN_MENU_SCENE.name(),
-                new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight));
+                new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager));
         List<ScoreRule> testSceneRules = Arrays.asList(
                 new ObjectiveRule(),
                 new NpcRescueRule(),
@@ -74,11 +79,9 @@ public class Main extends ApplicationAdapter {
                 new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
                         movementManager, screenWidth, screenHeight));
 
-        ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, screenWidth,
-                screenHeight);
+        ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager);
         sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
-        GameOverScene gameOverScene = new GameOverScene(batch, sharedFont, sceneManager, screenWidth, screenHeight,
-                SceneType.TEST_SCENE.name());
+        GameOverScene gameOverScene = new GameOverScene(batch, sharedFont, sceneManager, SceneType.TEST_SCENE.name());
         sceneManager.registerScene(SceneType.GAME_OVER.name(), gameOverScene);
 
         sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
@@ -151,10 +154,23 @@ public class Main extends ApplicationAdapter {
         if (!isPaused) {
             engine.update(deltaTime);
         }
+        if (batch != null && fixedViewportWidth > 0 && fixedViewportHeight > 0) {
+            batch.getProjectionMatrix().setToOrtho2D(0, 0, fixedViewportWidth, fixedViewportHeight);
+        }
         engine.render(isPaused ? 0 : deltaTime);
         if (isPaused) {
             uiManager.update(deltaTime);
             uiManager.draw();
+        }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        if (engine != null && engine.getSceneManager() != null) {
+            engine.getSceneManager().resize(width, height);
+        }
+        if (uiManager != null) {
+            uiManager.resize(width, height);
         }
     }
 

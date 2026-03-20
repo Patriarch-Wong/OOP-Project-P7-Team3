@@ -5,6 +5,7 @@ import java.util.Map;
 
 import io.github.team3engine.engine.interfaces.Disposable;
 import io.github.team3engine.engine.interfaces.FrameRenderable;
+import io.github.team3engine.engine.interfaces.Resizable;
 import io.github.team3engine.engine.interfaces.Updatable;
 
 /**
@@ -12,7 +13,7 @@ import io.github.team3engine.engine.interfaces.Updatable;
  * manages the current scene, and handles show/hide on transition. Game-specific
  * scene creation and event wiring belong in the game (e.g. Main), not here.
  */
-public class SceneManager implements Updatable, FrameRenderable, Disposable {
+public class SceneManager implements Updatable, FrameRenderable, Disposable, Resizable {
     // private static SceneManager instance;
 
     private final Map<String, BaseScene> scenes = new HashMap<>();
@@ -102,6 +103,14 @@ public class SceneManager implements Updatable, FrameRenderable, Disposable {
         BaseScene current = getCurrentScene();
         if (current != null) {
             current.render(delta);
+        }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        BaseScene current = getCurrentScene();
+        if (current != null) {
+            current.resize(width, height);
         }
     }
 

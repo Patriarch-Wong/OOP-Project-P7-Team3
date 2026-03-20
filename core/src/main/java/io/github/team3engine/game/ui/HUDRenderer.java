@@ -37,14 +37,12 @@ public class HUDRenderer {
     private final Color hpColor = new Color(Color.WHITE);
 
     private final float barX;
-    private final float barY;
 
-    public HUDRenderer(BitmapFont sharedFont, int screenHeight) {
+    public HUDRenderer(BitmapFont sharedFont) {
         this.font   = sharedFont;
         this.layout = new GlyphLayout();
         this.shape  = new ShapeRenderer();
         this.barX   = 10f;
-        this.barY   = screenHeight - 50f;
     }
 
     public void init(float maxHp) {
@@ -86,6 +84,7 @@ public class HUDRenderer {
 
         int sw = Gdx.graphics.getWidth();
         int sh = Gdx.graphics.getHeight();
+        float barY = sh - 50f;
 
         // ── Shapes ───────────────────────────────────────────────────────
         batch.end();

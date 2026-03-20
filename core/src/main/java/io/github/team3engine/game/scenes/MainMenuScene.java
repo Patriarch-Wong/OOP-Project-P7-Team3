@@ -25,12 +25,13 @@ import io.github.team3engine.game.events.GameEvents;
 public class MainMenuScene extends BaseScene {
     private static final float BUTTON_WIDTH = 220f;
     private static final float BUTTON_HEIGHT = 54f;
+    private static final float MISSION_CARD_HEIGHT = 150f;
+    private static final float MISSION_CARD_MIN_Y = 120f;
+    private static final float MISSION_CARD_Y_RATIO = 0.27f;
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
     private final AudioManager audioManager;
-    private final int screenWidth;
-    private final int screenHeight;
     private final GlyphLayout layout = new GlyphLayout();
 
     private Skin skin;
@@ -39,15 +40,14 @@ public class MainMenuScene extends BaseScene {
     private BitmapFont titleFont;
     private BitmapFont subtitleFont;
     private BitmapFont bodyFont;
+    private TextButton startButton;
 
     public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager,
-            AudioManager audioManager, int screenWidth, int screenHeight) {
+            AudioManager audioManager) {
         super(batch);
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
     }
 
     @Override
@@ -75,6 +75,7 @@ public class MainMenuScene extends BaseScene {
     @Override
     public void render(float delta) {
         clearScreen(0.12f, 0.11f, 0.18f, 1f);
+        batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.begin();
         drawBackdrop();
         batch.end();
@@ -83,26 +84,35 @@ public class MainMenuScene extends BaseScene {
 
     @Override
     protected void renderUI() {
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
         float centerX = screenWidth / 2f;
 
         drawCenteredText(titleFont, "MAIN MENU", centerX, screenHeight - 64f, new Color(0.98f, 0.94f, 0.88f, 1f));
         drawCenteredText(subtitleFont, "ESCAPE BEFORE THE FIRE SPREADS", centerX, screenHeight - 112f,
                 new Color(1f, 0.78f, 0.42f, 1f));
 
-        float cardX = 92f;
-        float lineY = 250f;
+        float cardWidth = getMissionCardWidth(screenWidth);
+        float cardX = (screenWidth - cardWidth) / 2f;
+        float cardY = getMissionCardY(screenHeight);
+        float lineY = cardY + MISSION_CARD_HEIGHT - 18f;
         float lineGap = 28f;
 
-        drawLeftText(bodyFont, "Mission Brief", cardX + 18f, lineY + 18f, new Color(1f, 0.82f, 0.48f, 1f));
+        drawLeftText(bodyFont, "Mission Brief", cardX + 18f, lineY, new Color(1f, 0.82f, 0.48f, 1f));
         drawLeftText(bodyFont, "The building is on fire. Your only goal is to get out alive.",
                 cardX + 18f, lineY - lineGap, Color.WHITE);
         drawLeftText(bodyFont, "Use A / D to move, W to jump, and ESC to pause.", cardX + 18f,
                 lineY - lineGap * 2f, new Color(0.88f, 0.91f, 0.96f, 1f));
-        drawLeftText(bodyFont, "Grab the wet towel and mask — they'll buy you more time.", cardX + 18f,
+        drawLeftText(bodyFont, "Grab the wet towel and mask - they'll buy you more time.", cardX + 18f,
                 lineY - lineGap * 3f, new Color(0.88f, 0.91f, 0.96f, 1f));
 
         drawCenteredText(bodyFont, "Find the exit. Don't stop moving.", centerX, 30f,
                 new Color(1f, 0.72f, 0.56f, 1f));
+    }
+
+    @Override
+    protected void onResize(int width, int height) {
+        layoutButtons(width, height);
     }
 
     @Override
@@ -149,9 +159,9 @@ public class MainMenuScene extends BaseScene {
     }
 
     private void createButtons() {
-        TextButton startButton = new TextButton("Start Rescue", skin, "menu-primary");
+        startButton = new TextButton("Start Rescue", skin, "menu-primary");
         startButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-        startButton.setPosition((screenWidth - BUTTON_WIDTH) / 2f, 60f);
+        layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         startButton.addListener(new ClickListener() {
             @Override
@@ -175,6 +185,13 @@ public class MainMenuScene extends BaseScene {
         });
 
         getStage().addActor(startButton);
+    }
+
+    private void layoutButtons(int width, int height) {
+        if (startButton == null) {
+            return;
+        }
+        startButton.setPosition((width - BUTTON_WIDTH) / 2f, height * 0.125f);
     }
 
     private void createMenuButtonStyle() {
@@ -216,6 +233,9 @@ public class MainMenuScene extends BaseScene {
     }
 
     private void drawBackdrop() {
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+
         if (backgroundTexture != null) {
             batch.setColor(Color.WHITE);
             batch.draw(backgroundTexture, 0f, 0f, screenWidth, screenHeight);
@@ -224,12 +244,26 @@ public class MainMenuScene extends BaseScene {
             return;
         }
 
+        float contentWidth = Math.min(500f, screenWidth - 80f);
+        float contentX = (screenWidth - contentWidth) / 2f;
+        float infoWidth = getMissionCardWidth(screenWidth);
+        float infoX = (screenWidth - infoWidth) / 2f;
+        float infoY = getMissionCardY(screenHeight);
+
         drawRect(0f, 0f, screenWidth, screenHeight, new Color(0.05f, 0.04f, 0.08f, 0.48f));
-        drawRect(70f, 332f, 500f, 92f, new Color(0.07f, 0.08f, 0.11f, 0.82f));
-        drawRect(92f, 132f, 456f, 150f, new Color(0.08f, 0.09f, 0.12f, 0.82f));
-        drawRect(92f, 282f, 456f, 3f, new Color(1f, 0.58f, 0.22f, 0.88f));
-        drawRect(160f, 68f, 320f, 34f, new Color(0.08f, 0.08f, 0.10f, 0.62f));
+        drawRect(contentX, Math.max(screenHeight - 148f, 24f), contentWidth, 92f, new Color(0.07f, 0.08f, 0.11f, 0.82f));
+        drawRect(infoX, infoY, infoWidth, MISSION_CARD_HEIGHT, new Color(0.08f, 0.09f, 0.12f, 0.82f));
+        drawRect(infoX, infoY + MISSION_CARD_HEIGHT, infoWidth, 3f, new Color(1f, 0.58f, 0.22f, 0.88f));
+        drawRect((screenWidth - 320f) / 2f, Math.max(screenHeight * 0.11f, 48f), 320f, 34f, new Color(0.08f, 0.08f, 0.10f, 0.62f));
         batch.setColor(Color.WHITE);
+    }
+
+    private float getMissionCardWidth(float screenWidth) {
+        return Math.min(456f, screenWidth - 120f);
+    }
+
+    private float getMissionCardY(float screenHeight) {
+        return Math.max(MISSION_CARD_MIN_Y, screenHeight * MISSION_CARD_Y_RATIO);
     }
 
     private void drawCenteredText(BitmapFont drawFont, String text, float centerX, float y, Color color) {
