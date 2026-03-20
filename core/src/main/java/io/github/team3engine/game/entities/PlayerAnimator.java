@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles all player animation logic: loading textures, tracking timers,
- * picking the correct frame based on MovementState, and flipping for direction.
+ * Handles animation logic: loading textures, tracking timers,
+ * picking the correct frame, and flipping for direction.
+ * Supports both Player (full moveset) and NPC (idle + run only).
  */
 public class PlayerAnimator {
     private final List<Texture> allTextures = new ArrayList<>();
@@ -25,6 +26,7 @@ public class PlayerAnimator {
     private boolean wasCrouching = false;
     private boolean facingRight = true;
 
+    /** Full player animator with idle, run, jump, and crouch animations. */
     public PlayerAnimator() {
         // Idle frames (single image per direction)
         Texture idleE = loadTexture("player/rotations/east.png");
@@ -40,6 +42,28 @@ public class PlayerAnimator {
 
         // Crouching animation (5 frames)
         this.crouchAnimation = loadFrameAnimation("player/animations/crouching/east/frame_", 5, 0.12f);
+    }
+
+    /**
+     * Configurable animator with custom asset paths (idle + run only).
+     * Suitable for NPCs that only need idle and running animations.
+     *
+     * @param idleEastPath  path to the east-facing idle texture
+     * @param idleWestPath  path to the west-facing idle texture
+     * @param runPathPrefix path prefix for run frames (e.g. "npc/running-6-frames/east/frame_")
+     * @param runFrameCount number of run animation frames
+     * @param runFrameDuration duration per run frame in seconds
+     */
+    public PlayerAnimator(String idleEastPath, String idleWestPath,
+                          String runPathPrefix, int runFrameCount, float runFrameDuration) {
+        Texture idleE = loadTexture(idleEastPath);
+        Texture idleW = loadTexture(idleWestPath);
+        this.idleFrameEast = new TextureRegion(idleE);
+        this.idleFrameWest = new TextureRegion(idleW);
+
+        this.runAnimation = loadFrameAnimation(runPathPrefix, runFrameCount, runFrameDuration);
+        this.jumpAnimation = null;
+        this.crouchAnimation = null;
     }
 
     /** Updates animation timers and facing direction based on movement state. */
@@ -61,13 +85,19 @@ public class PlayerAnimator {
         else if (movementState.getVelocityX() < 0) facingRight = false;
     }
 
+    /** Simple update for entities without MovementState (e.g. NPCs). */
+    public void update(float dt, boolean isMoving, boolean facingRight) {
+        stateTime += dt;
+        this.facingRight = facingRight;
+    }
+
     /** Returns the correct animation frame based on current movement state. */
     public TextureRegion getCurrentFrame(MovementState movementState) {
         // Priority: jumping > crouching > running > idle
         TextureRegion frame;
-        if (!movementState.isGrounded()) {
+        if (jumpAnimation != null && !movementState.isGrounded()) {
             frame = jumpAnimation.getKeyFrame(stateTime, false);
-        } else if (movementState.isCrouching()) {
+        } else if (crouchAnimation != null && movementState.isCrouching()) {
             frame = crouchAnimation.getKeyFrame(crouchStateTime, false);
         } else if (movementState.getVelocityX() != 0) {
             frame = runAnimation.getKeyFrame(stateTime, true);
@@ -76,6 +106,21 @@ public class PlayerAnimator {
         }
 
         // Flip for facing direction
+        if (facingRight && frame.isFlipX()) frame.flip(true, false);
+        else if (!facingRight && !frame.isFlipX()) frame.flip(true, false);
+
+        return frame;
+    }
+
+    /** Simple frame getter for entities without MovementState (e.g. NPCs). */
+    public TextureRegion getCurrentFrame(boolean isMoving) {
+        TextureRegion frame;
+        if (isMoving) {
+            frame = runAnimation.getKeyFrame(stateTime, true);
+        } else {
+            frame = facingRight ? idleFrameEast : idleFrameWest;
+        }
+
         if (facingRight && frame.isFlipX()) frame.flip(true, false);
         else if (!facingRight && !frame.isFlipX()) frame.flip(true, false);
 

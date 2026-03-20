@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import io.github.team3engine.engine.entity.CollidableEntity;
@@ -20,8 +21,8 @@ public class NPC extends CollidableEntity {
 
     public enum State { WAITING, FOLLOWING }
 
-    private static final float WIDTH      = 16f;
-    private static final float HEIGHT     = 28f;
+    private static final float WIDTH      = 20f;
+    private static final float HEIGHT     = 36f;
     private static final float ARROW_SIZE = 8f;
     private static final float LABEL_GAP  = 6f;
 
@@ -30,6 +31,7 @@ public class NPC extends CollidableEntity {
     private final ShapeRenderer shapeRenderer;
     private final BitmapFont    font;
     private final GlyphLayout   layout;
+    private final PlayerAnimator animator;
 
     private float bobTimer = 0f;
     private final String name;
@@ -42,6 +44,7 @@ public class NPC extends CollidableEntity {
     private Player followTarget;
     private float  prevX      = 0f;
     private boolean facingRight = true;
+    private boolean isMoving    = false;
 
     /**
      * @param id            entity id
@@ -62,6 +65,10 @@ public class NPC extends CollidableEntity {
         this.shapeRenderer = new ShapeRenderer();
         this.font          = new BitmapFont();
         this.layout        = new GlyphLayout();
+        this.animator      = new PlayerAnimator(
+            "npc/rotations/east.png", "npc/rotations/west.png",
+            "npc/running-6-frames/east/frame_", 6, 0.1f
+        );
         setPos(x, y);
         updateHitbox();
     }
@@ -92,6 +99,7 @@ public class NPC extends CollidableEntity {
     public void update(float dt) {
         bobTimer += dt;
 
+        isMoving = false;
         if (state == State.FOLLOWING && followTarget != null) {
             // Target point behind the player based on player's current facing
             float targetX = followTarget.isFacingRight()
@@ -109,8 +117,11 @@ public class NPC extends CollidableEntity {
             if (dx > 0.5f)       facingRight = true;
             else if (dx < -0.5f) facingRight = false;
             prevX = position.x;
+
+            isMoving = Math.abs(dx) > 0.5f;
         }
 
+        animator.update(dt, isMoving, facingRight);
         updateHitbox();
     }
 
@@ -152,22 +163,16 @@ public class NPC extends CollidableEntity {
     // ── Following ─────────────────────────────────────────────────────────
 
     private void renderFollowing(SpriteBatch batch) {
-        batch.end();
-        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-        shapeRenderer.setTransformMatrix(batch.getTransformMatrix());
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        TextureRegion frame = animator.getCurrentFrame(isMoving);
 
-        // Green-tinted body to distinguish from player
-        shapeRenderer.setColor(0.3f, 0.8f, 0.3f, 1f);
-        shapeRenderer.rect(position.x - WIDTH / 2f, position.y, WIDTH, HEIGHT);
+        // Scale draw size based on frame aspect ratio, keeping height fixed
+        float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
+        float drawHeight = HEIGHT;
+        float drawWidth  = drawHeight * frameAspect;
 
-        float headRadius = WIDTH * 0.4f;
-        shapeRenderer.setColor(0.5f, 0.9f, 0.5f, 1f);
-        shapeRenderer.circle(position.x, position.y + HEIGHT + headRadius * 0.3f, headRadius);
-        shapeRenderer.end();
+        batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
 
-        batch.begin();
-        drawArrowAndLabel(batch, position.y + HEIGHT + headRadius * 2f);
+        drawArrowAndLabel(batch, position.y + drawHeight);
     }
 
     private void drawArrowAndLabel(SpriteBatch batch, float topY) {
@@ -198,6 +203,7 @@ public class NPC extends CollidableEntity {
     public void dispose() {
         shapeRenderer.dispose();
         font.dispose();
+        animator.dispose();
     }
 
     @Override
