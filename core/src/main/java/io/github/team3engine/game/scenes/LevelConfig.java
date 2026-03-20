@@ -91,19 +91,19 @@ public class LevelConfig {
         return new Builder(2, 2500f, 800f)
                 .timerDuration(60f)
                 .playerMaxHp(100f)
-                .npcMaxHp(100f)
+                .npcMaxHp(80f)
                 .playerStartX(200f)
                 .playerStartY(40f)
                 .exitX(1950f)
                 .npcX(1000f)
                 .npcY(190f)
-                .groundSegments(40f, new float[]{0, 350, 750, 1100, 1500}, new float[]{250, 400, 350, 400, 500})
+                .groundSegments(40f, new float[]{0, 650, 1100, 1500}, new float[]{250, 400, 350, 400, 500})
                 .platforms(new float[]{200, 350, 620, 900, 1150, 1400, 1900},
-                           new float[]{130, 210, 300, 180, 260, 150, 220},
+                           new float[]{130, 210, 250, 180, 250, 150, 220},
                            new float[]{200, 220, 200, 180, 200, 250, 200})
-                .groundFires(new float[]{150, 400, 440, 480, 520 , 600, 800, 1150,1200 ,1250, 1300, 1600, 1700})
-                .ceilingFires(new float[]{280, 360, 750, 950, 1180, 1430},
-                               new float[]{130, 210, 300, 180, 260, 150})
+                .groundFires(new float[]{100, 1150,1200 ,1250, 1300, 1600, 1700})
+                .ceilingFires(new float[]{280, 360, 650, 950, 1180, 1430},
+                               new float[]{130, 210, 250, 180, 260, 150})
                 .towels(new float[]{180, 920, 1420}, new float[]{175, 225, 195})
                 .masks(new float[]{550, 1170}, new float[]{75, 305})
                 .nextScene(SceneType.SCORE_BOARD.name())
