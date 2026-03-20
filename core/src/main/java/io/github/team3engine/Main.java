@@ -16,7 +16,6 @@ import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.scenes.*;
-import io.github.team3engine.game.scenes.demo.Scene1;
 import io.github.team3engine.game.interfaces.ScoreRule;
 import io.github.team3engine.game.score.ScoreManager;
 import io.github.team3engine.game.score.NpcRescueRule;
@@ -78,9 +77,6 @@ public class Main extends ApplicationAdapter {
         sceneManager.registerScene(SceneType.TEST_SCENE.name(),
                 new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
                         movementManager, screenWidth, screenHeight, testSceneRules, scoreManager));
-        sceneManager.registerScene(SceneType.SCENE_1.name(),
-                new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
-                        movementManager, screenWidth, screenHeight, scoreManager));
 
         ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, scoreManager);
         sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
