@@ -11,14 +11,14 @@ public class AIMovement implements IMovementInput {
     private float minX; // Left boundary
     private float maxX; // Right boundary
     private float entityWidth; // Width of the entity (for boundary checking)
-    
+
     // Create AI movement with screen boundaries.
     public AIMovement(float minX, float maxX, float entityWidth) {
         this.minX = minX;
         this.maxX = maxX;
         this.entityWidth = entityWidth;
     }
-    
+
     public void update(float entityX, float deltaTime) {
         // Boundary detection reverse direction when hitting edges
         if (entityX <= minX && movementAxis < 0) {
@@ -27,26 +27,31 @@ public class AIMovement implements IMovementInput {
             movementAxis = -0.5f; // Move left
         }
     }
-    
+
     @Override
     public float getMovementAxis() {
         return movementAxis;
     }
-    
+
     @Override
     public boolean isJump() {
-        return false; 
+        return false;
     }
-    
+
+    @Override
+    public boolean isCrawl() {
+        return false; // default behavior
+    }
+
     // Configuration methods
     public void setDirection(float direction) {
         this.movementAxis = direction;
     }
-    
+
     public void reverseDirection() {
         this.movementAxis *= -1f;
     }
-    
+
     public void setBoundaries(float minX, float maxX) {
         this.minX = minX;
         this.maxX = maxX;

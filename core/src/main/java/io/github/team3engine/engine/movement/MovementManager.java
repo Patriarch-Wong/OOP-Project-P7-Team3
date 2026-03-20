@@ -5,7 +5,8 @@ import io.github.team3engine.engine.interfaces.IMovementInput;
 
 public class MovementManager {
     // Movement configuration (shared across all entities)
-    private float maxSpeed = 300f;
+    private float maxWalkSpeed = 300f;
+private float maxCrawlSpeed = 120f; // slower than walking
     private float maxFallSpeed = -600f;
     private float acceleration = 700f;
     private float deceleration = 700f;
@@ -16,6 +17,9 @@ public class MovementManager {
 
     // Apply movement to an entity based on its MovementState and input.
     public void applyMovement(Entity entity, MovementState state, IMovementInput input, float deltaTime) {
+        // Update crouch/crawl state
+        boolean isCrawling = input.isCrawl();
+        state.setCrouching(isCrawling);
         if (!state.isMovementEnabled()) {
             return;
         }
@@ -41,9 +45,12 @@ public class MovementManager {
         }
 
         // Clamp horizontal speed
-        velocityX = clamp(velocityX, -maxSpeed, maxSpeed);
-
-        // Jump cooldown: tick down each frame
+float currentMaxSpeed = state.isCrouching() ? maxCrawlSpeed : maxWalkSpeed;
+velocityX = clamp(velocityX, -currentMaxSpeed, currentMaxSpeed);
+if (state.isCrouching()) {
+    velocityX = clamp(velocityX, -maxCrawlSpeed, maxCrawlSpeed);
+} 
+// Jump cooldown: tick down each frame
         float jumpCooldown = state.getJumpCooldownRemaining();
         jumpCooldown -= deltaTime;
         if (jumpCooldown < 0f)
@@ -51,8 +58,7 @@ public class MovementManager {
         state.setJumpCooldownRemaining(jumpCooldown);
 
         // Jump
-        if (input.isJump() && state.isGrounded() && jumpCooldown <= 0f) {
-            velocityY = jumpForce;
+if (input.isJump() && state.isGrounded() && jumpCooldown <= 0f && !state.isCrouching()){            velocityY = jumpForce;
             state.setJumpCooldownRemaining(jumpCooldownDuration);
             state.setGrounded(false);
         }
@@ -120,12 +126,12 @@ public class MovementManager {
     }
 
     // Configuration getters/setters 
-    public float getMaxSpeed() {
-        return maxSpeed;
+    public float getmaxWalkSpeed() {
+        return maxWalkSpeed;
     }
 
-    public void setMaxSpeed(float maxSpeed) {
-        this.maxSpeed = maxSpeed;
+    public void setmaxWalkSpeed(float maxWalkSpeed) {
+        this.maxWalkSpeed = maxWalkSpeed;
     }
 
     public float getMaxFallSpeed() {
