@@ -62,6 +62,15 @@ public class Main extends ApplicationAdapter {
         // Create ScoreManager instance for the game
         ScoreManager scoreManager = new ScoreManager();
 
+        uiManager.setMainMenuCallback(() -> {
+            Gdx.app.log("Game", "Main Menu requested from pause");
+            isPaused = false;
+            uiManager.toggleMenu(false);
+            ioManager.setActive(true);
+            scoreManager.resetScore();
+            Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
+        });
+
         // Store width and height once
         int screenWidth = Gdx.graphics.getWidth();
         int screenHeight = Gdx.graphics.getHeight();

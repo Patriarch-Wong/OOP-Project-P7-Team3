@@ -258,10 +258,16 @@ public class TestScene extends BaseScene implements GameplayScene {
         // --- Collision rules ---
         mediator = new CollisionMediator();
 
-        mediator.addRule(Fire.class, Damageable.class, (fire, target) -> {
-            if (!target.isInvincible()) {
-                target.takeDamage(fire.getDamage());
+        mediator.addRule(Fire.class, Player.class, (fire, playerTarget) -> {
+            if (!playerTarget.isInvincible()) {
+                playerTarget.takeDamage(fire.getDamage());
                 ioManager.broadcast(GameEvents.PLAYER_HIT_FIRE);
+            }
+        });
+
+        mediator.addRule(Fire.class, NPC.class, (fire, npcTarget) -> {
+            if (!npcTarget.isInvincible()) {
+                npcTarget.takeDamage(fire.getDamage());
             }
         });
 

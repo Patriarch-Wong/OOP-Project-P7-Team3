@@ -42,6 +42,11 @@ public class ScoreManager implements Scoreable {
         scoreRules.clear();
     }
 
+    public void resetScore() {
+        score = 0;
+        multiplier = 1.0f;
+    }
+
     // --- Rule management ---
 
     public void addRule(ScoreRule rule) {

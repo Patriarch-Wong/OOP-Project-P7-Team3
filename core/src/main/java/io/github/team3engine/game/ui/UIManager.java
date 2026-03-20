@@ -17,12 +17,12 @@ public class UIManager implements Updatable {
     private Table rootTable;
     private Window pauseWindow;
     private VolumeControl volumeControl;
+    private Runnable mainMenuCallback;
 
     public UIManager(VolumeControl volumeControl) {
         this.volumeControl = volumeControl;
         this.stage = new Stage(new ScreenViewport());
 
-        // Setup Skin with the Font Fix
         this.skin = new Skin();
         this.skin.add("default", new BitmapFont());
         this.skin.addRegions(new TextureAtlas(Gdx.files.internal("ui/uiskin.atlas")));
@@ -31,32 +31,44 @@ public class UIManager implements Updatable {
         createPauseMenu();
     }
 
+    public void setMainMenuCallback(Runnable callback) {
+        this.mainMenuCallback = callback;
+    }
+
     private void createPauseMenu() {
         rootTable = new Table();
         rootTable.setFillParent(true);
         stage.addActor(rootTable);
 
-        // The "Black Box" Window
         pauseWindow = new Window("SETTINGS", skin);
         pauseWindow.setMovable(false);
         pauseWindow.pad(20);
 
-        // Add Volume Sliders
         addVolumeRow(pauseWindow, "Master", "master");
         addVolumeRow(pauseWindow, "Music", "music");
         addVolumeRow(pauseWindow, "SFX", "sfx");
 
-        pauseWindow.add(new Label("Press ESC to Resume", skin)).colspan(2).padTop(20);
+        pauseWindow.add(new Label("Press ESC to Resume", skin)).colspan(2).padTop(20).row();
+
+        TextButton mainMenuButton = new TextButton("Main Menu", skin);
+        mainMenuButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (mainMenuCallback != null) {
+                    mainMenuCallback.run();
+                }
+            }
+        });
+        pauseWindow.add(mainMenuButton).colspan(2).padTop(10).width(200);
 
         rootTable.add(pauseWindow).center();
-        rootTable.setVisible(false); // Hidden by default
+        rootTable.setVisible(false);
     }
 
     private void addVolumeRow(Window window, String labelName, final String type) {
         window.add(new Label(labelName, skin)).left().pad(10);
         final Slider slider = new Slider(0, 1, 0.1f, false, skin);
 
-        // Set initial value from volume control
         if (type.equals("master")) slider.setValue(volumeControl.getMasterVolume());
         else if (type.equals("music")) slider.setValue(volumeControl.getMusicVolume());
         else slider.setValue(volumeControl.getSFXVolume());
