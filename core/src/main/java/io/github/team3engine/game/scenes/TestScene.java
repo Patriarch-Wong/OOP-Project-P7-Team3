@@ -2,9 +2,11 @@ package io.github.team3engine.game.scenes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
@@ -16,16 +18,17 @@ import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.collision.CollisionMediator;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Damageable;
+import io.github.team3engine.game.interfaces.Damageable;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
-import io.github.team3engine.engine.scoring.ScoreContext;
-import io.github.team3engine.engine.interfaces.ScoreRule;
-import io.github.team3engine.engine.scoring.ScoreManager;
+import io.github.team3engine.game.score.ScoreContext;
+import io.github.team3engine.game.interfaces.ScoreRule;
+import io.github.team3engine.game.score.ScoreManager;
+import io.github.team3engine.game.scene.Timer;
 import java.util.List;
-import io.github.team3engine.engine.status.StatusEffect;
+import io.github.team3engine.game.status.StatusEffect;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.inputs.PlayerInput;
@@ -61,16 +64,23 @@ public class TestScene extends BaseScene implements GameplayScene {
     private final CollisionManager collisionManager;
     private final MovementManager movementManager;
     private final BitmapFont font;
+    private final ScoreManager scoreManager;
 
     private final int screenWidth;
     private final int screenHeight;
     private boolean deathHandled;
     private final List<ScoreRule> scoreRules;
 
+    // Timer managed locally
+    private Timer timer;
+    private BitmapFont timerFont;
+    private GlyphLayout timerLayout;
+
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
                      IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
                      CollisionManager collisionManager, MovementManager movementManager,
                      int screenWidth, int screenHeight,
+<<<<<<< HEAD
                      List<ScoreRule> scoreRules) {
         this(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager,
              collisionManager, movementManager, screenWidth, screenHeight, scoreRules, 1);
@@ -81,9 +91,13 @@ public class TestScene extends BaseScene implements GameplayScene {
                      CollisionManager collisionManager, MovementManager movementManager,
                      int screenWidth, int screenHeight,
                      List<ScoreRule> scoreRules, int levelNumber) {
+=======
+                     List<ScoreRule> scoreRules, ScoreManager scoreManager) {
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
         super(batch);
         this.font = sharedFont;
         this.scoreRules = scoreRules;
+        this.scoreManager = scoreManager;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
@@ -107,20 +121,37 @@ public class TestScene extends BaseScene implements GameplayScene {
     @Override
     protected void onShow() {
         super.onShow();
+<<<<<<< HEAD
         enableTimer(levelConfig.timerDuration);
         if (hud == null) hud = new HUDRenderer(font, screenHeight);
         hud.init(levelConfig.playerMaxHp);
         clearHudLines();
         addHudLine(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());
         addHudLine(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
+=======
+        // Set up timer
+        timer = new Timer(60f);
+        if (timerFont == null) {
+            timerFont = new BitmapFont();
+            timerLayout = new GlyphLayout();
+        }
+        timer.start();
+
+        if (hud == null) hud = new HUDRenderer(font);
+        hud.init(100f);
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
         fires.clear();
         deathHandled = false;
 
         // --- Register score rules ---
+<<<<<<< HEAD
         // Don't reset score - accumulate across levels
+=======
+        scoreManager.reset();
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
         if (scoreRules != null) {
             for (ScoreRule rule : scoreRules) {
-                ScoreManager.getInstance().addRule(rule);
+                scoreManager.addRule(rule);
             }
         }
 
@@ -177,6 +208,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
 
         // --- Pickups ---
+<<<<<<< HEAD
         for (int i = 0; i < levelConfig.towelX.length; i++) {
             WetTowelPickup towel = new WetTowelPickup("towel" + i, levelConfig.towelX[i], levelConfig.towelY[i]);
             entityManager.addEntity(towel);
@@ -192,6 +224,15 @@ public class TestScene extends BaseScene implements GameplayScene {
             entityManager.addEntity(mask);
             collisionManager.register(mask);
         }
+=======
+        WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
+        MaskPickup mask = new MaskPickup("mask", 550f, 75f);
+        mask.setOnTimerExtend(() -> {
+            if (timer != null) timer.addTime(mask.getTimerExtend());
+        });
+        entityManager.addEntity(towel);
+        entityManager.addEntity(mask);
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
 
         // --- NPC ---
         npc = new NPC("npc_child", levelConfig.npcX, levelConfig.npcY, "Child", levelConfig.npcMaxHp);
@@ -262,14 +303,20 @@ public class TestScene extends BaseScene implements GameplayScene {
 
             ScoreContext context = new ScoreContext("PLAYER_ESCAPED");
             context.put("objectiveComplete", true);
+<<<<<<< HEAD
             context.put("npcsRescued", actualRescued);
             context.put("timeRemaining", getTimer().getTimeRemaining());
             context.put("npcSurvived", npcSurvived);
             context.put("npcHealthRemaining", npcSurvived ? npc.getHp() / npc.getMaxHp() : 0f);
             context.put("levelNumber", levelConfig.levelNumber);
             ScoreManager.getInstance().applyRules(context);
+=======
+            context.put("npcsRescued", player.getRescuedCount());
+            context.put("timeRemaining", timer.getTimeRemaining());
+            scoreManager.applyRules(context);
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
 
-            Gdx.app.log("Score", "Final Score: " + ScoreManager.getInstance().getFinalScore());
+            Gdx.app.log("Score", "Final Score: " + scoreManager.getFinalScore());
 
             ScoreBoardScene board = (ScoreBoardScene) sceneManager.getScene(SceneType.SCORE_BOARD.name());
             if (board != null) {
@@ -325,8 +372,12 @@ public class TestScene extends BaseScene implements GameplayScene {
         updateCamera(delta);
 
         batch.begin();
+<<<<<<< HEAD
         batch.setProjectionMatrix(camera.combined);
         batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+=======
+        batch.setColor(Color.WHITE);
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
@@ -344,8 +395,17 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     @Override
     public void update(float delta) {
-        super.update(delta);  // ticks the timer
+        super.update(delta);
         delta = Math.min(delta, MAX_DELTA);
+
+        // Tick the timer
+        if (timer != null) {
+            timer.update(delta);
+            if (timer.isFinished()) {
+                onTimerFinished();
+            }
+        }
+
         if (hud != null && player != null) hud.update(delta, player.getHp());
         growFires(delta);
         entityManager.updateAll(delta);
@@ -356,8 +416,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         mediator.resolve(pairs);
     }
 
-    @Override
-    protected void onTimerFinished() {
+    private void onTimerFinished() {
         Gdx.app.log("Game", "Time's up! Game Over.");
         GameOverScene gameOverScene = (GameOverScene) sceneManager.getScene(SceneType.GAME_OVER.name());
         if (gameOverScene != null) {
@@ -387,6 +446,36 @@ public class TestScene extends BaseScene implements GameplayScene {
             player.isCarryingNPC(),
             "Rescue the NPC and reach the EXIT!"
         );
+
+        // Render timer top-right
+        if (timer != null && timerFont != null) {
+            int seconds = (int) Math.ceil(timer.getTimeRemaining());
+            int minutes = seconds / 60;
+            int secs = seconds % 60;
+            String timeText = String.format("Time: %d:%02d", minutes, secs);
+            float x = Gdx.graphics.getWidth() - 10f;
+            float y = Gdx.graphics.getHeight() - 10f;
+
+            timerLayout.setText(timerFont, timeText);
+            timerFont.setColor(seconds <= 10 ? Color.RED : Color.WHITE);
+            timerFont.draw(batch, timeText, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
+
+            // Score line
+            String scoreLine = "Score: " + scoreManager.getScore();
+            timerLayout.setText(timerFont, scoreLine);
+            timerFont.setColor(Color.WHITE);
+            timerFont.draw(batch, scoreLine, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
+
+            // Rescued line
+            String rescuedLine = "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1";
+            timerLayout.setText(timerFont, rescuedLine);
+            timerFont.setColor(Color.WHITE);
+            timerFont.draw(batch, rescuedLine, x - timerLayout.width, y);
+
+            timerFont.setColor(Color.WHITE);
+        }
     }
 
     private void trackFire(Fire fire) {
@@ -405,6 +494,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
     }
 
+<<<<<<< HEAD
     private void updateCamera(float delta) {
         if (player == null || camera == null) return;
 
@@ -418,5 +508,11 @@ public class TestScene extends BaseScene implements GameplayScene {
         camera.position.y = Math.max(halfViewportH, Math.min(levelConfig.worldHeight - halfViewportH, camera.position.y));
 
         camera.update();
+=======
+    @Override
+    public void dispose() {
+        if (timerFont != null) { timerFont.dispose(); timerFont = null; }
+        super.dispose();
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
     }
 }

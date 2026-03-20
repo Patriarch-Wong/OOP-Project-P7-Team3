@@ -12,7 +12,6 @@ import io.github.team3engine.engine.interfaces.FrameRenderable;
 import io.github.team3engine.engine.interfaces.Updatable;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.SceneManager;
-import io.github.team3engine.engine.scoring.ScoreManager;
 
 /**
  * Generic central orchestrator of the game engine. Holds all core managers,
@@ -31,7 +30,6 @@ public class GameEngine {
     private CollisionManager collisionManager;
     private IOManager ioManager;
     private AudioManager audioManager;
-    private ScoreManager scoreManager;
 
     public GameEngine() {}
 
@@ -45,7 +43,6 @@ public class GameEngine {
         movementManager = new MovementManager();
         collisionManager = new CollisionManager();
         sceneManager = new SceneManager();
-        scoreManager = ScoreManager.getInstance();
 
         updatables.add(ioManager);
         updatables.add(sceneManager);
@@ -91,5 +88,4 @@ public class GameEngine {
     public CollisionManager getCollisionManager() { return collisionManager; }
     public IOManager getIOManager() { return ioManager; }
     public AudioManager getAudioManager() { return audioManager; }
-    public ScoreManager getScoreManager() { return scoreManager; }
 }

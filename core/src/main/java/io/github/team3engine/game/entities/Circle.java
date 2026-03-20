@@ -12,7 +12,7 @@ import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Solid;
+import io.github.team3engine.game.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementState;
 
 /**

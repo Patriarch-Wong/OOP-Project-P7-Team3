@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.interfaces;
+package io.github.team3engine.game.interfaces;
 
 public interface Scoreable {
     int getScore();

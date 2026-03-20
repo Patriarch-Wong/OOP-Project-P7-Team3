@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.scene;
+package io.github.team3engine.game.scene;
 
 public class Timer {
 
@@ -12,7 +12,7 @@ public class Timer {
         this.isRunning = false;
     }
 
-    // Call this every frame from BaseScene.update()
+    // Call this every frame from the scene's update()
     public void update(float deltaTime) {
         if (!isRunning) return;
         timeRemaining -= deltaTime;

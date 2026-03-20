@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.collision;
+package io.github.team3engine.game.physics;
 
 import com.badlogic.gdx.math.Rectangle;
 

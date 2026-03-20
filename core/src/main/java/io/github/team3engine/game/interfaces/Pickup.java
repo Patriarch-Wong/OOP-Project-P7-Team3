@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.interfaces;
+package io.github.team3engine.game.interfaces;
 
 import io.github.team3engine.engine.entity.Entity;
 

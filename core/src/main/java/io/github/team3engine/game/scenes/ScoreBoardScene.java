@@ -13,7 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
-import io.github.team3engine.engine.scoring.ScoreManager;
+import io.github.team3engine.game.score.ScoreManager;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.ui.SceneButtonFactory;
 
@@ -23,6 +23,7 @@ public class ScoreBoardScene extends BaseScene {
     private final IOManager ioManager;
     private final BitmapFont font;
     private final GlyphLayout layout = new GlyphLayout();
+    private final ScoreManager scoreManager;
 
     private String nextSceneId;
     private int nextLevel = 2;
@@ -31,11 +32,13 @@ public class ScoreBoardScene extends BaseScene {
     private TextButton menuButton;
 
     public ScoreBoardScene(SpriteBatch batch, BitmapFont sharedFont,
-                           SceneManager sceneManager, IOManager ioManager) {
+                           SceneManager sceneManager, IOManager ioManager,
+                           ScoreManager scoreManager) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
+        this.scoreManager = scoreManager;
     }
 
     public void setNextScene(String sceneId) {
@@ -65,15 +68,19 @@ public class ScoreBoardScene extends BaseScene {
 
         ioManager.registerEvent(GameEvents.SCOREBOARD_NEXT, () -> {
             if (nextSceneId != null) {
+<<<<<<< HEAD
                 BaseScene scene = sceneManager.getScene(nextSceneId);
                 if (scene instanceof TestScene) {
                     ((TestScene) scene).setLevel(nextLevel);
                 }
+=======
+                scoreManager.reset();
+>>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
                 Gdx.app.postRunnable(() -> sceneManager.setScene(nextSceneId));
             }
         });
         ioManager.registerEvent(GameEvents.SCOREBOARD_MENU, () -> {
-            ScoreManager.getInstance().reset();
+            scoreManager.reset();
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
         });
     }
@@ -106,7 +113,6 @@ public class ScoreBoardScene extends BaseScene {
 
     @Override
     protected void renderUI() {
-        ScoreManager sm = ScoreManager.getInstance();
         float centerX = Gdx.graphics.getWidth() / 2f;
         float centerY = Gdx.graphics.getHeight() / 2f;
 
@@ -117,11 +123,11 @@ public class ScoreBoardScene extends BaseScene {
         layout.setText(font, title);
         font.draw(batch, title, centerX - layout.width / 2f, centerY + 120f);
 
-        String finalLine = "Final Score:  " + sm.getFinalScore();
+        String finalLine = "Final Score:  " + scoreManager.getFinalScore();
         layout.setText(font, finalLine);
         font.draw(batch, finalLine, centerX - layout.width / 2f, centerY + 75f);
 
-        String highLine = "High Score:   " + sm.getHighScore();
+        String highLine = "High Score:   " + scoreManager.getHighScore();
         layout.setText(font, highLine);
         font.draw(batch, highLine, centerX - layout.width / 2f, centerY + 50f);
 

@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.interfaces;
+package io.github.team3engine.game.interfaces;
 
 /**
  * Interface for entities that can take damage and have hit points.
