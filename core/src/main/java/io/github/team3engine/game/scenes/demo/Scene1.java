@@ -60,7 +60,7 @@ public class Scene1 extends BaseScene implements GameplayScene {
     private final int screenWidth;
     private final int screenHeight;
 
-    CollisionMediator mediator;
+    private CollisionMediator mediator;
     private Map<String, Float> hazardCooldowns = new HashMap<>();
     private com.badlogic.gdx.utils.Timer.Task fireResetTask;
 
@@ -235,6 +235,7 @@ public class Scene1 extends BaseScene implements GameplayScene {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
+        batch.setColor(Color.WHITE);
         if (image != null) {
             batch.draw(image, 140, 210);
         }

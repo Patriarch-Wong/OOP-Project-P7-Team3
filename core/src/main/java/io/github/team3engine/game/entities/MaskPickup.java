@@ -57,6 +57,10 @@ public class MaskPickup extends CollidableEntity implements Pickup {
         this.onTimerExtend = callback;
     }
 
+    public float getTimerExtend() {
+        return timerExtend;
+    }
+
     @Override
     public void onPickup(Entity collector) {
         if (collector instanceof Player) {

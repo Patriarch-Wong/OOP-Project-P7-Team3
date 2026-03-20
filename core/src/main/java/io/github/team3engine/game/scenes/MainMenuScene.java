@@ -38,7 +38,7 @@ public class MainMenuScene extends BaseScene {
     }
 
     @Override
-    public void onShow() {
+    protected void onShow() {
         super.onShow();
         // Load default skin
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));

@@ -5,15 +5,11 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Rectangle;
 
 import io.github.team3engine.engine.UIManager;
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
-import io.github.team3engine.engine.collision.CollisionMediator;
-import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.EntityManager;
-import io.github.team3engine.engine.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;

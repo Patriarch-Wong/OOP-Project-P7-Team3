@@ -39,7 +39,7 @@ public class GameOverScene extends BaseScene {
     }
 
     @Override
-    public void onShow() {
+    protected void onShow() {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
@@ -75,8 +75,6 @@ public class GameOverScene extends BaseScene {
 
     @Override
     protected void renderUI() {
-        // Fix 2: always reset font colour before drawing — prevents red bleed from game HUD
-        font.setColor(Color.WHITE);
         font.setColor(Color.RED);
         String title = "GAME OVER";
         titleLayout.setText(font, title);
