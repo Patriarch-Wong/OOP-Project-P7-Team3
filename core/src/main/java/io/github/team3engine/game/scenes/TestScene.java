@@ -247,9 +247,9 @@ public class TestScene extends BaseScene implements GameplayScene {
                 }
                 ioManager.broadcast(GameEvents.NPC_RESCUED);
             }
-            if (p.getRescuedCount() >= door.getRequiredRescues()) {
+            // if (p.getRescuedCount() >= door.getRequiredRescues()) {
                 ioManager.broadcast(GameEvents.PLAYER_WIN);
-            }
+            // }
         });
 
         // --- Events ---

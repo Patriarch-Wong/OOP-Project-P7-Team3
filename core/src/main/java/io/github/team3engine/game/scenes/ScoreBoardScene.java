@@ -23,22 +23,19 @@ public class ScoreBoardScene extends BaseScene {
     private final IOManager ioManager;
     private final BitmapFont font;
     private final GlyphLayout layout = new GlyphLayout();
-    private final int screenWidth;
-    private final int screenHeight;
 
     private String nextSceneId;
     private int nextLevel = 2;
     private Skin skin;
+    private TextButton nextButton;
+    private TextButton menuButton;
 
     public ScoreBoardScene(SpriteBatch batch, BitmapFont sharedFont,
-                           SceneManager sceneManager, IOManager ioManager,
-                           int screenWidth, int screenHeight) {
+                           SceneManager sceneManager, IOManager ioManager) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
     }
 
     public void setNextScene(String sceneId) {
@@ -56,22 +53,12 @@ public class ScoreBoardScene extends BaseScene {
         font.setColor(Color.WHITE);
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        float centerX = screenWidth  / 2f;
-        float centerY = screenHeight / 2f;
-
-        // Fix 3: mirror GameOverScene button layout exactly
-        float gap    = 20f;
-        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
-        float startX = centerX - totalW / 2f;
-        float btnY   = centerY - 100f;
-
-        TextButton nextButton = SceneButtonFactory.create("Next Level", skin, () ->
+        nextButton = SceneButtonFactory.create("Next Level", skin, () ->
                 ioManager.broadcast(GameEvents.SCOREBOARD_NEXT));
-        nextButton.setPosition(startX, btnY);
 
-        TextButton menuButton = SceneButtonFactory.create("Main Menu", skin, () ->
+        menuButton = SceneButtonFactory.create("Main Menu", skin, () ->
                 ioManager.broadcast(GameEvents.SCOREBOARD_MENU));
-        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
+        layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         getStage().addActor(nextButton);
         getStage().addActor(menuButton);
@@ -113,10 +100,15 @@ public class ScoreBoardScene extends BaseScene {
     }
 
     @Override
+    protected void onResize(int width, int height) {
+        layoutButtons(width, height);
+    }
+
+    @Override
     protected void renderUI() {
         ScoreManager sm = ScoreManager.getInstance();
-        float centerX = screenWidth  / 2f;
-        float centerY = screenHeight / 2f;
+        float centerX = Gdx.graphics.getWidth() / 2f;
+        float centerY = Gdx.graphics.getHeight() / 2f;
 
         // Fix 2: always start white
         font.setColor(Color.WHITE);
@@ -138,6 +130,21 @@ public class ScoreBoardScene extends BaseScene {
         font.draw(batch, chooseLine, centerX - layout.width / 2f, centerY + 10f);
 
         font.setColor(Color.WHITE); // reset after
+    }
+
+    private void layoutButtons(int width, int height) {
+        if (nextButton == null || menuButton == null) {
+            return;
+        }
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float gap = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = centerX - totalW / 2f;
+        float btnY = centerY - 100f;
+
+        nextButton.setPosition(startX, btnY);
+        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
     }
 
     @Override

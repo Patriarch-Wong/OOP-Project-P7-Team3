@@ -17,6 +17,7 @@ public class PlayerAnimator {
     private final List<Texture> allTextures = new ArrayList<>();
     private final TextureRegion idleFrameEast;
     private final TextureRegion idleFrameWest;
+    private final TextureRegion idleFrameSouth;
     private final Animation<TextureRegion> runAnimation;
     private final Animation<TextureRegion> jumpAnimation;
     private final Animation<TextureRegion> crouchAnimation;
@@ -31,8 +32,10 @@ public class PlayerAnimator {
         // Idle frames (single image per direction)
         Texture idleE = loadTexture("player/rotations/east.png");
         Texture idleW = loadTexture("player/rotations/west.png");
+        Texture idleS = loadTexture("player/rotations/south.png");
         this.idleFrameEast = new TextureRegion(idleE);
         this.idleFrameWest = new TextureRegion(idleW);
+        this.idleFrameSouth = new TextureRegion(idleS);
 
         // Running animation (6 frames)
         this.runAnimation = loadFrameAnimation("player/animations/running-6-frames/east/frame_", 6, 0.1f);
@@ -56,10 +59,33 @@ public class PlayerAnimator {
      */
     public PlayerAnimator(String idleEastPath, String idleWestPath,
                           String runPathPrefix, int runFrameCount, float runFrameDuration) {
+        this(idleEastPath, idleWestPath, null, runPathPrefix, runFrameCount, runFrameDuration);
+    }
+
+    /**
+     * Configurable animator with custom asset paths (idle south + idle east/west + run).
+     * Suitable for NPCs that use a south-facing idle and running animations.
+     *
+     * @param idleEastPath   path to the east-facing idle texture
+     * @param idleWestPath   path to the west-facing idle texture
+     * @param idleSouthPath  path to the south-facing idle texture (or null)
+     * @param runPathPrefix  path prefix for run frames
+     * @param runFrameCount  number of run animation frames
+     * @param runFrameDuration duration per run frame in seconds
+     */
+    public PlayerAnimator(String idleEastPath, String idleWestPath, String idleSouthPath,
+                          String runPathPrefix, int runFrameCount, float runFrameDuration) {
         Texture idleE = loadTexture(idleEastPath);
         Texture idleW = loadTexture(idleWestPath);
         this.idleFrameEast = new TextureRegion(idleE);
         this.idleFrameWest = new TextureRegion(idleW);
+
+        if (idleSouthPath != null) {
+            Texture idleS = loadTexture(idleSouthPath);
+            this.idleFrameSouth = new TextureRegion(idleS);
+        } else {
+            this.idleFrameSouth = null;
+        }
 
         this.runAnimation = loadFrameAnimation(runPathPrefix, runFrameCount, runFrameDuration);
         this.jumpAnimation = null;
@@ -101,6 +127,8 @@ public class PlayerAnimator {
             frame = crouchAnimation.getKeyFrame(crouchStateTime, false);
         } else if (movementState.getVelocityX() != 0) {
             frame = runAnimation.getKeyFrame(stateTime, true);
+        } else if (idleFrameSouth != null) {
+            frame = idleFrameSouth;
         } else {
             frame = facingRight ? idleFrameEast : idleFrameWest;
         }
@@ -117,6 +145,8 @@ public class PlayerAnimator {
         TextureRegion frame;
         if (isMoving) {
             frame = runAnimation.getKeyFrame(stateTime, true);
+        } else if (idleFrameSouth != null) {
+            frame = idleFrameSouth;
         } else {
             frame = facingRight ? idleFrameEast : idleFrameWest;
         }

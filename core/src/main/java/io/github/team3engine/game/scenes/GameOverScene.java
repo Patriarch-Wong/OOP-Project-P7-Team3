@@ -18,20 +18,18 @@ public class GameOverScene extends BaseScene {
     private final SceneManager sceneManager;
     private final BitmapFont font;
     private final GlyphLayout titleLayout = new GlyphLayout();
-    private final int screenWidth;
-    private final int screenHeight;
 
     private String retrySceneId;
     private int retryLevel = 1;
     private Skin skin;
+    private TextButton retryButton;
+    private TextButton menuButton;
 
     public GameOverScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
-                         int screenWidth, int screenHeight, String defaultRetrySceneId) {
+                         String defaultRetrySceneId) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
         this.retrySceneId = defaultRetrySceneId;
     }
 
@@ -48,6 +46,7 @@ public class GameOverScene extends BaseScene {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
+<<<<<<< HEAD
         float centerX = screenWidth  / 2f;
         float centerY = screenHeight / 2f;
         float gap     = 20f;
@@ -63,10 +62,14 @@ public class GameOverScene extends BaseScene {
             sceneManager.setScene(retrySceneId);
         });
         retryButton.setPosition(startX, btnY);
+=======
+        retryButton = SceneButtonFactory.create("Retry", skin,
+                () -> sceneManager.setScene(retrySceneId));
+>>>>>>> a70e28e5d09ddb96a0cdfd6b0026c8df43756d93
 
-        TextButton menuButton = SceneButtonFactory.create("Main Menu", skin,
+        menuButton = SceneButtonFactory.create("Main Menu", skin,
                 () -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
-        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
+        layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         getStage().addActor(retryButton);
         getStage().addActor(menuButton);
@@ -84,13 +87,35 @@ public class GameOverScene extends BaseScene {
     }
 
     @Override
+    protected void onResize(int width, int height) {
+        layoutButtons(width, height);
+    }
+
+    @Override
     protected void renderUI() {
         font.setColor(Color.RED);
         String title = "GAME OVER";
         titleLayout.setText(font, title);
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
         float titleX = (screenWidth - titleLayout.width) / 2f;
         font.draw(batch, title, titleX, screenHeight / 2f + 60f);
         font.setColor(Color.WHITE); // reset after use
+    }
+
+    private void layoutButtons(int width, int height) {
+        if (retryButton == null || menuButton == null) {
+            return;
+        }
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float gap = 20f;
+        float totalW = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
+        float startX = centerX - totalW / 2f;
+        float btnY = centerY - 100f;
+
+        retryButton.setPosition(startX, btnY);
+        menuButton.setPosition(startX + SceneButtonFactory.BUTTON_WIDTH + gap, btnY);
     }
 
     @Override

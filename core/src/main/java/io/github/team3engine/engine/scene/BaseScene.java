@@ -10,13 +10,14 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import io.github.team3engine.engine.interfaces.Resizable;
 import io.github.team3engine.engine.interfaces.Updatable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class BaseScene implements Updatable {
+public abstract class BaseScene implements Updatable, Resizable {
     protected final SpriteBatch batch;
     private Stage stage;
     private Timer timer;
@@ -45,6 +46,9 @@ public abstract class BaseScene implements Updatable {
     public void show() {
         Gdx.input.setInputProcessor(getInputProcessorForScene());
         onShow();
+        // Scenes can be entered after a window resize while they were inactive.
+        // Sync stage viewport + scene layout on entry to prevent stale HUD/UI placement.
+        resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     protected void onShow() {}
@@ -71,9 +75,13 @@ public abstract class BaseScene implements Updatable {
         hudLines.clear();
     }
 
+    @Override
     public void resize(int w, int h) {
         if (stage != null) stage.getViewport().update(w, h, true);
+        onResize(w, h);
     }
+
+    protected void onResize(int width, int height) {}
 
     public void hide()  { onHide(); }
     protected void onHide() {}
@@ -134,9 +142,14 @@ public abstract class BaseScene implements Updatable {
             stage.act(delta);
             stage.draw();
         }
+<<<<<<< HEAD
         OrthographicCamera screenCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         screenCam.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         screenCam.update();
+=======
+        // UI/HUD should track the live window size independently from gameplay projection.
+        batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+>>>>>>> a70e28e5d09ddb96a0cdfd6b0026c8df43756d93
         batch.setColor(Color.WHITE);
         batch.begin();
         batch.setProjectionMatrix(screenCam.combined);
