@@ -1,16 +1,17 @@
 package io.github.team3engine.game.scenes;
 
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
-
 import com.badlogic.gdx.utils.Array;
 
 import io.github.team3engine.engine.audio.AudioManager;
@@ -18,24 +19,30 @@ import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.collision.CollisionMediator;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.game.interfaces.Damageable;
-import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
+import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
-import io.github.team3engine.game.score.ScoreContext;
-import io.github.team3engine.game.interfaces.ScoreRule;
-import io.github.team3engine.game.score.ScoreManager;
-import io.github.team3engine.game.util.Timer;
-import java.util.List;
-import io.github.team3engine.game.status.StatusEffect;
-import io.github.team3engine.game.entities.*;
+import io.github.team3engine.game.entities.ExitDoor;
+import io.github.team3engine.game.entities.Fire;
+import io.github.team3engine.game.entities.MaskPickup;
+import io.github.team3engine.game.entities.MovementInput;
+import io.github.team3engine.game.entities.NPC;
+import io.github.team3engine.game.entities.Platform;
+import io.github.team3engine.game.entities.Player;
+import io.github.team3engine.game.entities.WetTowelPickup;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.inputs.PlayerInput;
+import io.github.team3engine.game.interfaces.Damageable;
+import io.github.team3engine.game.interfaces.ScoreRule;
 import io.github.team3engine.game.physics.GroundDetector;
+import io.github.team3engine.game.score.ScoreContext;
+import io.github.team3engine.game.score.ScoreManager;
 import io.github.team3engine.game.status.SlowEffect;
+import io.github.team3engine.game.status.StatusEffect;
 import io.github.team3engine.game.status.StatusEffectMath;
 import io.github.team3engine.game.ui.HUDRenderer;
+import io.github.team3engine.game.util.Timer;
 
 public class TestScene extends BaseScene implements GameplayScene {
     private static final String CARRY_SLOW_KEY = "slow:carry_npc";
@@ -55,6 +62,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     private GroundDetector groundDetector;
     private CollisionMediator mediator;
     private Texture platformTex;
+    private Texture backgroundTex;
     private final Array<Fire> fires = new Array<>();
     private HUDRenderer hud;
     private LevelConfig levelConfig;
@@ -159,6 +167,9 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         // --- Platforms ---
         platformTex = new Texture(Gdx.files.internal("platform.png"));
+
+        // --- Background ---
+        backgroundTex = new Texture(Gdx.files.internal("burning_bg.png"));
 
         // Ground segments
         for (int i = 0; i < levelConfig.groundSegmentsX.length; i++) {
@@ -322,6 +333,10 @@ public class TestScene extends BaseScene implements GameplayScene {
             platformTex.dispose();
             platformTex = null;
         }
+        if (backgroundTex != null) {
+            backgroundTex.dispose();
+            backgroundTex = null;
+        }
         ioManager.clearEvent(GameEvents.PLAYER_WIN);
         ioManager.clearEvent(GameEvents.NPC_RESCUED);
         if (hud != null) { hud.dispose(); hud = null; }
@@ -340,6 +355,10 @@ public class TestScene extends BaseScene implements GameplayScene {
         batch.begin();
         batch.setProjectionMatrix(camera.combined);
         batch.setColor(Color.WHITE);
+        // Draw background first
+        if (backgroundTex != null) {
+                  batch.draw(backgroundTex, 0, 0, levelConfig.worldWidth, levelConfig.worldHeight);
+        }
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
