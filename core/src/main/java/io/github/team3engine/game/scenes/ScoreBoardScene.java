@@ -68,14 +68,11 @@ public class ScoreBoardScene extends BaseScene {
 
         ioManager.registerEvent(GameEvents.SCOREBOARD_NEXT, () -> {
             if (nextSceneId != null) {
-<<<<<<< HEAD
+                scoreManager.reset();
                 BaseScene scene = sceneManager.getScene(nextSceneId);
                 if (scene instanceof TestScene) {
                     ((TestScene) scene).setLevel(nextLevel);
                 }
-=======
-                scoreManager.reset();
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
                 Gdx.app.postRunnable(() -> sceneManager.setScene(nextSceneId));
             }
         });

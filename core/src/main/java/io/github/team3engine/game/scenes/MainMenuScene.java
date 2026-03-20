@@ -62,22 +62,12 @@ public class MainMenuScene extends BaseScene {
         audioManager.playMusic("title.mp3", true);
 
         ioManager.registerEvent(GameEvents.START_GAME, () -> {
-<<<<<<< HEAD
-            Gdx.app.log("Game", "Starting game - Scene 1");
-            sceneManager.setScene(SceneType.SCENE_1.name());
-        });
-        ioManager.registerEvent(GameEvents.START_GAME_TEST, () -> {
             Gdx.app.log("Game", "Starting game - Test Scene at Level 1");
             BaseScene scene = sceneManager.getScene(SceneType.TEST_SCENE.name());
             if (scene instanceof TestScene) {
                 ((TestScene) scene).setLevel(1);
             }
             sceneManager.setScene(SceneType.TEST_SCENE.name());
-=======
-            String sceneToShow = SceneType.TEST_SCENE.name();
-            Gdx.app.log("Game", "Starting game - " + sceneToShow);
-            sceneManager.setScene(sceneToShow);
->>>>>>> a70e28e5d09ddb96a0cdfd6b0026c8df43756d93
         });
     }
 

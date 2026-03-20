@@ -80,20 +80,16 @@ public class TestScene extends BaseScene implements GameplayScene {
                      IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
                      CollisionManager collisionManager, MovementManager movementManager,
                      int screenWidth, int screenHeight,
-<<<<<<< HEAD
-                     List<ScoreRule> scoreRules) {
+                     List<ScoreRule> scoreRules, ScoreManager scoreManager) {
         this(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager,
-             collisionManager, movementManager, screenWidth, screenHeight, scoreRules, 1);
+             collisionManager, movementManager, screenWidth, screenHeight, scoreRules, scoreManager, 1);
     }
 
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
                      IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
                      CollisionManager collisionManager, MovementManager movementManager,
                      int screenWidth, int screenHeight,
-                     List<ScoreRule> scoreRules, int levelNumber) {
-=======
-                     List<ScoreRule> scoreRules, ScoreManager scoreManager) {
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
+                     List<ScoreRule> scoreRules, ScoreManager scoreManager, int levelNumber) {
         super(batch);
         this.font = sharedFont;
         this.scoreRules = scoreRules;
@@ -121,16 +117,8 @@ public class TestScene extends BaseScene implements GameplayScene {
     @Override
     protected void onShow() {
         super.onShow();
-<<<<<<< HEAD
-        enableTimer(levelConfig.timerDuration);
-        if (hud == null) hud = new HUDRenderer(font, screenHeight);
-        hud.init(levelConfig.playerMaxHp);
-        clearHudLines();
-        addHudLine(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());
-        addHudLine(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
-=======
-        // Set up timer
-        timer = new Timer(60f);
+        // Set up timer with level-specific duration
+        timer = new Timer(levelConfig.timerDuration);
         if (timerFont == null) {
             timerFont = new BitmapFont();
             timerLayout = new GlyphLayout();
@@ -138,17 +126,12 @@ public class TestScene extends BaseScene implements GameplayScene {
         timer.start();
 
         if (hud == null) hud = new HUDRenderer(font);
-        hud.init(100f);
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
+        hud.init(levelConfig.playerMaxHp);
         fires.clear();
         deathHandled = false;
 
         // --- Register score rules ---
-<<<<<<< HEAD
         // Don't reset score - accumulate across levels
-=======
-        scoreManager.reset();
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
         if (scoreRules != null) {
             for (ScoreRule rule : scoreRules) {
                 scoreManager.addRule(rule);
@@ -208,7 +191,6 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
 
         // --- Pickups ---
-<<<<<<< HEAD
         for (int i = 0; i < levelConfig.towelX.length; i++) {
             WetTowelPickup towel = new WetTowelPickup("towel" + i, levelConfig.towelX[i], levelConfig.towelY[i]);
             entityManager.addEntity(towel);
@@ -216,23 +198,13 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
 
         for (int i = 0; i < levelConfig.maskX.length; i++) {
-            final int idx = i;
             MaskPickup mask = new MaskPickup("mask" + i, levelConfig.maskX[i], levelConfig.maskY[i]);
             mask.setOnTimerExtend(() -> {
-                if (getTimer() != null) getTimer().addTime(mask.getTimerExtend());
+                if (timer != null) timer.addTime(mask.getTimerExtend());
             });
             entityManager.addEntity(mask);
             collisionManager.register(mask);
         }
-=======
-        WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
-        MaskPickup mask = new MaskPickup("mask", 550f, 75f);
-        mask.setOnTimerExtend(() -> {
-            if (timer != null) timer.addTime(mask.getTimerExtend());
-        });
-        entityManager.addEntity(towel);
-        entityManager.addEntity(mask);
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
 
         // --- NPC ---
         npc = new NPC("npc_child", levelConfig.npcX, levelConfig.npcY, "Child", levelConfig.npcMaxHp);
@@ -303,18 +275,12 @@ public class TestScene extends BaseScene implements GameplayScene {
 
             ScoreContext context = new ScoreContext("PLAYER_ESCAPED");
             context.put("objectiveComplete", true);
-<<<<<<< HEAD
             context.put("npcsRescued", actualRescued);
-            context.put("timeRemaining", getTimer().getTimeRemaining());
+            context.put("timeRemaining", timer.getTimeRemaining());
             context.put("npcSurvived", npcSurvived);
             context.put("npcHealthRemaining", npcSurvived ? npc.getHp() / npc.getMaxHp() : 0f);
             context.put("levelNumber", levelConfig.levelNumber);
-            ScoreManager.getInstance().applyRules(context);
-=======
-            context.put("npcsRescued", player.getRescuedCount());
-            context.put("timeRemaining", timer.getTimeRemaining());
             scoreManager.applyRules(context);
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
 
             Gdx.app.log("Score", "Final Score: " + scoreManager.getFinalScore());
 
@@ -372,12 +338,8 @@ public class TestScene extends BaseScene implements GameplayScene {
         updateCamera(delta);
 
         batch.begin();
-<<<<<<< HEAD
         batch.setProjectionMatrix(camera.combined);
-        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
-=======
         batch.setColor(Color.WHITE);
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
@@ -494,7 +456,6 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
     }
 
-<<<<<<< HEAD
     private void updateCamera(float delta) {
         if (player == null || camera == null) return;
 
@@ -508,11 +469,11 @@ public class TestScene extends BaseScene implements GameplayScene {
         camera.position.y = Math.max(halfViewportH, Math.min(levelConfig.worldHeight - halfViewportH, camera.position.y));
 
         camera.update();
-=======
+    }
+
     @Override
     public void dispose() {
         if (timerFont != null) { timerFont.dispose(); timerFont = null; }
         super.dispose();
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
     }
 }

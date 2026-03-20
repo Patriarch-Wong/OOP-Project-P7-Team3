@@ -35,14 +35,10 @@ public class Main extends ApplicationAdapter {
     private BitmapFont sharedFont;
     private UIManager uiManager;
     private boolean isPaused = false;
-<<<<<<< HEAD
     private int currentLevel = 1;
-    private TestScene testScene;
-=======
     // Keep gameplay rendering anchored to the original startup resolution.
     private int fixedViewportWidth;
     private int fixedViewportHeight;
->>>>>>> a70e28e5d09ddb96a0cdfd6b0026c8df43756d93
 
     private static final float FOOTSTEP_INTERVAL = 0.4f;
     private float footstepTimer = 0;
@@ -81,15 +77,9 @@ public class Main extends ApplicationAdapter {
                 new NpcRescueRule(),
                 new TimeBonusRule()
         );
-<<<<<<< HEAD
-        testScene = new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
-                movementManager, screenWidth, screenHeight, testSceneRules, currentLevel);
-        sceneManager.registerScene(SceneType.TEST_SCENE.name(), testScene);
-=======
         sceneManager.registerScene(SceneType.TEST_SCENE.name(),
                 new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
                         movementManager, screenWidth, screenHeight, testSceneRules, scoreManager));
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
         sceneManager.registerScene(SceneType.SCENE_1.name(),
                 new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
                         movementManager, screenWidth, screenHeight, scoreManager));

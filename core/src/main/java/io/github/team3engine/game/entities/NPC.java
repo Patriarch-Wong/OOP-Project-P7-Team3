@@ -18,7 +18,7 @@ import io.github.team3engine.game.interfaces.Followable;
  * FOLLOWING — smoothly lerps behind the player (MapleStory pet style).
  *             All follow behaviour is configurable via constructor.
  */
-public class NPC extends CollidableEntity implements io.github.team3engine.engine.interfaces.Damageable {
+public class NPC extends CollidableEntity implements io.github.team3engine.game.interfaces.Damageable {
 
     public enum State { WAITING, FOLLOWING, DEAD }
 
@@ -217,42 +217,17 @@ public class NPC extends CollidableEntity implements io.github.team3engine.engin
         float drawWidth  = drawHeight * frameAspect;
         batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
 
-<<<<<<< HEAD
-        shapeRenderer.setColor(0.95f, 0.61f, 0.07f, 1f);
-        shapeRenderer.rect(position.x - WIDTH / 2f, position.y, WIDTH, HEIGHT);
+        // Health bar above waiting NPC
+        drawHealthBar(batch, position.y + drawHeight + 4f);
 
-        float headRadius = WIDTH * 0.4f;
-        shapeRenderer.circle(position.x, position.y + HEIGHT + headRadius * 0.3f, headRadius);
-
-        // Health bar background
-        float healthBarX = position.x - HEALTH_BAR_WIDTH / 2f;
-        float healthBarY = position.y + HEIGHT + headRadius * 2f + 6f;
-        shapeRenderer.setColor(0.3f, 0.3f, 0.3f, 0.8f);
-        shapeRenderer.rect(healthBarX, healthBarY, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
-
-        // Health bar fill
-        float hpFrac = hp / maxHp;
-        Color healthColor = getHealthColor(hpFrac);
-        shapeRenderer.setColor(healthColor);
-        shapeRenderer.rect(healthBarX, healthBarY, HEALTH_BAR_WIDTH * hpFrac, HEALTH_BAR_HEIGHT);
-
-        shapeRenderer.end();
-        batch.begin();
-
-=======
         // Bobbing "HELP!" label above sprite
->>>>>>> a70e28e5d09ddb96a0cdfd6b0026c8df43756d93
         float helpBob = (float) Math.sin(bobTimer * 4f) * 3f;
         String helpText = "HELP!";
         layout.setText(font, helpText);
         font.setColor(1f, 0.8f, 0f, 1f);
         font.draw(batch, helpText,
                 position.x - layout.width / 2f,
-<<<<<<< HEAD
-                position.y + HEIGHT + headRadius * 2f + 14f + helpBob + HEALTH_BAR_HEIGHT + 4f);
-=======
-                position.y + drawHeight + LABEL_GAP + helpBob);
->>>>>>> a70e28e5d09ddb96a0cdfd6b0026c8df43756d93
+                position.y + drawHeight + HEALTH_BAR_HEIGHT + LABEL_GAP + 8f + helpBob);
         font.setColor(Color.WHITE);
     }
 

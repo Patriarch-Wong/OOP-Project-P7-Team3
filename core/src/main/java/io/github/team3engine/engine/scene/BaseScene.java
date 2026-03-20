@@ -4,12 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-<<<<<<< HEAD
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-=======
->>>>>>> 92f0d113cd607df59c2258c16f963d170fb7b03f
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -71,18 +65,10 @@ public abstract class BaseScene implements Updatable, Resizable {
             stage.act(delta);
             stage.draw();
         }
-<<<<<<< HEAD
-        OrthographicCamera screenCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        screenCam.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        screenCam.update();
-=======
         // UI/HUD should track the live window size independently from gameplay projection.
         batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
->>>>>>> a70e28e5d09ddb96a0cdfd6b0026c8df43756d93
         batch.setColor(Color.WHITE);
         batch.begin();
-        batch.setProjectionMatrix(screenCam.combined);
-        batch.setColor(Color.WHITE);
         renderUI();
         batch.end();
     }
