@@ -111,7 +111,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         float gh = screenHeight;
 
         // --- Player ---
-        player = new Player("player", gw * 0.1f, 60f, 20f, 36f, 100f, gw, gh);
+        player = new Player("player", gw * 0.1f, 60f, 20f * 1.5f, 36f*1.5f, 100f, gw, gh);
         entityManager.addEntity(player);
         player.getMovementState().reset();
         movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
@@ -244,9 +244,9 @@ public class TestScene extends BaseScene implements GameplayScene {
                 }
                 ioManager.broadcast(GameEvents.NPC_RESCUED);
             }
-            if (p.getRescuedCount() >= door.getRequiredRescues()) {
+            // if (p.getRescuedCount() >= door.getRequiredRescues()) {
                 ioManager.broadcast(GameEvents.PLAYER_WIN);
-            }
+            // }
         });
 
         // --- Events ---

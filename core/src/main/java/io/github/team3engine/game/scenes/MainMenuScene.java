@@ -1,35 +1,48 @@
 package io.github.team3engine.game.scenes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.graphics.Cursor;
 
-import io.github.team3engine.engine.scene.*;
-import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.audio.AudioManager;
+import io.github.team3engine.engine.io.IOManager;
+import io.github.team3engine.engine.scene.BaseScene;
+import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
 
 public class MainMenuScene extends BaseScene {
+    private static final float BUTTON_WIDTH = 220f;
+    private static final float BUTTON_HEIGHT = 54f;
+
     private final SceneManager sceneManager;
     private final IOManager ioManager;
     private final AudioManager audioManager;
-    private final BitmapFont font;
     private final int screenWidth;
     private final int screenHeight;
+    private final GlyphLayout layout = new GlyphLayout();
 
-    // UI
     private Skin skin;
+    private Texture backgroundTexture;
+    private Texture pixelTexture;
+    private BitmapFont titleFont;
+    private BitmapFont subtitleFont;
+    private BitmapFont bodyFont;
 
-    public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager, AudioManager audioManager, int screenWidth, int screenHeight) {
+    public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager,
+            AudioManager audioManager, int screenWidth, int screenHeight) {
         super(batch);
-        this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
@@ -38,85 +51,20 @@ public class MainMenuScene extends BaseScene {
     }
 
     @Override
-    public void onShow() {
+    protected void onShow() {
         super.onShow();
-        // Load default skin
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+        backgroundTexture = new Texture(Gdx.files.internal("background.png"));
+        pixelTexture = createPixelTexture();
+        createFonts();
+        createMenuButtonStyle();
+        createButtons();
+        audioManager.playMusic("title.mp3", true);
 
-        // region Create button
-        TextButton scene1Button = new TextButton("Scene 1", skin);
-        scene1Button.setSize(200, 50);
-        scene1Button.setPosition((screenWidth - scene1Button.getWidth()) / 2f,
-            (screenHeight - scene1Button.getHeight()) / 2f);
-
-        
-        TextButton testSceneButton = new TextButton("Test Scene", skin);
-        testSceneButton.setSize(200, 50);
-        testSceneButton.setPosition((screenWidth - testSceneButton.getWidth()) / 2f,
-            (screenHeight - scene1Button.getHeight() - testSceneButton.getHeight()) / 3f);
-
-
-        // Button action
-        scene1Button.addListener(new ClickListener() {
-            @Override // hover enter
-            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-                // pointer == -1 means mouse, not touch
-                if (pointer == -1) {
-                    scene1Button.setColor(0.7f, 0.7f, 1f, 1f); // light blue on hover
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                }
-            }
-
-            @Override // hover exit
-            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-                if (pointer == -1) {
-                    scene1Button.setColor(1f, 1f, 1f, 1f); // reset to normal
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
-                }
-            }
-
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast(GameEvents.START_GAME);
-            }
-        });
-        getStage().addActor(scene1Button);
-
-        // Button action
-        testSceneButton.addListener(new ClickListener() {
-            @Override // hover enter
-            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-                // pointer == -1 means mouse, not touch
-                if (pointer == -1) {
-                    testSceneButton.setColor(0.7f, 0.7f, 1f, 1f); // light blue on hover
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                }
-            }
-
-            @Override // hover exit
-            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-                if (pointer == -1) {
-                    testSceneButton.setColor(1f, 1f, 1f, 1f); // reset to normal
-                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
-                }
-            }
-
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ioManager.broadcast(GameEvents.START_GAME_TEST);
-            }
-        });
-        getStage().addActor(testSceneButton);
-        // endregion
-
-        // register events
         ioManager.registerEvent(GameEvents.START_GAME, () -> {
-            Gdx.app.log("Game", "Starting game - Scene 1");
-            sceneManager.setScene(SceneType.SCENE_1.name());
-        });
-        ioManager.registerEvent(GameEvents.START_GAME_TEST, () -> {
-            Gdx.app.log("Game", "Starting game - Test Scene");
-            sceneManager.setScene(SceneType.TEST_SCENE.name());
+            String sceneToShow = SceneType.TEST_SCENE.name();
+            Gdx.app.log("Game", "Starting game - " + sceneToShow);
+            sceneManager.setScene(sceneToShow);
         });
     }
 
@@ -126,27 +74,59 @@ public class MainMenuScene extends BaseScene {
 
     @Override
     public void render(float delta) {
-        clearScreen(0.15f, 0.15f, 0.4f, 1f);
+        clearScreen(0.12f, 0.11f, 0.18f, 1f);
+        batch.begin();
+        drawBackdrop();
+        batch.end();
         drawStageAndUI(delta);
     }
 
     @Override
     protected void renderUI() {
-        font.draw(batch, "Main Menu", 285, 300);
+        float centerX = screenWidth / 2f;
+
+        drawCenteredText(titleFont, "MAIN MENU", centerX, screenHeight - 64f, new Color(0.98f, 0.94f, 0.88f, 1f));
+        drawCenteredText(subtitleFont, "ESCAPE BEFORE THE FIRE SPREADS", centerX, screenHeight - 112f,
+                new Color(1f, 0.78f, 0.42f, 1f));
+
+        float cardX = 92f;
+        float lineY = 250f;
+        float lineGap = 28f;
+
+        drawLeftText(bodyFont, "Mission Brief", cardX + 18f, lineY + 18f, new Color(1f, 0.82f, 0.48f, 1f));
+        drawLeftText(bodyFont, "The building is on fire. Your only goal is to get out alive.",
+                cardX + 18f, lineY - lineGap, Color.WHITE);
+        drawLeftText(bodyFont, "Use A / D to move, W to jump, and ESC to pause.", cardX + 18f,
+                lineY - lineGap * 2f, new Color(0.88f, 0.91f, 0.96f, 1f));
+        drawLeftText(bodyFont, "Grab the wet towel and mask — they'll buy you more time.", cardX + 18f,
+                lineY - lineGap * 3f, new Color(0.88f, 0.91f, 0.96f, 1f));
+
+        drawCenteredText(bodyFont, "Find the exit. Don't stop moving.", centerX, 30f,
+                new Color(1f, 0.72f, 0.56f, 1f));
     }
 
     @Override
-    public void onHide() {
+    protected void onHide() {
         ioManager.clearEvent(GameEvents.START_GAME);
-        ioManager.clearEvent(GameEvents.START_GAME_TEST);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+
         if (skin != null) {
             skin.dispose();
             skin = null;
         }
-        Stage s = getStage();
-        if (s != null) {
-            s.clear();
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+            backgroundTexture = null;
+        }
+        if (pixelTexture != null) {
+            pixelTexture.dispose();
+            pixelTexture = null;
+        }
+        disposeFonts();
+
+        Stage stage = getStage();
+        if (stage != null) {
+            stage.clear();
         }
     }
 
@@ -156,6 +136,139 @@ public class MainMenuScene extends BaseScene {
             skin.dispose();
             skin = null;
         }
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+            backgroundTexture = null;
+        }
+        if (pixelTexture != null) {
+            pixelTexture.dispose();
+            pixelTexture = null;
+        }
+        disposeFonts();
         super.dispose();
+    }
+
+    private void createButtons() {
+        TextButton startButton = new TextButton("Start Rescue", skin, "menu-primary");
+        startButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+        startButton.setPosition((screenWidth - BUTTON_WIDTH) / 2f, 60f);
+
+        startButton.addListener(new ClickListener() {
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                if (pointer == -1) {
+                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
+                }
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                if (pointer == -1) {
+                    Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+                }
+            }
+
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                ioManager.broadcast(GameEvents.START_GAME);
+            }
+        });
+
+        getStage().addActor(startButton);
+    }
+
+    private void createMenuButtonStyle() {
+        TextButton.TextButtonStyle baseStyle = skin.get(TextButton.TextButtonStyle.class);
+        TextButton.TextButtonStyle menuStyle = new TextButton.TextButtonStyle(baseStyle);
+        menuStyle.up = skin.newDrawable(baseStyle.up, new Color(0.22f, 0.23f, 0.28f, 0.96f));
+        menuStyle.over = skin.newDrawable(baseStyle.up, new Color(0.85f, 0.36f, 0.10f, 1f));
+        menuStyle.down = skin.newDrawable(baseStyle.down != null ? baseStyle.down : baseStyle.up,
+                new Color(0.65f, 0.24f, 0.07f, 1f));
+        menuStyle.checked = menuStyle.down;
+        menuStyle.font = bodyFont;
+        menuStyle.fontColor = new Color(0.98f, 0.94f, 0.88f, 1f);
+        menuStyle.overFontColor = Color.WHITE;
+        menuStyle.downFontColor = Color.WHITE;
+        skin.add("menu-primary", menuStyle);
+    }
+
+    private void createFonts() {
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
+                Gdx.files.internal("ui/OpenSans_Condensed-SemiBold.ttf"));
+
+        titleFont = generator.generateFont(fontParams(46, new Color(0.12f, 0.08f, 0.08f, 1f), 2));
+        subtitleFont = generator.generateFont(fontParams(20, new Color(0.10f, 0.08f, 0.08f, 1f), 1));
+        bodyFont = generator.generateFont(fontParams(18, new Color(0.08f, 0.08f, 0.08f, 1f), 1));
+
+        generator.dispose();
+    }
+
+    private FreeTypeFontGenerator.FreeTypeFontParameter fontParams(int size, Color borderColor, int borderWidth) {
+        FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        params.size = size;
+        params.color = Color.WHITE;
+        params.borderColor = borderColor;
+        params.borderWidth = borderWidth;
+        params.shadowColor = new Color(0f, 0f, 0f, 0.35f);
+        params.shadowOffsetX = 2;
+        params.shadowOffsetY = 2;
+        return params;
+    }
+
+    private void drawBackdrop() {
+        if (backgroundTexture != null) {
+            batch.setColor(Color.WHITE);
+            batch.draw(backgroundTexture, 0f, 0f, screenWidth, screenHeight);
+        }
+        if (pixelTexture == null) {
+            return;
+        }
+
+        drawRect(0f, 0f, screenWidth, screenHeight, new Color(0.05f, 0.04f, 0.08f, 0.48f));
+        drawRect(70f, 332f, 500f, 92f, new Color(0.07f, 0.08f, 0.11f, 0.82f));
+        drawRect(92f, 132f, 456f, 150f, new Color(0.08f, 0.09f, 0.12f, 0.82f));
+        drawRect(92f, 282f, 456f, 3f, new Color(1f, 0.58f, 0.22f, 0.88f));
+        drawRect(160f, 68f, 320f, 34f, new Color(0.08f, 0.08f, 0.10f, 0.62f));
+        batch.setColor(Color.WHITE);
+    }
+
+    private void drawCenteredText(BitmapFont drawFont, String text, float centerX, float y, Color color) {
+        layout.setText(drawFont, text);
+        drawFont.setColor(color);
+        drawFont.draw(batch, text, centerX - layout.width / 2f, y);
+    }
+
+    private void drawLeftText(BitmapFont drawFont, String text, float x, float y, Color color) {
+        drawFont.setColor(color);
+        drawFont.draw(batch, text, x, y);
+    }
+
+    private void drawRect(float x, float y, float width, float height, Color color) {
+        batch.setColor(color);
+        batch.draw(pixelTexture, x, y, width, height);
+    }
+
+    private Texture createPixelTexture() {
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
+    private void disposeFonts() {
+        if (titleFont != null) {
+            titleFont.dispose();
+            titleFont = null;
+        }
+        if (subtitleFont != null) {
+            subtitleFont.dispose();
+            subtitleFont = null;
+        }
+        if (bodyFont != null) {
+            bodyFont.dispose();
+            bodyFont = null;
+        }
     }
 }
