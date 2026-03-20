@@ -11,8 +11,8 @@ private float maxCrawlSpeed = 120f; // slower than walking
     private float acceleration = 700f;
     private float deceleration = 700f;
 
-    private float jumpForce = 620.0f;
-    private float gravity = -900.0f;
+    private float jumpForce = 500.0f;
+    private float gravity = -1100.0f;
     private float jumpCooldownDuration = 0.6f;
 
     // Apply movement to an entity based on its MovementState and input.
