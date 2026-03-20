@@ -3,6 +3,7 @@ package io.github.team3engine.game.ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -11,7 +12,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 /**
  * Unified HUD renderer for all in-game overlays.
  * Handles: HP bar (League-style ghost + blink), buffs, carrying tag, objective.
- * Timer / Score / Rescued are handled by BaseScene.renderHUD() top-right.
+ * Timer / Score / Rescued are rendered by each scene's own renderUI() method.
  */
 public class HUDRenderer {
 
@@ -77,7 +78,7 @@ public class HUDRenderer {
 
     /**
      * Draw bottom-left HUD: HP bar, HP numbers, buffs, carrying tag, objective.
-     * Rescued / Timer / Score are drawn by BaseScene.renderHUD() separately.
+     * Rescued / Timer / Score are drawn by each scene's own renderUI() method.
      */
     public void render(SpriteBatch batch,
                        float currentHp, float maxHp,
@@ -87,10 +88,14 @@ public class HUDRenderer {
         int sw = Gdx.graphics.getWidth();
         int sh = Gdx.graphics.getHeight();
 
+        OrthographicCamera screenCam = new OrthographicCamera(sw, sh);
+        screenCam.setToOrtho(false, sw, sh);
+        screenCam.update();
+
         // ── Shapes ───────────────────────────────────────────────────────
         batch.end();
         enableBlend();
-        shape.setProjectionMatrix(batch.getProjectionMatrix());
+        shape.setProjectionMatrix(screenCam.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
 
         // Background
@@ -116,6 +121,7 @@ public class HUDRenderer {
 
         disableBlend();
         batch.begin();
+        batch.setProjectionMatrix(screenCam.combined);
 
         // ── Text ─────────────────────────────────────────────────────────
         font.setColor(Color.WHITE);

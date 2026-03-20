@@ -10,10 +10,10 @@ import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Damageable;
-import io.github.team3engine.engine.interfaces.Solid;
+import io.github.team3engine.game.interfaces.Damageable;
+import io.github.team3engine.game.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementState;
-import io.github.team3engine.engine.status.StatusEffectManager;
+import io.github.team3engine.game.status.StatusEffectManager;
 import io.github.team3engine.game.interfaces.Followable;
 import io.github.team3engine.game.ui.FloatingText;
 import io.github.team3engine.game.status.DamageReductionEffect;
@@ -26,8 +26,8 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     private final float height;
     private float baseSpeed = 220f;
     private final Texture texture;
-    private final float screenWidth;
-    private final float screenHeight;
+    private final float worldWidth;
+    private final float worldHeight;
 
     // Animation
     private final PlayerAnimator animator;
@@ -52,14 +52,14 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     private int rescuedCount = 0;
 
     public Player(String id, float x, float y, float width, float height,
-                  float maxHp, float screenWidth, float screenHeight) {
+                  float maxHp, float worldWidth, float worldHeight) {
         super(id);
         this.width = width;
         this.height = height;
         this.maxHp = maxHp;
         this.hp = maxHp;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
+        this.worldWidth = worldWidth;
+        this.worldHeight = worldHeight;
         this.movementState = new MovementState();
         this.statusEffects = new StatusEffectManager(this);
         this.texture = new Texture("player.png");
@@ -150,17 +150,29 @@ public class Player extends CollidableEntity implements Damageable, Followable {
 
     public float getHeight() { return height; }
 
+    public float getHitboxHeight() {
+        boolean isCrouching = movementState != null && movementState.isCrouching();
+        return height * (isCrouching ? CROUCHING_HEIGHT_RATIO : HITBOX_HEIGHT_RATIO);
+    }
+
+    public boolean isCrouching() {
+        return movementState != null && movementState.isCrouching();
+    }
+
     // --- Entity overrides ---
 
     // Fraction of sprite height the character actually occupies (bottom-anchored).
     // The top ~25% of each 48x48 frame is empty space above the head.
     private static final float HITBOX_HEIGHT_RATIO = 0.75f;
+    private static final float CROUCHING_HEIGHT_RATIO = 0.45f;
 
     @Override
     protected void updateHitbox() {
         float hitboxWidth = getDrawWidth();
-        float hitboxHeight = height * HITBOX_HEIGHT_RATIO;
-        hitbox.setPosition(position.x - hitboxWidth / 2f, position.y);
+        boolean isCrouching = movementState != null && movementState.isCrouching();
+        float hitboxHeight = height * (isCrouching ? CROUCHING_HEIGHT_RATIO : HITBOX_HEIGHT_RATIO);
+        float yOffset = isCrouching ? 0f : 0f;
+        hitbox.setPosition(position.x - hitboxWidth / 2f, position.y + yOffset);
         hitbox.setSize(hitboxWidth, hitboxHeight);
     }
 
@@ -188,10 +200,10 @@ public class Player extends CollidableEntity implements Damageable, Followable {
             invincibilityTimer -= dt;
         }
 
-        // Clamp to screen using actual draw width
+        // Clamp to world bounds using actual draw width
         float halfW = getDrawWidth() / 2f;
-        position.x = Math.max(halfW, Math.min(screenWidth - halfW, position.x));
-        position.y = Math.max(0f, Math.min(screenHeight - height * HITBOX_HEIGHT_RATIO, position.y));
+        position.x = Math.max(halfW, Math.min(worldWidth - halfW, position.x));
+        position.y = Math.max(0f, Math.min(worldHeight - height * HITBOX_HEIGHT_RATIO, position.y));
         updateHitbox();
 
         damageText.update(dt);

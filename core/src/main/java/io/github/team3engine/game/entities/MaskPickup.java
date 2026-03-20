@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Pickup;
+import io.github.team3engine.game.interfaces.Pickup;
 import io.github.team3engine.game.status.DamageReductionEffect;
 
 /**

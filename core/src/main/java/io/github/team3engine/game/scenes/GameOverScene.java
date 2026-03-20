@@ -22,6 +22,7 @@ public class GameOverScene extends BaseScene {
     private final int screenHeight;
 
     private String retrySceneId;
+    private int retryLevel = 1;
     private Skin skin;
 
     public GameOverScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
@@ -38,17 +39,22 @@ public class GameOverScene extends BaseScene {
         if (retrySceneId != null) this.retrySceneId = retrySceneId;
     }
 
+    public void setRetryLevel(int level) {
+        this.retryLevel = level;
+    }
+
     @Override
     protected void onShow() {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        float centerX = screenWidth  / 2f;
-        float centerY = screenHeight / 2f;
-        float gap     = 20f;
-        float totalW  = SceneButtonFactory.BUTTON_WIDTH * 2 + gap;
-        float startX  = centerX - totalW / 2f;
-        float btnY    = centerY - 100f;
+        retryButton = SceneButtonFactory.create("Retry", skin, () -> {
+            BaseScene scene = sceneManager.getScene(retrySceneId);
+            if (scene instanceof TestScene) {
+                ((TestScene) scene).setLevel(retryLevel);
+            }
+            sceneManager.setScene(retrySceneId);
+        });
 
         TextButton retryButton = SceneButtonFactory.create("Retry", skin,
                 () -> sceneManager.setScene(retrySceneId));

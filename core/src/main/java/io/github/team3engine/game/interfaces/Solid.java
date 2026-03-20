@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.interfaces;
+package io.github.team3engine.game.interfaces;
 
 /**
  * Marker interface for entities that act as solid surfaces (floors, walls, ceilings).

@@ -1,33 +1,23 @@
-package io.github.team3engine.engine.scoring;
+package io.github.team3engine.game.score;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.team3engine.engine.interfaces.Scoreable;
-import io.github.team3engine.engine.interfaces.ScoreRule;
+import io.github.team3engine.game.interfaces.Scoreable;
+import io.github.team3engine.game.interfaces.ScoreRule;
 
 public class ScoreManager implements Scoreable {
-
-    // Singleton
-    private static ScoreManager instance;
 
     private int score;
     private int highScore;
     private float multiplier;
     private List<ScoreRule> scoreRules;
 
-    private ScoreManager() {
+    public ScoreManager() {
         score = 0;
         highScore = 0;
         multiplier = 1.0f;
         scoreRules = new ArrayList<>();
-    }
-
-    public static ScoreManager getInstance() {
-        if (instance == null) {
-            instance = new ScoreManager();
-        }
-        return instance;
     }
 
     // --- Scoreable interface ---

@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.status;
+package io.github.team3engine.game.status;
 
 import io.github.team3engine.engine.entity.Entity;
 

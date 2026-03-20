@@ -2,10 +2,14 @@ package io.github.team3engine.game.scenes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector3;
 
 import com.badlogic.gdx.utils.Array;
 
@@ -14,16 +18,17 @@ import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.collision.CollisionMediator;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Damageable;
+import io.github.team3engine.game.interfaces.Damageable;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
-import io.github.team3engine.engine.scoring.ScoreContext;
-import io.github.team3engine.engine.interfaces.ScoreRule;
-import io.github.team3engine.engine.scoring.ScoreManager;
+import io.github.team3engine.game.score.ScoreContext;
+import io.github.team3engine.game.interfaces.ScoreRule;
+import io.github.team3engine.game.score.ScoreManager;
+import io.github.team3engine.game.scene.Timer;
 import java.util.List;
-import io.github.team3engine.engine.status.StatusEffect;
+import io.github.team3engine.game.status.StatusEffect;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.inputs.PlayerInput;
@@ -37,7 +42,10 @@ public class TestScene extends BaseScene implements GameplayScene {
     private static final float FIRE_GROW_Y_PER_SEC = 0.06f;
     private static final float FIRE_MAX_SCALE_X = 2f;
     private static final float FIRE_MAX_SCALE_Y = 2f;
-
+    
+    private static final float CAMERA_LERP = 5f;
+    
+    private OrthographicCamera camera;
     private Player player;
     private MovementInput movementInput;
     private PlayerInput playerInput;
@@ -46,6 +54,8 @@ public class TestScene extends BaseScene implements GameplayScene {
     private Texture platformTex;
     private final Array<Fire> fires = new Array<>();
     private HUDRenderer hud;
+    private LevelConfig levelConfig;
+    private NPC npc;
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
@@ -54,20 +64,36 @@ public class TestScene extends BaseScene implements GameplayScene {
     private final CollisionManager collisionManager;
     private final MovementManager movementManager;
     private final BitmapFont font;
+    private final ScoreManager scoreManager;
 
     private final int screenWidth;
     private final int screenHeight;
     private boolean deathHandled;
     private final List<ScoreRule> scoreRules;
 
+    // Timer managed locally
+    private Timer timer;
+    private BitmapFont timerFont;
+    private GlyphLayout timerLayout;
+
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
                      IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
                      CollisionManager collisionManager, MovementManager movementManager,
                      int screenWidth, int screenHeight,
-                     List<ScoreRule> scoreRules) {
+                     List<ScoreRule> scoreRules, ScoreManager scoreManager) {
+        this(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager,
+             collisionManager, movementManager, screenWidth, screenHeight, scoreRules, scoreManager, 1);
+    }
+
+    public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
+                     IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
+                     CollisionManager collisionManager, MovementManager movementManager,
+                     int screenWidth, int screenHeight,
+                     List<ScoreRule> scoreRules, ScoreManager scoreManager, int levelNumber) {
         super(batch);
         this.font = sharedFont;
         this.scoreRules = scoreRules;
+        this.scoreManager = scoreManager;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
@@ -76,6 +102,11 @@ public class TestScene extends BaseScene implements GameplayScene {
         this.movementManager = movementManager;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        this.levelConfig = LevelConfig.getAllLevels()[levelNumber - 1];
+    }
+
+    public void setLevel(int levelNumber) {
+        this.levelConfig = LevelConfig.getAllLevels()[levelNumber - 1];
     }
 
     @Override
@@ -86,20 +117,24 @@ public class TestScene extends BaseScene implements GameplayScene {
     @Override
     protected void onShow() {
         super.onShow();
-        enableTimer();
-        if (hud == null) hud = new HUDRenderer(font, screenHeight);
-        hud.init(100f);
-        clearHudLines();
-        addHudLine(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());
-        addHudLine(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
+        // Set up timer with level-specific duration
+        timer = new Timer(levelConfig.timerDuration);
+        if (timerFont == null) {
+            timerFont = new BitmapFont();
+            timerLayout = new GlyphLayout();
+        }
+        timer.start();
+
+        if (hud == null) hud = new HUDRenderer(font);
+        hud.init(levelConfig.playerMaxHp);
         fires.clear();
         deathHandled = false;
 
         // --- Register score rules ---
-        ScoreManager.getInstance().reset();
+        // Don't reset score - accumulate across levels
         if (scoreRules != null) {
             for (ScoreRule rule : scoreRules) {
-                ScoreManager.getInstance().addRule(rule);
+                scoreManager.addRule(rule);
             }
         }
 
@@ -107,101 +142,82 @@ public class TestScene extends BaseScene implements GameplayScene {
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
 
-        float gw = screenWidth;
-        float gh = screenHeight;
-
         // --- Player ---
-        player = new Player("player", gw * 0.1f, 60f, 20f * 1.5f, 36f*1.5f, 100f, gw, gh);
+        player = new Player("player", levelConfig.playerStartX, levelConfig.playerStartY, 20f, 36f, levelConfig.playerMaxHp, levelConfig.worldWidth, levelConfig.worldHeight);
         entityManager.addEntity(player);
         player.getMovementState().reset();
         movementInput = new MovementInput(player.getMovementState(), ioManager, playerInput);
         groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
 
+        // --- Camera ---
+        camera = new OrthographicCamera(screenWidth, screenHeight);
+        camera.position.set(player.getX() + player.getWidth()/2f, player.getY() + player.getHeight()/2f, 0);
+        camera.update();
+
         // --- Platforms ---
         platformTex = new Texture(Gdx.files.internal("platform.png"));
 
-        Platform ground = new Platform("ground", 0, 0, gw, 40f, platformTex);
-        entityManager.addEntity(ground);
-        Platform p1 = new Platform("plat_1", 80f, 130f, 200f, 16f, platformTex);
-        entityManager.addEntity(p1);
-        Platform p2 = new Platform("plat_2", 350f, 210f, 220f, 16f, platformTex);
-        entityManager.addEntity(p2);
-        Platform p3 = new Platform("plat_3", 620f, 300f, 200f, 16f, platformTex);
-        entityManager.addEntity(p3);
+        // Ground segments
+        for (int i = 0; i < levelConfig.groundSegmentsX.length; i++) {
+            Platform ground = new Platform("ground" + i, levelConfig.groundSegmentsX[i], 0, levelConfig.groundSegmentsWidth[i], 40f, platformTex);
+            entityManager.addEntity(ground);
+            collisionManager.register(ground);
+        }
+
+        // Elevated platforms
+        for (int i = 0; i < levelConfig.platformX.length; i++) {
+            Platform p = new Platform("plat_" + i, levelConfig.platformX[i], levelConfig.platformY[i], levelConfig.platformWidth[i], 16f, platformTex);
+            entityManager.addEntity(p);
+            collisionManager.register(p);
+        }
 
         // --- Fire hazards ---
         Texture fire_texture = new Texture(Gdx.files.internal("ui/sprites/fire_spritesheet.png"));
-        Fire fire1a = new Fire("fire_1a", 150f, 40f, 20f, 30f, fire_texture, 8, 1, false);
-        Fire ceilingFire = new Fire("ceiling_fire_1a", 200f, 130f, 20f, 30f, fire_texture, 8, 1, true);
-        Fire ceilingFire2 = new Fire("ceiling_fire_1b", 360f, 210f, 20f, 30f, fire_texture, 8, 1, true);
 
-        // Fire fire1b = new Fire("fire_1b", 248f, 40f, 25f, 35f, fire_texture, 8, 1);
-        // Fire fire1c = new Fire("fire_1c", 230f, 72f, 20f, 22f);
-        trackFire(fire1a);
-        trackFire(ceilingFire);
-        trackFire(ceilingFire2);
-        // trackFire(fire1b);
-        // trackFire(fire1c);
-        entityManager.addEntity(fire1a);
-        entityManager.addEntity(ceilingFire);
-        entityManager.addEntity(ceilingFire2);
-        // entityManager.addEntity(fire1b);
-        // entityManager.addEntity(fire1c);
+        // Ground fires
+        for (int i = 0; i < levelConfig.groundFireX.length; i++) {
+            Fire fire = new Fire("ground_fire_" + i, levelConfig.groundFireX[i], 40f, 22f, 32f, fire_texture, 8, 1, false);
+            trackFire(fire);
+            entityManager.addEntity(fire);
+            collisionManager.register(fire);
+        }
 
-        // Fire fire2a = new Fire("fire_2a", 680f, 40f, 35f, 40f);
-        // Fire fire2b = new Fire("fire_2b", 713f, 40f, 28f, 32f);
-        // Fire fire2c = new Fire("fire_2c", 695f, 78f, 22f, 24f);
-        // trackFire(fire2a);
-        // trackFire(fire2b);
-        // trackFire(fire2c);
-        // entityManager.addEntity(fire2a);
-        // entityManager.addEntity(fire2b);
-        // entityManager.addEntity(fire2c);
-
-        // Fire fire3a = new Fire("fire_3a", 520f, 226f, 28f, 30f);
-        // Fire fire3b = new Fire("fire_3b", 546f, 226f, 22f, 25f);
-        // trackFire(fire3a);
-        // trackFire(fire3b);
-        // entityManager.addEntity(fire3a);
-        // entityManager.addEntity(fire3b);
+        // Ceiling fires
+        for (int i = 0; i < levelConfig.ceilingFireX.length; i++) {
+            Fire ceilingFire = new Fire("ceiling_fire_" + i, levelConfig.ceilingFireX[i], levelConfig.ceilingFireY[i], 20f, 30f, fire_texture, 8, 1, true);
+            trackFire(ceilingFire);
+            entityManager.addEntity(ceilingFire);
+            collisionManager.register(ceilingFire);
+        }
 
         // --- Pickups ---
-        WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
-        MaskPickup mask = new MaskPickup("mask", 550f, 75f);
-        mask.setOnTimerExtend(() -> {
-            if (getTimer() != null) getTimer().addTime(mask.getTimerExtend());
-        });
-        entityManager.addEntity(towel);
-        entityManager.addEntity(mask);
+        for (int i = 0; i < levelConfig.towelX.length; i++) {
+            WetTowelPickup towel = new WetTowelPickup("towel" + i, levelConfig.towelX[i], levelConfig.towelY[i]);
+            entityManager.addEntity(towel);
+            collisionManager.register(towel);
+        }
+
+        for (int i = 0; i < levelConfig.maskX.length; i++) {
+            MaskPickup mask = new MaskPickup("mask" + i, levelConfig.maskX[i], levelConfig.maskY[i]);
+            mask.setOnTimerExtend(() -> {
+                if (timer != null) timer.addTime(mask.getTimerExtend());
+            });
+            entityManager.addEntity(mask);
+            collisionManager.register(mask);
+        }
 
         // --- NPC ---
-        NPC npc = new NPC("npc_child", 350f, 55f, "Child");
+        npc = new NPC("npc_child", levelConfig.npcX, levelConfig.npcY, "Child", levelConfig.npcMaxHp);
         entityManager.addEntity(npc);
+        collisionManager.register(npc);
 
         // --- Exit door ---
-        ExitDoor exit = new ExitDoor("exit_door", gw - 55f, 40f, 40f, 60f, 1, ioManager);
+        ExitDoor exit = new ExitDoor("exit_door", levelConfig.exitX, 40f, 40f, 60f, 1, ioManager);
         entityManager.addEntity(exit);
+        collisionManager.register(exit);
 
         // --- Register collisions ---
         collisionManager.register(player);
-        collisionManager.register(ground);
-        collisionManager.register(p1);
-        collisionManager.register(p2);
-        collisionManager.register(p3);
-        collisionManager.register(fire1a);
-        collisionManager.register(ceilingFire);
-        collisionManager.register(ceilingFire2);
-        // collisionManager.register(fire1b);
-        // collisionManager.register(fire1c);
-        // collisionManager.register(fire2a);
-        // collisionManager.register(fire2b);
-        // collisionManager.register(fire2c);
-        // collisionManager.register(fire3a);
-        // collisionManager.register(fire3b);
-        collisionManager.register(towel);
-        collisionManager.register(mask);
-        collisionManager.register(npc);
-        collisionManager.register(exit);
 
         // --- Collision rules ---
         mediator = new CollisionMediator();
@@ -234,6 +250,9 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         mediator.addRule(ExitDoor.class, Player.class, (door, p) -> {
             if (p.isCarryingNPC()) {
+                boolean npcSurvived = npc != null && npc.isAlive();
+                int actualRescued = npcSurvived ? 1 : 0;
+                
                 p.rescueNPC();
                 SlowEffect slow = p.getStatusEffects().getEffect(SlowEffect.class);
                 if (slow != null) {
@@ -248,20 +267,32 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         // --- Events ---
         ioManager.registerEvent(GameEvents.PLAYER_WIN, () -> {
-            Gdx.app.log("Game", "Player won!");
+            Gdx.app.log("Game", "Player won level " + levelConfig.levelNumber + "!");
             audioManager.play("victory.mp3");
+
+            boolean npcSurvived = npc != null && npc.isAlive();
+            int actualRescued = npcSurvived ? 1 : 0;
 
             ScoreContext context = new ScoreContext("PLAYER_ESCAPED");
             context.put("objectiveComplete", true);
-            context.put("npcsRescued", player.getRescuedCount());
-            context.put("timeRemaining", getTimer().getTimeRemaining());
-            ScoreManager.getInstance().applyRules(context);
+            context.put("npcsRescued", actualRescued);
+            context.put("timeRemaining", timer.getTimeRemaining());
+            context.put("npcSurvived", npcSurvived);
+            context.put("npcHealthRemaining", npcSurvived ? npc.getHp() / npc.getMaxHp() : 0f);
+            context.put("levelNumber", levelConfig.levelNumber);
+            scoreManager.applyRules(context);
 
-            Gdx.app.log("Score", "Final Score: " + ScoreManager.getInstance().getFinalScore());
+            Gdx.app.log("Score", "Final Score: " + scoreManager.getFinalScore());
 
-            // Show scoreboard, next level = TEST_SCENE (change to SCENE_2 when ready)
             ScoreBoardScene board = (ScoreBoardScene) sceneManager.getScene(SceneType.SCORE_BOARD.name());
-            if (board != null) board.setNextScene(SceneType.TEST_SCENE.name());
+            if (board != null) {
+                if (levelConfig.levelNumber < 3) {
+                    board.setNextScene(SceneType.TEST_SCENE.name());
+                    board.setNextLevel(levelConfig.levelNumber + 1);
+                } else {
+                    board.setNextScene(SceneType.MAIN_MENU_SCENE.name());
+                }
+            }
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.SCORE_BOARD.name()));
         });
 
@@ -282,6 +313,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         movementInput = null;
         groundDetector = null;
         player = null;
+        npc = null;
         if (mediator != null) {
             mediator.clear();
             mediator = null;
@@ -303,8 +335,11 @@ public class TestScene extends BaseScene implements GameplayScene {
         Gdx.gl.glClearColor(0.1f, 0.05f, 0.0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        updateCamera(delta);
+
         batch.begin();
-        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+        batch.setProjectionMatrix(camera.combined);
+        batch.setColor(Color.WHITE);
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
@@ -322,8 +357,17 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     @Override
     public void update(float delta) {
-        super.update(delta);  // ticks the timer
+        super.update(delta);
         delta = Math.min(delta, MAX_DELTA);
+
+        // Tick the timer
+        if (timer != null) {
+            timer.update(delta);
+            if (timer.isFinished()) {
+                onTimerFinished();
+            }
+        }
+
         if (hud != null && player != null) hud.update(delta, player.getHp());
         growFires(delta);
         entityManager.updateAll(delta);
@@ -334,12 +378,12 @@ public class TestScene extends BaseScene implements GameplayScene {
         mediator.resolve(pairs);
     }
 
-    @Override
-    protected void onTimerFinished() {
+    private void onTimerFinished() {
         Gdx.app.log("Game", "Time's up! Game Over.");
         GameOverScene gameOverScene = (GameOverScene) sceneManager.getScene(SceneType.GAME_OVER.name());
         if (gameOverScene != null) {
             gameOverScene.setRetryScene(SceneType.TEST_SCENE.name());
+            gameOverScene.setRetryLevel(levelConfig.levelNumber);
         }
         Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));
     }
@@ -364,6 +408,36 @@ public class TestScene extends BaseScene implements GameplayScene {
             player.isCarryingNPC(),
             "Rescue the NPC and reach the EXIT!"
         );
+
+        // Render timer top-right
+        if (timer != null && timerFont != null) {
+            int seconds = (int) Math.ceil(timer.getTimeRemaining());
+            int minutes = seconds / 60;
+            int secs = seconds % 60;
+            String timeText = String.format("Time: %d:%02d", minutes, secs);
+            float x = Gdx.graphics.getWidth() - 10f;
+            float y = Gdx.graphics.getHeight() - 10f;
+
+            timerLayout.setText(timerFont, timeText);
+            timerFont.setColor(seconds <= 10 ? Color.RED : Color.WHITE);
+            timerFont.draw(batch, timeText, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
+
+            // Score line
+            String scoreLine = "Score: " + scoreManager.getScore();
+            timerLayout.setText(timerFont, scoreLine);
+            timerFont.setColor(Color.WHITE);
+            timerFont.draw(batch, scoreLine, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
+
+            // Rescued line
+            String rescuedLine = "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1";
+            timerLayout.setText(timerFont, rescuedLine);
+            timerFont.setColor(Color.WHITE);
+            timerFont.draw(batch, rescuedLine, x - timerLayout.width, y);
+
+            timerFont.setColor(Color.WHITE);
+        }
     }
 
     private void trackFire(Fire fire) {
@@ -380,5 +454,26 @@ public class TestScene extends BaseScene implements GameplayScene {
             }
             fire.addScale(growX, growY);
         }
+    }
+
+    private void updateCamera(float delta) {
+        if (player == null || camera == null) return;
+
+        float targetX = player.getX() + player.getWidth() / 2f;
+        float targetY = player.getY() + player.getHeight() / 2f;
+        camera.position.lerp(new Vector3(targetX, targetY, 0), CAMERA_LERP * delta);
+
+        float halfViewportW = screenWidth / 2f;
+        float halfViewportH = screenHeight / 2f;
+        camera.position.x = Math.max(halfViewportW, Math.min(levelConfig.worldWidth - halfViewportW, camera.position.x));
+        camera.position.y = Math.max(halfViewportH, Math.min(levelConfig.worldHeight - halfViewportH, camera.position.y));
+
+        camera.update();
+    }
+
+    @Override
+    public void dispose() {
+        if (timerFont != null) { timerFont.dispose(); timerFont = null; }
+        super.dispose();
     }
 }

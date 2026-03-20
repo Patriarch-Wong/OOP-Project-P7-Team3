@@ -7,10 +7,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 
-import io.github.team3engine.engine.collision.SolidCollisionResolver;
+import io.github.team3engine.game.physics.SolidCollisionResolver;
 import io.github.team3engine.engine.entity.CollidableEntity;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Solid;
+import io.github.team3engine.game.interfaces.Solid;
 
 /**
  * Rectangular platform. Supports either loading its own Texture (by path)

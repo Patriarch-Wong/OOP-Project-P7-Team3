@@ -6,7 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import io.github.team3engine.engine.UIManager;
+import io.github.team3engine.game.ui.UIManager;
 import io.github.team3engine.engine.audio.AudioManager;
 import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.entity.EntityManager;
@@ -17,7 +17,8 @@ import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.scenes.*;
 import io.github.team3engine.game.scenes.demo.Scene1;
-import io.github.team3engine.engine.interfaces.ScoreRule;
+import io.github.team3engine.game.interfaces.ScoreRule;
+import io.github.team3engine.game.score.ScoreManager;
 import io.github.team3engine.game.score.NpcRescueRule;
 import io.github.team3engine.game.score.ObjectiveRule;
 import io.github.team3engine.game.score.TimeBonusRule;
@@ -34,6 +35,10 @@ public class Main extends ApplicationAdapter {
     private BitmapFont sharedFont;
     private UIManager uiManager;
     private boolean isPaused = false;
+    private int currentLevel = 1;
+    // Keep gameplay rendering anchored to the original startup resolution.
+    private int fixedViewportWidth;
+    private int fixedViewportHeight;
 
     private static final float FOOTSTEP_INTERVAL = 0.4f;
     private float footstepTimer = 0;
@@ -55,6 +60,9 @@ public class Main extends ApplicationAdapter {
 
         uiManager = new UIManager(audioManager);
 
+        // Create ScoreManager instance for the game
+        ScoreManager scoreManager = new ScoreManager();
+
         // Store width and height once
         int screenWidth = Gdx.graphics.getWidth();
         int screenHeight = Gdx.graphics.getHeight();
@@ -69,13 +77,12 @@ public class Main extends ApplicationAdapter {
         );
         sceneManager.registerScene(SceneType.TEST_SCENE.name(),
                 new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
-                        movementManager, screenWidth, screenHeight, testSceneRules));
+                        movementManager, screenWidth, screenHeight, testSceneRules, scoreManager));
         sceneManager.registerScene(SceneType.SCENE_1.name(),
                 new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
-                        movementManager, screenWidth, screenHeight));
+                        movementManager, screenWidth, screenHeight, scoreManager));
 
-        ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, screenWidth,
-                screenHeight);
+        ScoreBoardScene scoreBoardScene = new ScoreBoardScene(batch, sharedFont, sceneManager, ioManager, scoreManager);
         sceneManager.registerScene(SceneType.SCORE_BOARD.name(), scoreBoardScene);
         GameOverScene gameOverScene = new GameOverScene(batch, sharedFont, sceneManager, screenWidth, screenHeight,
                 SceneType.TEST_SCENE.name());
@@ -105,6 +112,7 @@ public class Main extends ApplicationAdapter {
             }
             if (isGameplayScene(currentScene) && currentSceneId != null) {
                 gameOverScene.setRetryScene(currentSceneId);
+                gameOverScene.setRetryLevel(currentLevel);
             }
             Gdx.app.log("Game", "Player died!");
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));

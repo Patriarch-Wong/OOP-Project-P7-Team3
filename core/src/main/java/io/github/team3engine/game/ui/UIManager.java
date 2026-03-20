@@ -1,4 +1,4 @@
-package io.github.team3engine.engine;
+package io.github.team3engine.game.ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -21,7 +21,7 @@ public class UIManager implements Updatable {
     public UIManager(VolumeControl volumeControl) {
         this.volumeControl = volumeControl;
         this.stage = new Stage(new ScreenViewport());
-        
+
         // Setup Skin with the Font Fix
         this.skin = new Skin();
         this.skin.add("default", new BitmapFont());
@@ -47,7 +47,7 @@ public class UIManager implements Updatable {
         addVolumeRow(pauseWindow, "SFX", "sfx");
 
         pauseWindow.add(new Label("Press ESC to Resume", skin)).colspan(2).padTop(20);
-        
+
         rootTable.add(pauseWindow).center();
         rootTable.setVisible(false); // Hidden by default
     }
@@ -55,7 +55,7 @@ public class UIManager implements Updatable {
     private void addVolumeRow(Window window, String labelName, final String type) {
         window.add(new Label(labelName, skin)).left().pad(10);
         final Slider slider = new Slider(0, 1, 0.1f, false, skin);
-        
+
         // Set initial value from volume control
         if (type.equals("master")) slider.setValue(volumeControl.getMasterVolume());
         else if (type.equals("music")) slider.setValue(volumeControl.getMusicVolume());
