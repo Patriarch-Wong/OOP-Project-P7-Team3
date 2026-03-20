@@ -122,6 +122,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         timer = new Timer(levelConfig.timerDuration);
         if (timerFont == null) {
             timerFont = new BitmapFont();
+            timerFont.getData().setScale(1.5f);
             timerLayout = new GlyphLayout();
         }
         timer.start();
@@ -420,7 +421,7 @@ public class TestScene extends BaseScene implements GameplayScene {
             player.getHp(), player.getMaxHp(),
             buffs.toString(),
             player.isCarryingNPC(),
-            "Rescue the NPC and reach the EXIT!"
+            "Level " + levelConfig.levelNumber + "/3"
         );
 
         // Render timer top-right

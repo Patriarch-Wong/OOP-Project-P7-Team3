@@ -17,9 +17,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 public class HUDRenderer {
 
     private static final float PAD          = 8f;
-    private static final float BAR_W        = 160f;
-    private static final float BAR_H        = 14f;
-    private static final float LABEL_OFFSET = 4f;
+    private static final float BAR_W        = 200f;
+    private static final float BAR_H        = 20f;
+    private static final float LABEL_OFFSET = 6f;
 
     private static final float GHOST_DELAY    = 0.6f;
     private static final float GHOST_DRAIN    = 0.35f;
@@ -124,6 +124,7 @@ public class HUDRenderer {
         batch.setProjectionMatrix(screenCam.combined);
 
         // ── Text ─────────────────────────────────────────────────────────
+        font.getData().setScale(1.2f);
         font.setColor(Color.WHITE);
 
         // HP numbers above bar
@@ -133,7 +134,7 @@ public class HUDRenderer {
         // Carrying tag right of HP numbers
         if (carrying) {
             font.setColor(CARRYING_COLOR);
-            font.draw(batch, "  [Carrying NPC]", barX + 90f, labelY);
+            font.draw(batch, "  [Carrying NPC]", barX + 130f, labelY);
             font.setColor(Color.WHITE);
         }
 
@@ -147,7 +148,7 @@ public class HUDRenderer {
         // Objective — top centre
         if (objective != null && !objective.isEmpty()) {
             layout.setText(font, objective);
-            font.draw(batch, objective, (sw - layout.width) / 2f, sh - PAD - font.getCapHeight());
+            font.draw(batch, objective, (sw - layout.width) / 2f, sh - PAD - font.getCapHeight() * 1.5f);
         }
 
         font.setColor(Color.WHITE);
