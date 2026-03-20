@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
@@ -28,8 +29,9 @@ import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.events.GameEvents;
-import io.github.team3engine.engine.scoring.ScoreContext;
-import io.github.team3engine.engine.scoring.ScoreManager;
+import io.github.team3engine.game.score.ScoreContext;
+import io.github.team3engine.game.score.ScoreManager;
+import io.github.team3engine.game.scene.Timer;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.physics.GroundDetector;
 import io.github.team3engine.game.factories.*;
@@ -52,6 +54,7 @@ public class Scene1 extends BaseScene implements GameplayScene {
     private final EntityManager entityManager;
     private final CollisionManager collisionManager;
     private final MovementManager movementManager;
+    private final ScoreManager scoreManager;
 
     private PlayerInput playerInput;
     private GroundDetector groundDetector;
@@ -64,10 +67,15 @@ public class Scene1 extends BaseScene implements GameplayScene {
     private Map<String, Float> hazardCooldowns = new HashMap<>();
     private com.badlogic.gdx.utils.Timer.Task fireResetTask;
 
+    // Timer managed locally
+    private Timer timer;
+    private BitmapFont timerFont;
+    private GlyphLayout timerLayout;
+
     public Scene1(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager, IOManager ioManager,
             AudioManager audioManager,
             EntityManager entityManager, CollisionManager collisionManager, MovementManager movementManager,
-            int screenWidth, int screenHeight) {
+            int screenWidth, int screenHeight, ScoreManager scoreManager) {
         super(batch);
         this.font = sharedFont;
         this.sceneManager = sceneManager;
@@ -78,6 +86,7 @@ public class Scene1 extends BaseScene implements GameplayScene {
         this.movementManager = movementManager;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        this.scoreManager = scoreManager;
     }
 
     @Override
@@ -88,7 +97,14 @@ public class Scene1 extends BaseScene implements GameplayScene {
     @Override
     protected void onShow() {
         super.onShow();
-        enableTimer();
+        // Set up timer
+        timer = new Timer(60f);
+        if (timerFont == null) {
+            timerFont = new BitmapFont();
+            timerLayout = new GlyphLayout();
+        }
+        timer.start();
+
         playerInput = new PlayerInput();
         ioManager.addInputListener(playerInput);
         Gdx.input.setInputProcessor(ioManager);
@@ -259,7 +275,16 @@ public class Scene1 extends BaseScene implements GameplayScene {
 
     @Override
     public void update(float dt) {
-        super.update(dt); // ticks the timer
+        super.update(dt);
+
+        // Tick the timer
+        if (timer != null) {
+            timer.update(dt);
+            if (timer.isFinished()) {
+                onTimerFinished();
+            }
+        }
+
         entityManager.updateAll(dt);
         playerInput.update(dt);
         movementInput.update();
@@ -293,16 +318,15 @@ public class Scene1 extends BaseScene implements GameplayScene {
     }
 
     private void onPlayerEscaped() {
-        getTimer().stop();
+        timer.stop();
         ScoreContext context = new ScoreContext("PLAYER_ESCAPED");
-        context.put("timeRemaining", getTimer().getTimeRemaining());
+        context.put("timeRemaining", timer.getTimeRemaining());
         context.put("objectiveComplete", true);
-        ScoreManager.getInstance().applyRules(context);
-        Gdx.app.log("Score", "Final Score: " + ScoreManager.getInstance().getFinalScore());
+        scoreManager.applyRules(context);
+        Gdx.app.log("Score", "Final Score: " + scoreManager.getFinalScore());
     }
 
-    @Override
-    protected void onTimerFinished() {
+    private void onTimerFinished() {
         Gdx.app.log("Game", "Time's up!");
         // Demo scene behavior: no Game Over routing here.
     }
@@ -311,6 +335,27 @@ public class Scene1 extends BaseScene implements GameplayScene {
     protected void renderUI() {
         font.draw(batch, "SCENE 1 - Reach the green box!", 100, 400);
         font.draw(batch, "Win to go to Scene 2.", 100, 350);
-        font.draw(batch, "Score: " + ScoreManager.getInstance().getScore(), 100, 300);
+        font.draw(batch, "Score: " + scoreManager.getScore(), 100, 300);
+
+        // Render timer top-right
+        if (timer != null && timerFont != null) {
+            int seconds = (int) Math.ceil(timer.getTimeRemaining());
+            int minutes = seconds / 60;
+            int secs = seconds % 60;
+            String timeText = String.format("Time: %d:%02d", minutes, secs);
+            float x = Gdx.graphics.getWidth() - 10f;
+            float y = Gdx.graphics.getHeight() - 10f;
+
+            timerLayout.setText(timerFont, timeText);
+            timerFont.setColor(seconds <= 10 ? Color.RED : Color.WHITE);
+            timerFont.draw(batch, timeText, x - timerLayout.width, y);
+            timerFont.setColor(Color.WHITE);
+        }
+    }
+
+    @Override
+    public void dispose() {
+        if (timerFont != null) { timerFont.dispose(); timerFont = null; }
+        super.dispose();
     }
 }

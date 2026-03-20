@@ -2,9 +2,11 @@ package io.github.team3engine.game.scenes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import com.badlogic.gdx.utils.Array;
@@ -14,16 +16,17 @@ import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.collision.CollisionMediator;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Damageable;
+import io.github.team3engine.game.interfaces.Damageable;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
-import io.github.team3engine.engine.scoring.ScoreContext;
-import io.github.team3engine.engine.interfaces.ScoreRule;
-import io.github.team3engine.engine.scoring.ScoreManager;
+import io.github.team3engine.game.score.ScoreContext;
+import io.github.team3engine.game.interfaces.ScoreRule;
+import io.github.team3engine.game.score.ScoreManager;
+import io.github.team3engine.game.scene.Timer;
 import java.util.List;
-import io.github.team3engine.engine.status.StatusEffect;
+import io.github.team3engine.game.status.StatusEffect;
 import io.github.team3engine.game.entities.*;
 import io.github.team3engine.game.events.GameEvents;
 import io.github.team3engine.game.inputs.PlayerInput;
@@ -54,20 +57,27 @@ public class TestScene extends BaseScene implements GameplayScene {
     private final CollisionManager collisionManager;
     private final MovementManager movementManager;
     private final BitmapFont font;
+    private final ScoreManager scoreManager;
 
     private final int screenWidth;
     private final int screenHeight;
     private boolean deathHandled;
     private final List<ScoreRule> scoreRules;
 
+    // Timer managed locally
+    private Timer timer;
+    private BitmapFont timerFont;
+    private GlyphLayout timerLayout;
+
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
                      IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
                      CollisionManager collisionManager, MovementManager movementManager,
                      int screenWidth, int screenHeight,
-                     List<ScoreRule> scoreRules) {
+                     List<ScoreRule> scoreRules, ScoreManager scoreManager) {
         super(batch);
         this.font = sharedFont;
         this.scoreRules = scoreRules;
+        this.scoreManager = scoreManager;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
@@ -86,20 +96,24 @@ public class TestScene extends BaseScene implements GameplayScene {
     @Override
     protected void onShow() {
         super.onShow();
-        enableTimer();
+        // Set up timer
+        timer = new Timer(60f);
+        if (timerFont == null) {
+            timerFont = new BitmapFont();
+            timerLayout = new GlyphLayout();
+        }
+        timer.start();
+
         if (hud == null) hud = new HUDRenderer(font);
         hud.init(100f);
-        clearHudLines();
-        addHudLine(() -> "Score: " + io.github.team3engine.engine.scoring.ScoreManager.getInstance().getScore());
-        addHudLine(() -> "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1");
         fires.clear();
         deathHandled = false;
 
         // --- Register score rules ---
-        ScoreManager.getInstance().reset();
+        scoreManager.reset();
         if (scoreRules != null) {
             for (ScoreRule rule : scoreRules) {
-                ScoreManager.getInstance().addRule(rule);
+                scoreManager.addRule(rule);
             }
         }
 
@@ -169,7 +183,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         WetTowelPickup towel = new WetTowelPickup("towel", 180f, 175f);
         MaskPickup mask = new MaskPickup("mask", 550f, 75f);
         mask.setOnTimerExtend(() -> {
-            if (getTimer() != null) getTimer().addTime(mask.getTimerExtend());
+            if (timer != null) timer.addTime(mask.getTimerExtend());
         });
         entityManager.addEntity(towel);
         entityManager.addEntity(mask);
@@ -254,10 +268,10 @@ public class TestScene extends BaseScene implements GameplayScene {
             ScoreContext context = new ScoreContext("PLAYER_ESCAPED");
             context.put("objectiveComplete", true);
             context.put("npcsRescued", player.getRescuedCount());
-            context.put("timeRemaining", getTimer().getTimeRemaining());
-            ScoreManager.getInstance().applyRules(context);
+            context.put("timeRemaining", timer.getTimeRemaining());
+            scoreManager.applyRules(context);
 
-            Gdx.app.log("Score", "Final Score: " + ScoreManager.getInstance().getFinalScore());
+            Gdx.app.log("Score", "Final Score: " + scoreManager.getFinalScore());
 
             // Show scoreboard, next level = TEST_SCENE (change to SCENE_2 when ready)
             ScoreBoardScene board = (ScoreBoardScene) sceneManager.getScene(SceneType.SCORE_BOARD.name());
@@ -304,7 +318,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+        batch.setColor(Color.WHITE);
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
@@ -322,8 +336,17 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     @Override
     public void update(float delta) {
-        super.update(delta);  // ticks the timer
+        super.update(delta);
         delta = Math.min(delta, MAX_DELTA);
+
+        // Tick the timer
+        if (timer != null) {
+            timer.update(delta);
+            if (timer.isFinished()) {
+                onTimerFinished();
+            }
+        }
+
         if (hud != null && player != null) hud.update(delta, player.getHp());
         growFires(delta);
         entityManager.updateAll(delta);
@@ -334,8 +357,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         mediator.resolve(pairs);
     }
 
-    @Override
-    protected void onTimerFinished() {
+    private void onTimerFinished() {
         Gdx.app.log("Game", "Time's up! Game Over.");
         GameOverScene gameOverScene = (GameOverScene) sceneManager.getScene(SceneType.GAME_OVER.name());
         if (gameOverScene != null) {
@@ -364,6 +386,36 @@ public class TestScene extends BaseScene implements GameplayScene {
             player.isCarryingNPC(),
             "Rescue the NPC and reach the EXIT!"
         );
+
+        // Render timer top-right
+        if (timer != null && timerFont != null) {
+            int seconds = (int) Math.ceil(timer.getTimeRemaining());
+            int minutes = seconds / 60;
+            int secs = seconds % 60;
+            String timeText = String.format("Time: %d:%02d", minutes, secs);
+            float x = Gdx.graphics.getWidth() - 10f;
+            float y = Gdx.graphics.getHeight() - 10f;
+
+            timerLayout.setText(timerFont, timeText);
+            timerFont.setColor(seconds <= 10 ? Color.RED : Color.WHITE);
+            timerFont.draw(batch, timeText, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
+
+            // Score line
+            String scoreLine = "Score: " + scoreManager.getScore();
+            timerLayout.setText(timerFont, scoreLine);
+            timerFont.setColor(Color.WHITE);
+            timerFont.draw(batch, scoreLine, x - timerLayout.width, y);
+            y -= timerLayout.height + 6f;
+
+            // Rescued line
+            String rescuedLine = "Rescued: " + (player != null ? player.getRescuedCount() : 0) + "/1";
+            timerLayout.setText(timerFont, rescuedLine);
+            timerFont.setColor(Color.WHITE);
+            timerFont.draw(batch, rescuedLine, x - timerLayout.width, y);
+
+            timerFont.setColor(Color.WHITE);
+        }
     }
 
     private void trackFire(Fire fire) {
@@ -380,5 +432,11 @@ public class TestScene extends BaseScene implements GameplayScene {
             }
             fire.addScale(growX, growY);
         }
+    }
+
+    @Override
+    public void dispose() {
+        if (timerFont != null) { timerFont.dispose(); timerFont = null; }
+        super.dispose();
     }
 }

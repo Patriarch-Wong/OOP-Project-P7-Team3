@@ -1,7 +1,7 @@
 package io.github.team3engine.game.score;
 
-import io.github.team3engine.engine.interfaces.ScoreRule;
-import io.github.team3engine.engine.scoring.ScoreContext;
+import io.github.team3engine.game.interfaces.ScoreRule;
+import io.github.team3engine.game.score.ScoreContext;
 
 public class ObjectiveRule implements ScoreRule {
     private static final int BASE_POINTS = 1000;

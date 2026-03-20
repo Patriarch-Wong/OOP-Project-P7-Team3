@@ -1,7 +1,7 @@
 package io.github.team3engine.game.status;
 
 import io.github.team3engine.engine.entity.Entity;
-import io.github.team3engine.engine.status.StatusEffect;
+import io.github.team3engine.game.status.StatusEffect;
 
 /**
  * Reduces movement speed by a percentage.

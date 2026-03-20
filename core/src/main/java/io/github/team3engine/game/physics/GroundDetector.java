@@ -7,7 +7,7 @@ import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
 import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.interfaces.Collidable;
-import io.github.team3engine.engine.interfaces.Solid;
+import io.github.team3engine.game.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementManager;
 import io.github.team3engine.game.entities.Circle;
 import io.github.team3engine.game.entities.Player;

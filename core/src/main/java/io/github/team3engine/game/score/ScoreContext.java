@@ -1,4 +1,4 @@
-package io.github.team3engine.engine.scoring;
+package io.github.team3engine.game.score;
 
 import java.util.HashMap;
 import java.util.Map;
