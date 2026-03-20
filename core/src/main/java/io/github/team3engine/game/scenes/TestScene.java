@@ -56,6 +56,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     private HUDRenderer hud;
     private LevelConfig levelConfig;
     private NPC npc;
+    private Texture backgroundTex;
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
@@ -153,6 +154,9 @@ public class TestScene extends BaseScene implements GameplayScene {
         camera = new OrthographicCamera(screenWidth, screenHeight);
         camera.position.set(player.getX() + player.getWidth()/2f, player.getY() + player.getHeight()/2f, 0);
         camera.update();
+
+        // --- Background ---
+        backgroundTex = new Texture(Gdx.files.internal("burning_bg.png"));
 
         // --- Platforms ---
         platformTex = new Texture(Gdx.files.internal("platform.png"));
@@ -322,6 +326,10 @@ public class TestScene extends BaseScene implements GameplayScene {
             platformTex.dispose();
             platformTex = null;
         }
+        if (backgroundTex != null) {
+            backgroundTex.dispose();
+            backgroundTex = null;
+        }
         ioManager.clearEvent(GameEvents.PLAYER_WIN);
         ioManager.clearEvent(GameEvents.NPC_RESCUED);
         if (hud != null) { hud.dispose(); hud = null; }
@@ -340,6 +348,12 @@ public class TestScene extends BaseScene implements GameplayScene {
         batch.begin();
         batch.setProjectionMatrix(camera.combined);
         batch.setColor(Color.WHITE);
+
+        // Draw background scaled to world size
+        if (backgroundTex != null) {
+            batch.draw(backgroundTex, 0, 0, levelConfig.worldWidth, levelConfig.worldHeight);
+        }
+
         entityManager.renderAll(batch);
         batch.end();
         drawStageAndUI(delta);
