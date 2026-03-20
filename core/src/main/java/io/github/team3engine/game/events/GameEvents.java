@@ -19,7 +19,6 @@ public enum GameEvents {
     GAME_UNPAUSE,
 
     START_GAME,
-    START_GAME_TEST,
 
     SCOREBOARD_NEXT,
     SCOREBOARD_MENU

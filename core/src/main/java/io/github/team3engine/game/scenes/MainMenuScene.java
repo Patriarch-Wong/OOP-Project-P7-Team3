@@ -35,8 +35,7 @@ public class MainMenuScene extends BaseScene {
     private Texture       background;
     private ShapeRenderer shape;
     private Skin          skin;
-    private TextButton    scene1Button;
-    private TextButton    testSceneButton;
+    private TextButton    startGameButton;
 
     private float currentOffsetX = 0f;
     private float currentOffsetY = 0f;
@@ -65,14 +64,9 @@ public class MainMenuScene extends BaseScene {
 
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        scene1Button = SceneButtonFactory.create("Scene 1", skin,
+        startGameButton = SceneButtonFactory.create("Start Game", skin,
                 () -> ioManager.broadcast(GameEvents.START_GAME));
-
-        testSceneButton = SceneButtonFactory.create("Test Scene", skin,
-                () -> ioManager.broadcast(GameEvents.START_GAME_TEST));
-
-        getStage().addActor(scene1Button);
-        getStage().addActor(testSceneButton);
+        getStage().addActor(startGameButton);
         layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         ioManager.registerEvent(GameEvents.START_GAME, () -> {
@@ -168,30 +162,24 @@ public class MainMenuScene extends BaseScene {
     @Override
     public void onHide() {
         ioManager.clearEvent(GameEvents.START_GAME);
-        ioManager.clearEvent(GameEvents.START_GAME_TEST);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
         if (skin       != null) { skin.dispose();       skin       = null; }
         if (shape      != null) { shape.dispose();      shape      = null; }
         if (background != null) { background.dispose(); background = null; }
-        scene1Button = null;
-        testSceneButton = null;
+        startGameButton = null;
         Stage s = getStage();
         if (s != null) s.clear();
     }
 
     private void layoutButtons(int width, int height) {
-        if (scene1Button == null || testSceneButton == null) {
+        if (startGameButton == null) {
             return;
         }
         float centerX = width / 2f;
         float centerY = height / 2f;
-        float gap = 16f;
-        float btnH = SceneButtonFactory.BUTTON_HEIGHT;
-
-        scene1Button.setPosition(centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
-                centerY + gap / 2f);
-        testSceneButton.setPosition(centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
-                centerY - btnH - gap / 2f);
+        startGameButton.setPosition(
+                centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
+                centerY - SceneButtonFactory.BUTTON_HEIGHT / 2f);
     }
 
     @Override
