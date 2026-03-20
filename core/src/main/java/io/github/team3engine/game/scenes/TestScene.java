@@ -44,6 +44,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     private static final float FIRE_GROW_Y_PER_SEC = 0.06f;
     private static final float FIRE_MAX_SCALE_X = 2f;
     private static final float FIRE_MAX_SCALE_Y = 2f;
+    private static final float FALL_DEATH_BUFFER = 0f;
     
     private static final float CAMERA_LERP = 5f;
     
@@ -348,6 +349,10 @@ public class TestScene extends BaseScene implements GameplayScene {
         groundDetector.checkFallCondition(player);
         groundDetector.checkGroundDetection(player);
 
+        if (!deathHandled && hasPlayerFallenOutOfScreen()) {
+            player.kill();
+        }
+
         if (!deathHandled && !player.isAlive()) {
             deathHandled = true;
             ioManager.broadcast(GameEvents.PLAYER_DEAD);
@@ -478,6 +483,10 @@ public class TestScene extends BaseScene implements GameplayScene {
         camera.position.y = Math.max(halfViewportH, Math.min(levelConfig.worldHeight - halfViewportH, camera.position.y));
 
         camera.update();
+    }
+
+    private boolean hasPlayerFallenOutOfScreen() {
+        return player != null && player.getY() + player.getHeight() < -FALL_DEATH_BUFFER;
     }
 
     @Override
