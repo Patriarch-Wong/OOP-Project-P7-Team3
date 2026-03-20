@@ -18,14 +18,18 @@ import io.github.team3engine.game.interfaces.Followable;
  * FOLLOWING — smoothly lerps behind the player (MapleStory pet style).
  *             All follow behaviour is configurable via constructor.
  */
-public class NPC extends CollidableEntity {
+public class NPC extends CollidableEntity implements io.github.team3engine.engine.interfaces.Damageable {
 
-    public enum State { WAITING, FOLLOWING }
+    public enum State { WAITING, FOLLOWING, DEAD }
 
     private static final float WIDTH      = 20f;
     private static final float HEIGHT     = 36f;
     private static final float ARROW_SIZE = 8f;
     private static final float LABEL_GAP  = 6f;
+    private static final float HEALTH_BAR_WIDTH = 30f;
+    private static final float HEALTH_BAR_HEIGHT = 4f;
+    private static final float HEALTH_BAR_OFFSET_Y = 8f;
+    private static final float INVINCIBILITY_DURATION = 0.5f;
 
     private State state = State.WAITING;
 
@@ -36,6 +40,12 @@ public class NPC extends CollidableEntity {
 
     private float bobTimer = 0f;
     private final String name;
+
+    // NPC Health system
+    private float hp;
+    private float maxHp;
+    private float invincibilityTimer = 0f;
+    private boolean wasJustDamaged = false;
 
     // Configurable follow behaviour
     private final float followOffsetX;  // horizontal distance behind player
@@ -55,14 +65,17 @@ public class NPC extends CollidableEntity {
      * @param followOffsetX horizontal distance to trail behind player
      * @param followOffsetY vertical offset from player position
      * @param lerpSpeed     follow smoothness — 4 = floaty, 8 = snappy
+     * @param maxHp         maximum health for the NPC
      */
     public NPC(String id, float x, float y, String name,
-               float followOffsetX, float followOffsetY, float lerpSpeed) {
+               float followOffsetX, float followOffsetY, float lerpSpeed, float maxHp) {
         super(id);
         this.name          = name;
         this.followOffsetX = followOffsetX;
         this.followOffsetY = followOffsetY;
         this.lerpSpeed     = lerpSpeed;
+        this.maxHp = maxHp;
+        this.hp = maxHp;
         this.shapeRenderer = new ShapeRenderer();
         this.font          = new BitmapFont();
         this.layout        = new GlyphLayout();
@@ -76,8 +89,47 @@ public class NPC extends CollidableEntity {
 
     /** Convenience constructor — sensible defaults for the fire escape game. */
     public NPC(String id, float x, float y, String name) {
-        this(id, x, y, name, 30f, 0f, 6f);
+        this(id, x, y, name, 30f, 0f, 6f, 100f);
     }
+
+    /** Constructor with custom maxHp. */
+    public NPC(String id, float x, float y, String name, float maxHp) {
+        this(id, x, y, name, 30f, 0f, 6f, maxHp);
+    }
+
+    // --- Health System (Damageable interface) ---
+
+    @Override
+    public void takeDamage(float amount) {
+        if (!isAlive() || isInvincible()) return;
+
+        hp = Math.max(0f, hp - amount);
+        invincibilityTimer = INVINCIBILITY_DURATION;
+        wasJustDamaged = true;
+
+        if (hp <= 0f) {
+            state = State.DEAD;
+        }
+    }
+
+    @Override
+    public void heal(float amount) {
+        hp = Math.min(maxHp, hp + amount);
+    }
+
+    @Override
+    public float getHp() { return hp; }
+
+    @Override
+    public float getMaxHp() { return maxHp; }
+
+    @Override
+    public boolean isAlive() { return hp > 0f && state != State.DEAD; }
+
+    @Override
+    public boolean isInvincible() { return invincibilityTimer > 0f; }
+
+    public boolean hasDied() { return state == State.DEAD; }
 
     public String  getName()     { return name; }
     public State   getState()    { return state; }
@@ -99,6 +151,22 @@ public class NPC extends CollidableEntity {
     @Override
     public void update(float dt) {
         bobTimer += dt;
+
+        // Tick invincibility timer
+        if (invincibilityTimer > 0f) {
+            invincibilityTimer -= dt;
+        }
+        wasJustDamaged = false;
+
+        // Check for death
+        if (state != State.DEAD && hp <= 0f) {
+            state = State.DEAD;
+        }
+
+        // Don't update position/rendering if dead
+        if (state == State.DEAD) {
+            return;
+        }
 
         isMoving = false;
         if (state == State.FOLLOWING && followTarget != null) {
@@ -128,6 +196,10 @@ public class NPC extends CollidableEntity {
 
     @Override
     public void render(SpriteBatch batch) {
+        if (state == State.DEAD) {
+            return;
+        }
+
         if (state == State.WAITING) {
             renderWaiting(batch);
         } else {
@@ -148,16 +220,29 @@ public class NPC extends CollidableEntity {
 
         float headRadius = WIDTH * 0.4f;
         shapeRenderer.circle(position.x, position.y + HEIGHT + headRadius * 0.3f, headRadius);
-        shapeRenderer.end();
 
+        // Health bar background
+        float healthBarX = position.x - HEALTH_BAR_WIDTH / 2f;
+        float healthBarY = position.y + HEIGHT + headRadius * 2f + 6f;
+        shapeRenderer.setColor(0.3f, 0.3f, 0.3f, 0.8f);
+        shapeRenderer.rect(healthBarX, healthBarY, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
+
+        // Health bar fill
+        float hpFrac = hp / maxHp;
+        Color healthColor = getHealthColor(hpFrac);
+        shapeRenderer.setColor(healthColor);
+        shapeRenderer.rect(healthBarX, healthBarY, HEALTH_BAR_WIDTH * hpFrac, HEALTH_BAR_HEIGHT);
+
+        shapeRenderer.end();
         batch.begin();
+
         float helpBob = (float) Math.sin(bobTimer * 4f) * 3f;
         String helpText = "HELP!";
         layout.setText(font, helpText);
         font.setColor(1f, 0.8f, 0f, 1f);
         font.draw(batch, helpText,
                 position.x - layout.width / 2f,
-                position.y + HEIGHT + headRadius * 2f + 14f + helpBob);
+                position.y + HEIGHT + headRadius * 2f + 14f + helpBob + HEALTH_BAR_HEIGHT + 4f);
         font.setColor(Color.WHITE);
     }
 
@@ -166,14 +251,53 @@ public class NPC extends CollidableEntity {
     private void renderFollowing(SpriteBatch batch) {
         TextureRegion frame = animator.getCurrentFrame(isMoving);
 
-        // Scale draw size based on frame aspect ratio, keeping height fixed
         float frameAspect = (float) frame.getRegionWidth() / frame.getRegionHeight();
         float drawHeight = HEIGHT;
         float drawWidth  = drawHeight * frameAspect;
 
         batch.draw(frame, position.x - drawWidth / 2f, position.y, drawWidth, drawHeight);
 
-        drawArrowAndLabel(batch, position.y + drawHeight);
+        // Draw health bar above NPC
+        drawHealthBar(batch, position.y + drawHeight + 4f);
+
+        drawArrowAndLabel(batch, position.y + drawHeight + HEALTH_BAR_HEIGHT + 8f);
+    }
+
+    private void drawHealthBar(SpriteBatch batch, float y) {
+        float healthBarX = position.x - HEALTH_BAR_WIDTH / 2f;
+
+        batch.end();
+        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        // Background
+        shapeRenderer.setColor(0.3f, 0.3f, 0.3f, 0.8f);
+        shapeRenderer.rect(healthBarX, y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
+
+        // Health fill
+        float hpFrac = hp / maxHp;
+        Color healthColor = getHealthColor(hpFrac);
+        shapeRenderer.setColor(healthColor);
+        shapeRenderer.rect(healthBarX, y, HEALTH_BAR_WIDTH * hpFrac, HEALTH_BAR_HEIGHT);
+
+        // Border
+        shapeRenderer.end();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(1f, 1f, 1f, 0.5f);
+        shapeRenderer.rect(healthBarX, y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
+        shapeRenderer.end();
+
+        batch.begin();
+    }
+
+    private Color getHealthColor(float hpFrac) {
+        if (hpFrac > 0.6f) {
+            return new Color(0.2f, 0.8f, 0.2f, 1f);
+        } else if (hpFrac > 0.3f) {
+            return new Color(1f, 0.8f, 0f, 1f);
+        } else {
+            return new Color(1f, 0.2f, 0.2f, 1f);
+        }
     }
 
     private void drawArrowAndLabel(SpriteBatch batch, float topY) {

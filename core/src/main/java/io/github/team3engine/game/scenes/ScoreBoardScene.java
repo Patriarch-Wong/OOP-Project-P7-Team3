@@ -27,6 +27,7 @@ public class ScoreBoardScene extends BaseScene {
     private final int screenHeight;
 
     private String nextSceneId;
+    private int nextLevel = 2;
     private Skin skin;
 
     public ScoreBoardScene(SpriteBatch batch, BitmapFont sharedFont,
@@ -42,6 +43,10 @@ public class ScoreBoardScene extends BaseScene {
 
     public void setNextScene(String sceneId) {
         this.nextSceneId = sceneId;
+    }
+
+    public void setNextLevel(int level) {
+        this.nextLevel = level;
     }
 
     @Override
@@ -73,7 +78,10 @@ public class ScoreBoardScene extends BaseScene {
 
         ioManager.registerEvent(GameEvents.SCOREBOARD_NEXT, () -> {
             if (nextSceneId != null) {
-                ScoreManager.getInstance().reset();
+                BaseScene scene = sceneManager.getScene(nextSceneId);
+                if (scene instanceof TestScene) {
+                    ((TestScene) scene).setLevel(nextLevel);
+                }
                 Gdx.app.postRunnable(() -> sceneManager.setScene(nextSceneId));
             }
         });

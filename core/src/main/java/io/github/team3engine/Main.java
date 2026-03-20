@@ -34,6 +34,8 @@ public class Main extends ApplicationAdapter {
     private BitmapFont sharedFont;
     private UIManager uiManager;
     private boolean isPaused = false;
+    private int currentLevel = 1;
+    private TestScene testScene;
 
     private static final float FOOTSTEP_INTERVAL = 0.4f;
     private float footstepTimer = 0;
@@ -67,9 +69,9 @@ public class Main extends ApplicationAdapter {
                 new NpcRescueRule(),
                 new TimeBonusRule()
         );
-        sceneManager.registerScene(SceneType.TEST_SCENE.name(),
-                new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
-                        movementManager, screenWidth, screenHeight, testSceneRules));
+        testScene = new TestScene(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
+                movementManager, screenWidth, screenHeight, testSceneRules, currentLevel);
+        sceneManager.registerScene(SceneType.TEST_SCENE.name(), testScene);
         sceneManager.registerScene(SceneType.SCENE_1.name(),
                 new Scene1(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager, collisionManager,
                         movementManager, screenWidth, screenHeight));
@@ -105,6 +107,7 @@ public class Main extends ApplicationAdapter {
             }
             if (isGameplayScene(currentScene) && currentSceneId != null) {
                 gameOverScene.setRetryScene(currentSceneId);
+                gameOverScene.setRetryLevel(currentLevel);
             }
             Gdx.app.log("Game", "Player died!");
             Gdx.app.postRunnable(() -> sceneManager.setScene(SceneType.GAME_OVER.name()));

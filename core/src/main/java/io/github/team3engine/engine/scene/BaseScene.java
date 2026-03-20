@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -133,8 +134,12 @@ public abstract class BaseScene implements Updatable {
             stage.act(delta);
             stage.draw();
         }
+        OrthographicCamera screenCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        screenCam.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        screenCam.update();
         batch.setColor(Color.WHITE);
         batch.begin();
+        batch.setProjectionMatrix(screenCam.combined);
         batch.setColor(Color.WHITE);
         renderUI();
         renderHUD();

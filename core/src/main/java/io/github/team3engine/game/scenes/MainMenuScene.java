@@ -115,7 +115,11 @@ public class MainMenuScene extends BaseScene {
             sceneManager.setScene(SceneType.SCENE_1.name());
         });
         ioManager.registerEvent(GameEvents.START_GAME_TEST, () -> {
-            Gdx.app.log("Game", "Starting game - Test Scene");
+            Gdx.app.log("Game", "Starting game - Test Scene at Level 1");
+            BaseScene scene = sceneManager.getScene(SceneType.TEST_SCENE.name());
+            if (scene instanceof TestScene) {
+                ((TestScene) scene).setLevel(1);
+            }
             sceneManager.setScene(SceneType.TEST_SCENE.name());
         });
     }
