@@ -9,4 +9,5 @@ public abstract class Audio {
     public abstract void stop();
     public abstract void pause();
     public abstract void setVolume(float volume);
+    public abstract void dispose();
 }

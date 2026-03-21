@@ -33,7 +33,13 @@ public class GroundDetector {
      * and cancel upward velocity if so.
      */
     public void checkFallCondition(Circle player) {
-        Array<Collidable[]> collisionPairs = collisionManager.resolveCollisions();
+        checkFallCondition(player, collisionManager.resolveCollisions());
+    }
+
+    /**
+     * Same as {@link #checkFallCondition(Circle)} but reuses a precomputed pair set.
+     */
+    public void checkFallCondition(Circle player, Array<Collidable[]> collisionPairs) {
         for (Collidable[] pair : collisionPairs) {
             if (pair == null || pair.length < 2)
                 continue;
@@ -98,7 +104,13 @@ public class GroundDetector {
      * and cancel upward velocity if so.
      */
     public void checkFallCondition(Player player) {
-        Array<Collidable[]> collisionPairs = collisionManager.resolveCollisions();
+        checkFallCondition(player, collisionManager.resolveCollisions());
+    }
+
+    /**
+     * Same as {@link #checkFallCondition(Player)} but reuses a precomputed pair set.
+     */
+    public void checkFallCondition(Player player, Array<Collidable[]> collisionPairs) {
         for (Collidable[] pair : collisionPairs) {
             if (pair == null || pair.length < 2) continue;
 

@@ -39,7 +39,10 @@ public class CongratulationScene extends BaseScene {
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
         menuButton = SceneButtonFactory.create("Main Menu", skin,
-                () -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
+                () -> {
+                    scoreManager.resetScore();
+                    sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
+                });
 
         getStage().addActor(menuButton);
         layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());

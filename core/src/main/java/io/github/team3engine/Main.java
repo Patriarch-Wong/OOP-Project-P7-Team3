@@ -77,7 +77,7 @@ public class Main extends ApplicationAdapter {
 
         // Register scenes
         sceneManager.registerScene(SceneType.MAIN_MENU_SCENE.name(),
-                new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, screenWidth, screenHeight));
+                new MainMenuScene(batch, sharedFont, sceneManager, ioManager, audioManager, scoreManager, screenWidth, screenHeight));
         List<ScoreRule> testSceneRules = Arrays.asList(
                 new ObjectiveRule(),
                 new NpcRescueRule(),

@@ -60,13 +60,14 @@ public class AudioManager implements Disposable, VolumeControl {
     }
 
     public void playMusic(String name, boolean loop) {
-        if (currentMusic != null) {
-            currentMusic.stop();
-        }
         try {
             com.badlogic.gdx.audio.Music rawMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/" + name));
             MusicAudio musicWrap = new MusicAudio(name, rawMusic);
             musicWrap.setLooping(loop);
+            if (currentMusic != null) {
+                currentMusic.stop();
+                currentMusic.dispose();
+            }
             currentMusic = musicWrap;
             updateMusicVolume();
             currentMusic.play();
@@ -107,6 +108,11 @@ public class AudioManager implements Disposable, VolumeControl {
     public void dispose() {
         if (currentMusic != null) {
             currentMusic.stop();
+            currentMusic.dispose();
+            currentMusic = null;
+        }
+        for (Audio audio : soundLibrary.values()) {
+            audio.dispose();
         }
         soundLibrary.clear();
     }
@@ -122,6 +128,7 @@ public class AudioManager implements Disposable, VolumeControl {
         @Override public void stop() { gdxSound.stop(); }
         @Override public void pause() { gdxSound.pause(); }
         @Override public void setVolume(float v) { this.volume = v; }
+        @Override public void dispose() { gdxSound.dispose(); }
     }
 
     private static class MusicAudio extends Audio {
@@ -138,5 +145,6 @@ public class AudioManager implements Disposable, VolumeControl {
             this.volume = v; 
             gdxMusic.setVolume(v);
         }
+        @Override public void dispose() { gdxMusic.dispose(); }
     }
 }

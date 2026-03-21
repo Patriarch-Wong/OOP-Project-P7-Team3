@@ -23,12 +23,14 @@ import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
+import io.github.team3engine.game.score.ScoreManager;
 
 public class MainMenuScene extends BaseScene {
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
     private final AudioManager audioManager;
+    private final ScoreManager scoreManager;
     private final GlyphLayout layout = new GlyphLayout();
 
     private static final float PARALLAX_STRENGTH = 40f;
@@ -52,12 +54,13 @@ public class MainMenuScene extends BaseScene {
 
     public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont,
             SceneManager sceneManager, IOManager ioManager,
-            AudioManager audioManager,
+            AudioManager audioManager, ScoreManager scoreManager,
             int screenWidth, int screenHeight) {
         super(batch);
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
+        this.scoreManager = scoreManager;
     }
 
     @Override
@@ -81,6 +84,7 @@ public class MainMenuScene extends BaseScene {
 
         ioManager.registerEvent(GameEvents.START_GAME, () -> {
             Gdx.app.log("Game", "Starting game - Test Scene at Level 1");
+            scoreManager.resetScore();
             BaseScene scene = sceneManager.getScene(SceneType.TEST_SCENE.name());
             if (scene instanceof TestScene) {
                 ((TestScene) scene).resetForNewGame();
@@ -110,8 +114,6 @@ public class MainMenuScene extends BaseScene {
 
     @Override
     public void render(float delta) {
-        update(delta);
-
         float sw = Gdx.graphics.getWidth();
         float sh = Gdx.graphics.getHeight();
 

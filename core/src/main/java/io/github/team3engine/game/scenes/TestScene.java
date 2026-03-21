@@ -64,6 +64,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     private CollisionMediator mediator;
     private Texture platformTex;
     private Texture backgroundTex;
+    private Texture fireTexture;
     private final Array<Fire> fires = new Array<>();
     private HUDRenderer hud;
     private LevelConfig levelConfig;
@@ -81,6 +82,7 @@ public class TestScene extends BaseScene implements GameplayScene {
     private final int screenWidth;
     private final int screenHeight;
     private boolean deathHandled;
+    private boolean timerTransitionPosted;
     private boolean rulesRegistered = false;
     private final List<ScoreRule> scoreRules;
 
@@ -131,6 +133,7 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     public void resetForNewGame() {
         rulesRegistered = false;
+        timerTransitionPosted = false;
         setLevel(1);
     }
 
@@ -151,6 +154,7 @@ public class TestScene extends BaseScene implements GameplayScene {
                 timerLayout = new GlyphLayout();
             }
             timer.start();
+            timerTransitionPosted = false;
 
             if (hud == null)
                 hud = new HUDRenderer(font);
@@ -222,7 +226,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
 
         // --- Fire hazards ---
-        Texture fire_texture = new Texture(Gdx.files.internal("ui/sprites/fire_spritesheet.png"));
+        fireTexture = new Texture(Gdx.files.internal("ui/sprites/fire_spritesheet.png"));
 
         // Ground fires - placed on top of ground (y = groundHeight)
         for (int i = 0; i < levelConfig.groundFireX.length; i++) {
@@ -230,7 +234,7 @@ public class TestScene extends BaseScene implements GameplayScene {
                     "ground_fire_" + i,
                     levelConfig.groundFireX[i], 38f,
                     22f, 32f,
-                    fire_texture, 8, 1,
+                    fireTexture, 8, 1,
                     false);
             trackFire(fire);
             entityManager.addEntity(fire);
@@ -243,7 +247,7 @@ public class TestScene extends BaseScene implements GameplayScene {
                     "ceiling_fire_" + i,
                     levelConfig.ceilingFireX[i], levelConfig.ceilingFireY[i],
                     20f, 30f,
-                    fire_texture, 8, 1,
+                    fireTexture, 8, 1,
                     true);
             trackFire(ceilingFire);
             entityManager.addEntity(ceilingFire);
@@ -408,6 +412,10 @@ public class TestScene extends BaseScene implements GameplayScene {
             backgroundTex.dispose();
             backgroundTex = null;
         }
+        if (fireTexture != null) {
+            fireTexture.dispose();
+            fireTexture = null;
+        }
         ioManager.clearEvent(GameEvents.PLAYER_WIN);
         ioManager.clearEvent(GameEvents.NPC_RESCUED);
         if (hud != null) {
@@ -437,28 +445,6 @@ public class TestScene extends BaseScene implements GameplayScene {
             entityManager.renderAll(batch);
             batch.end();
             drawStageAndUI(delta);
-
-            if (player.applyJumpIfRequested()) {
-                ioManager.broadcast(GameEvents.PLAYER_JUMP);
-            }
-            movementManager.applyMovement(
-                    player,
-                    player.getMovementState(),
-                    player.getMovementConfig(),
-                    movementInput,
-                    delta);
-
-            groundDetector.checkFallCondition(player);
-            groundDetector.checkGroundDetection(player);
-
-            if (!deathHandled && hasPlayerFallenOutOfScreen()) {
-                player.kill();
-            }
-
-            if (!deathHandled && !player.isAlive()) {
-                deathHandled = true;
-                ioManager.broadcast(GameEvents.PLAYER_DEAD);
-            }
         } catch (Exception e) {
             Gdx.app.error("TestScene", "Error in render", e);
             e.printStackTrace();
@@ -474,22 +460,45 @@ public class TestScene extends BaseScene implements GameplayScene {
             // Tick the timer
             if (timer != null) {
                 timer.update(delta);
-                if (timer.isFinished()) {
+                if (!timerTransitionPosted && timer.isFinished()) {
+                    timerTransitionPosted = true;
                     onTimerFinished();
                 }
             }
 
-            if (hud != null && player != null)
-                hud.update(delta, player.getHp());
-            growFires(delta);
-            entityManager.updateAll(delta);
             playerInput.update(delta);
             movementInput.update();
             player.updateMovementRules(movementInput, delta);
+
+            if (player.applyJumpIfRequested()) {
+                ioManager.broadcast(GameEvents.PLAYER_JUMP);
+            }
+            movementManager.applyMovement(
+                    player,
+                    player.getMovementState(),
+                    player.getMovementConfig(),
+                    movementInput,
+                    delta);
+
+            growFires(delta);
+            entityManager.updateAll(delta);
             collisionManager.update(delta);
             Array<Collidable[]> pairs = collisionManager.resolveCollisions();
             mediator.resolve(pairs);
+            groundDetector.checkFallCondition(player, pairs);
+            groundDetector.checkGroundDetection(player);
             syncPlayerSpeedMultiplier();
+
+            if (!deathHandled && hasPlayerFallenOutOfScreen()) {
+                player.kill();
+            }
+            if (!deathHandled && !player.isAlive()) {
+                deathHandled = true;
+                ioManager.broadcast(GameEvents.PLAYER_DEAD);
+            }
+            if (hud != null && player != null) {
+                hud.update(delta, player.getHp());
+            }
         } catch (Exception e) {
             Gdx.app.error("TestScene", "Error in update", e);
             e.printStackTrace();
@@ -498,6 +507,9 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     private void onTimerFinished() {
         Gdx.app.log("Game", "Time's up! Game Over.");
+        if (timer != null) {
+            timer.stop();
+        }
         GameOverScene gameOverScene = (GameOverScene) sceneManager.getScene(SceneType.GAME_OVER.name());
         if (gameOverScene != null) {
             gameOverScene.setRetryScene(SceneType.TEST_SCENE.name());
@@ -611,6 +623,10 @@ public class TestScene extends BaseScene implements GameplayScene {
         if (timerFont != null) {
             timerFont.dispose();
             timerFont = null;
+        }
+        if (fireTexture != null) {
+            fireTexture.dispose();
+            fireTexture = null;
         }
         super.dispose();
     }
