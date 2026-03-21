@@ -60,7 +60,10 @@ public class GameOverScene extends BaseScene {
         });
 
         menuButton = SceneButtonFactory.create("Main Menu", skin,
-                () -> sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name()));
+                () -> {
+                    scoreManager.resetScore();
+                    sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
+                });
 
         getStage().addActor(retryButton);
         getStage().addActor(menuButton);

@@ -50,6 +50,11 @@ public class ScoreManager implements Scoreable {
     // --- Rule management ---
 
     public void addRule(ScoreRule rule) {
+        for (ScoreRule existingRule : scoreRules) {
+            if (existingRule.getClass().equals(rule.getClass())) {
+                return;
+            }
+        }
         scoreRules.add(rule);
     }
 

@@ -23,14 +23,12 @@ import io.github.team3engine.engine.io.IOManager;
 import io.github.team3engine.engine.scene.BaseScene;
 import io.github.team3engine.engine.scene.SceneManager;
 import io.github.team3engine.game.events.GameEvents;
-import io.github.team3engine.game.ui.SceneButtonFactory;
 
 public class MainMenuScene extends BaseScene {
 
     private final SceneManager sceneManager;
     private final IOManager ioManager;
     private final AudioManager audioManager;
-    private final BitmapFont font;
     private final GlyphLayout layout = new GlyphLayout();
 
     private static final float PARALLAX_STRENGTH = 40f;
@@ -44,7 +42,6 @@ public class MainMenuScene extends BaseScene {
     private Skin skin;
     private TextButton startGameButton;
 
-    private Texture backgroundTexture;
     private Texture pixelTexture;
     private BitmapFont titleFont;
     private BitmapFont subtitleFont;
@@ -52,20 +49,15 @@ public class MainMenuScene extends BaseScene {
 
     private float currentOffsetX = 0f;
     private float currentOffsetY = 0f;
-    private final int screenWidth;
-    private final int screenHeight;
 
     public MainMenuScene(SpriteBatch batch, BitmapFont sharedFont,
             SceneManager sceneManager, IOManager ioManager,
             AudioManager audioManager,
             int screenWidth, int screenHeight) {
         super(batch);
-        this.font = sharedFont;
         this.sceneManager = sceneManager;
         this.ioManager = ioManager;
         this.audioManager = audioManager;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
     }
 
     @Override
@@ -80,11 +72,6 @@ public class MainMenuScene extends BaseScene {
         }
 
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
-
-        // startGameButton = SceneButtonFactory.create("Start Game", skin,
-        //         () -> ioManager.broadcast(GameEvents.START_GAME));
-        // getStage().addActor(startGameButton);
-        // layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         pixelTexture = createPixelTexture();
         createFonts();
@@ -161,25 +148,12 @@ public class MainMenuScene extends BaseScene {
 
     @Override
     protected void renderUI() {
-        // float sw = Gdx.graphics.getWidth();
-        // float sh = Gdx.graphics.getHeight();
+        float sw = Gdx.graphics.getWidth();
+        float sh = Gdx.graphics.getHeight();
+        float centerX = sw / 2f;
 
-        // font.setColor(new Color(1f, 0.5f, 0.1f, 1f));
-        // String title = "FIRE ESCAPE";
-        // layout.setText(font, title);
-        // font.draw(batch, title, (sw - layout.width) / 2f, sh / 2f + 120f);
-
-        // font.setColor(new Color(0.8f, 0.8f, 0.8f, 1f));
-        // String sub = "Rescue survivors. Escape the blaze.";
-        // layout.setText(font, sub);
-        // font.draw(batch, sub, (sw - layout.width) / 2f, sh / 2f + 90f);
-
-        // font.setColor(Color.WHITE);
-
-        float centerX = screenWidth / 2f;
-
-        drawCenteredText(titleFont, "FIRE ESCAPE", centerX, screenHeight - 64f, new Color(0.98f, 0.94f, 0.88f, 1f));
-        drawCenteredText(subtitleFont, "ESCAPE BEFORE THE FIRE SPREADS", centerX, screenHeight - 112f,
+        drawCenteredText(titleFont, "FIRE ESCAPE", centerX, sh - 64f, new Color(0.98f, 0.94f, 0.88f, 1f));
+        drawCenteredText(subtitleFont, "ESCAPE BEFORE THE FIRE SPREADS", centerX, sh - 112f,
                 new Color(1f, 0.78f, 0.42f, 1f));
 
         float cardX = 92f;
@@ -200,13 +174,18 @@ public class MainMenuScene extends BaseScene {
 
     @Override
     protected void onResize(int width, int height) {
-        layoutButtons(width, height);
+        layoutButtons(width);
     }
 
     @Override
     public void onHide() {
         ioManager.clearEvent(GameEvents.START_GAME);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+        if (pixelTexture != null) {
+            pixelTexture.dispose();
+            pixelTexture = null;
+        }
+        disposeFonts();
         if (skin != null) {
             skin.dispose();
             skin = null;
@@ -225,15 +204,12 @@ public class MainMenuScene extends BaseScene {
             s.clear();
     }
 
-    private void layoutButtons(int width, int height) {
+    private void layoutButtons(int width) {
         if (startGameButton == null) {
             return;
         }
-        float centerX = width / 2f;
-        float centerY = height / 2f;
-        startGameButton.setPosition(
-                centerX - SceneButtonFactory.BUTTON_WIDTH / 2f,
-                centerY - SceneButtonFactory.BUTTON_HEIGHT / 2f);
+        float buttonWidth = startGameButton.getWidth() > 0f ? startGameButton.getWidth() : BUTTON_WIDTH;
+        startGameButton.setPosition((width - buttonWidth) / 2f, 60f);
     }
 
     @Override
@@ -243,11 +219,11 @@ public class MainMenuScene extends BaseScene {
     }
 
     private void createButtons() {
-        TextButton startButton = new TextButton("Start Rescue", skin, "menu-primary");
-        startButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-        startButton.setPosition((screenWidth - BUTTON_WIDTH) / 2f, 60f);
+        startGameButton = new TextButton("Start Rescue", skin, "menu-primary");
+        startGameButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+        layoutButtons(Gdx.graphics.getWidth());
 
-        startButton.addListener(new ClickListener() {
+        startGameButton.addListener(new ClickListener() {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 if (pointer == -1) {
@@ -268,7 +244,7 @@ public class MainMenuScene extends BaseScene {
             }
         });
 
-        getStage().addActor(startButton);
+        getStage().addActor(startGameButton);
     }
 
     private void createMenuButtonStyle() {
@@ -309,23 +285,6 @@ public class MainMenuScene extends BaseScene {
         return params;
     }
 
-    private void drawBackdrop() {
-        if (backgroundTexture != null) {
-            batch.setColor(Color.WHITE);
-            batch.draw(backgroundTexture, 0f, 0f, screenWidth, screenHeight);
-        }
-        if (pixelTexture == null) {
-            return;
-        }
-
-        drawRect(0f, 0f, screenWidth, screenHeight, new Color(0.05f, 0.04f, 0.08f, 0.48f));
-        drawRect(70f, 332f, 500f, 92f, new Color(0.07f, 0.08f, 0.11f, 0.82f));
-        drawRect(92f, 132f, 456f, 150f, new Color(0.08f, 0.09f, 0.12f, 0.82f));
-        drawRect(92f, 282f, 456f, 3f, new Color(1f, 0.58f, 0.22f, 0.88f));
-        drawRect(160f, 68f, 320f, 34f, new Color(0.08f, 0.08f, 0.10f, 0.62f));
-        batch.setColor(Color.WHITE);
-    }
-
     private void drawCenteredText(BitmapFont drawFont, String text, float centerX, float y, Color color) {
         layout.setText(drawFont, text);
         drawFont.setColor(color);
@@ -335,11 +294,6 @@ public class MainMenuScene extends BaseScene {
     private void drawLeftText(BitmapFont drawFont, String text, float x, float y, Color color) {
         drawFont.setColor(color);
         drawFont.draw(batch, text, x, y);
-    }
-
-    private void drawRect(float x, float y, float width, float height, Color color) {
-        batch.setColor(color);
-        batch.draw(pixelTexture, x, y, width, height);
     }
 
     private Texture createPixelTexture() {
