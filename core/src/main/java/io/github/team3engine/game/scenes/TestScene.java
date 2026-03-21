@@ -32,6 +32,7 @@ import io.github.team3engine.game.entities.Platform;
 import io.github.team3engine.game.entities.Player;
 import io.github.team3engine.game.entities.WetTowelPickup;
 import io.github.team3engine.game.events.GameEvents;
+import io.github.team3engine.game.factories.StaticEntityFactory;
 import io.github.team3engine.game.inputs.PlayerInput;
 import io.github.team3engine.game.interfaces.Damageable;
 import io.github.team3engine.game.interfaces.ScoreRule;
@@ -52,9 +53,9 @@ public class TestScene extends BaseScene implements GameplayScene {
     private static final float FIRE_MAX_SCALE_X = 2f;
     private static final float FIRE_MAX_SCALE_Y = 2f;
     private static final float FALL_DEATH_BUFFER = 0f;
-    
+
     private static final float CAMERA_LERP = 5f;
-    
+
     private OrthographicCamera camera;
     private Player player;
     private MovementInput movementInput;
@@ -89,19 +90,19 @@ public class TestScene extends BaseScene implements GameplayScene {
     private GlyphLayout timerLayout;
 
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
-                     IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
-                     CollisionManager collisionManager, MovementManager movementManager,
-                     int screenWidth, int screenHeight,
-                     List<ScoreRule> scoreRules, ScoreManager scoreManager) {
+            IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
+            CollisionManager collisionManager, MovementManager movementManager,
+            int screenWidth, int screenHeight,
+            List<ScoreRule> scoreRules, ScoreManager scoreManager) {
         this(batch, sharedFont, sceneManager, ioManager, audioManager, entityManager,
-             collisionManager, movementManager, screenWidth, screenHeight, scoreRules, scoreManager, 1);
+                collisionManager, movementManager, screenWidth, screenHeight, scoreRules, scoreManager, 1);
     }
 
     public TestScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
-                     IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
-                     CollisionManager collisionManager, MovementManager movementManager,
-                     int screenWidth, int screenHeight,
-                     List<ScoreRule> scoreRules, ScoreManager scoreManager, int levelNumber) {
+            IOManager ioManager, AudioManager audioManager, EntityManager entityManager,
+            CollisionManager collisionManager, MovementManager movementManager,
+            int screenWidth, int screenHeight,
+            List<ScoreRule> scoreRules, ScoreManager scoreManager, int levelNumber) {
         super(batch);
         this.font = sharedFont;
         this.scoreRules = scoreRules;
@@ -151,7 +152,8 @@ public class TestScene extends BaseScene implements GameplayScene {
             }
             timer.start();
 
-            if (hud == null) hud = new HUDRenderer(font);
+            if (hud == null)
+                hud = new HUDRenderer(font);
             hud.init(levelConfig.playerMaxHp);
             fires.clear();
             deathHandled = false;
@@ -175,7 +177,8 @@ public class TestScene extends BaseScene implements GameplayScene {
         Gdx.input.setInputProcessor(ioManager);
 
         // --- Player ---
-        player = new Player("player", levelConfig.playerStartX, levelConfig.playerStartY, 20f, 36f, levelConfig.playerMaxHp, levelConfig.worldWidth, levelConfig.worldHeight);
+        player = new Player("player", levelConfig.playerStartX, levelConfig.playerStartY, 20f, 36f,
+                levelConfig.playerMaxHp, levelConfig.worldWidth, levelConfig.worldHeight);
         entityManager.addEntity(player);
         player.getMovementState().reset();
         player.resetMovementRules();
@@ -184,7 +187,7 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         // --- Camera ---
         camera = new OrthographicCamera(screenWidth, screenHeight);
-        camera.position.set(player.getX() + player.getWidth()/2f, player.getY() + player.getHeight()/2f, 0);
+        camera.position.set(player.getX() + player.getWidth() / 2f, player.getY() + player.getHeight() / 2f, 0);
         camera.update();
 
         // --- Platforms ---
@@ -195,14 +198,25 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         // Ground segments
         for (int i = 0; i < levelConfig.groundSegmentsX.length; i++) {
-            Platform ground = new Platform("ground" + i, levelConfig.groundSegmentsX[i], 0, levelConfig.groundSegmentsWidth[i], 40f, platformTex);
+            // Platform ground = new Platform("ground" + i, levelConfig.groundSegmentsX[i],
+            // 0,
+            // levelConfig.groundSegmentsWidth[i], 40f, platformTex);
+            Platform ground = StaticEntityFactory.createEntity(Platform.class, "ground" + i,
+                    levelConfig.groundSegmentsX[i], 0,
+                    levelConfig.groundSegmentsWidth[i], 40f, platformTex);
             entityManager.addEntity(ground);
             collisionManager.register(ground);
         }
 
         // Elevated platforms
         for (int i = 0; i < levelConfig.platformX.length; i++) {
-            Platform p = new Platform("plat_" + i, levelConfig.platformX[i], levelConfig.platformY[i], levelConfig.platformWidth[i], 16f, platformTex);
+            // Platform p = new Platform("plat_" + i, levelConfig.platformX[i],
+            // levelConfig.platformY[i],
+            // levelConfig.platformWidth[i], 16f, platformTex);
+
+            Platform p = StaticEntityFactory.createEntity(Platform.class, "plat_" + i,
+                    levelConfig.platformX[i], levelConfig.platformY[i],
+                    levelConfig.platformWidth[i], 16f, platformTex);
             entityManager.addEntity(p);
             collisionManager.register(p);
         }
@@ -212,7 +226,12 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         // Ground fires - placed on top of ground (y = groundHeight)
         for (int i = 0; i < levelConfig.groundFireX.length; i++) {
-            Fire fire = new Fire("ground_fire_" + i, levelConfig.groundFireX[i], 38f, 22f, 32f, fire_texture, 8, 1, false);
+            Fire fire = StaticEntityFactory.createFire(
+                    "ground_fire_" + i,
+                    levelConfig.groundFireX[i], 38f,
+                    22f, 32f,
+                    fire_texture, 8, 1,
+                    false);
             trackFire(fire);
             entityManager.addEntity(fire);
             collisionManager.register(fire);
@@ -220,7 +239,12 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         // Ceiling fires
         for (int i = 0; i < levelConfig.ceilingFireX.length; i++) {
-            Fire ceilingFire = new Fire("ceiling_fire_" + i, levelConfig.ceilingFireX[i], levelConfig.ceilingFireY[i], 20f, 30f, fire_texture, 8, 1, true);
+            Fire ceilingFire = StaticEntityFactory.createFire(
+                    "ceiling_fire_" + i,
+                    levelConfig.ceilingFireX[i], levelConfig.ceilingFireY[i],
+                    20f, 30f,
+                    fire_texture, 8, 1,
+                    true);
             trackFire(ceilingFire);
             entityManager.addEntity(ceilingFire);
             collisionManager.register(ceilingFire);
@@ -228,15 +252,22 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         // --- Pickups ---
         for (int i = 0; i < levelConfig.towelX.length; i++) {
-            WetTowelPickup towel = new WetTowelPickup("towel" + i, levelConfig.towelX[i], levelConfig.towelY[i]);
+            WetTowelPickup towel = StaticEntityFactory.createPickup(
+                    WetTowelPickup.class,
+                    "towel" + i,
+                    levelConfig.towelX[i], levelConfig.towelY[i]);
             entityManager.addEntity(towel);
             collisionManager.register(towel);
         }
 
         for (int i = 0; i < levelConfig.maskX.length; i++) {
-            MaskPickup mask = new MaskPickup("mask" + i, levelConfig.maskX[i], levelConfig.maskY[i]);
+            MaskPickup mask = StaticEntityFactory.createPickup(
+                    MaskPickup.class,
+                    "mask" + i,
+                    levelConfig.maskX[i], levelConfig.maskY[i]);
             mask.setOnTimerExtend(() -> {
-                if (timer != null) timer.addTime(mask.getTimerExtend());
+                if (timer != null)
+                    timer.addTime(mask.getTimerExtend());
             });
             entityManager.addEntity(mask);
             collisionManager.register(mask);
@@ -248,7 +279,12 @@ public class TestScene extends BaseScene implements GameplayScene {
         collisionManager.register(npc);
 
         // --- Exit door ---
-        ExitDoor exit = new ExitDoor("exit_door", levelConfig.exitX, levelConfig.exitY, 40f, 60f, 1, ioManager);
+        ExitDoor exit = StaticEntityFactory.createExitDoor(
+                "exit_door",
+                levelConfig.exitX, levelConfig.exitY,
+                40f, 60f,
+                1,
+                ioManager);
         entityManager.addEntity(exit);
         collisionManager.register(exit);
 
@@ -297,13 +333,13 @@ public class TestScene extends BaseScene implements GameplayScene {
             if (p.isCarryingNPC()) {
                 boolean npcSurvived = npc != null && npc.isAlive();
                 int actualRescued = npcSurvived ? 1 : 0;
-                
+
                 p.rescueNPC();
                 p.getStatusEffects().removeByKey(CARRY_SLOW_KEY);
                 ioManager.broadcast(GameEvents.NPC_RESCUED);
             }
             // if (p.getRescuedCount() >= door.getRequiredRescues()) {
-                ioManager.broadcast(GameEvents.PLAYER_WIN);
+            ioManager.broadcast(GameEvents.PLAYER_WIN);
             // }
         });
 
@@ -374,7 +410,10 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
         ioManager.clearEvent(GameEvents.PLAYER_WIN);
         ioManager.clearEvent(GameEvents.NPC_RESCUED);
-        if (hud != null) { hud.dispose(); hud = null; }
+        if (hud != null) {
+            hud.dispose();
+            hud = null;
+        }
         deathHandled = false;
     }
 
@@ -386,40 +425,40 @@ public class TestScene extends BaseScene implements GameplayScene {
             Gdx.gl.glClearColor(0.1f, 0.05f, 0.0f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        updateCamera(delta);
+            updateCamera(delta);
 
-        batch.begin();
-        batch.setProjectionMatrix(camera.combined);
-        batch.setColor(Color.WHITE);
-        // Draw background first
-        if (backgroundTex != null) {
-                  batch.draw(backgroundTex, 0, 0, levelConfig.worldWidth, levelConfig.worldHeight);
-        }
-        entityManager.renderAll(batch);
-        batch.end();
-        drawStageAndUI(delta);
+            batch.begin();
+            batch.setProjectionMatrix(camera.combined);
+            batch.setColor(Color.WHITE);
+            // Draw background first
+            if (backgroundTex != null) {
+                batch.draw(backgroundTex, 0, 0, levelConfig.worldWidth, levelConfig.worldHeight);
+            }
+            entityManager.renderAll(batch);
+            batch.end();
+            drawStageAndUI(delta);
 
-        if (player.applyJumpIfRequested()) {
-            ioManager.broadcast(GameEvents.PLAYER_JUMP);
-        }
-        movementManager.applyMovement(
-                player,
-                player.getMovementState(),
-                player.getMovementConfig(),
-                movementInput,
-                delta);
+            if (player.applyJumpIfRequested()) {
+                ioManager.broadcast(GameEvents.PLAYER_JUMP);
+            }
+            movementManager.applyMovement(
+                    player,
+                    player.getMovementState(),
+                    player.getMovementConfig(),
+                    movementInput,
+                    delta);
 
-        groundDetector.checkFallCondition(player);
-        groundDetector.checkGroundDetection(player);
+            groundDetector.checkFallCondition(player);
+            groundDetector.checkGroundDetection(player);
 
-        if (!deathHandled && hasPlayerFallenOutOfScreen()) {
-            player.kill();
-        }
+            if (!deathHandled && hasPlayerFallenOutOfScreen()) {
+                player.kill();
+            }
 
-        if (!deathHandled && !player.isAlive()) {
-            deathHandled = true;
-            ioManager.broadcast(GameEvents.PLAYER_DEAD);
-        }
+            if (!deathHandled && !player.isAlive()) {
+                deathHandled = true;
+                ioManager.broadcast(GameEvents.PLAYER_DEAD);
+            }
         } catch (Exception e) {
             Gdx.app.error("TestScene", "Error in render", e);
             e.printStackTrace();
@@ -440,7 +479,8 @@ public class TestScene extends BaseScene implements GameplayScene {
                 }
             }
 
-            if (hud != null && player != null) hud.update(delta, player.getHp());
+            if (hud != null && player != null)
+                hud.update(delta, player.getHp());
             growFires(delta);
             entityManager.updateAll(delta);
             playerInput.update(delta);
@@ -468,12 +508,14 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     @Override
     protected void renderUI() {
-        if (hud == null || player == null) return;
+        if (hud == null || player == null)
+            return;
 
         // Build buffs string
         StringBuilder buffs = new StringBuilder();
         for (StatusEffect effect : player.getStatusEffects().getAll()) {
-            if (buffs.length() > 0) buffs.append("  |  ");
+            if (buffs.length() > 0)
+                buffs.append("  |  ");
             buffs.append(effect.getName());
             if (effect.getRemainingTime() < Float.MAX_VALUE) {
                 buffs.append(" ").append((int) Math.ceil(effect.getRemainingTime())).append("s");
@@ -481,11 +523,10 @@ public class TestScene extends BaseScene implements GameplayScene {
         }
 
         hud.render(batch,
-            player.getHp(), player.getMaxHp(),
-            buffs.toString(),
-            player.isCarryingNPC(),
-            "Rescue the NPC and reach the EXIT!"
-        );
+                player.getHp(), player.getMaxHp(),
+                buffs.toString(),
+                player.isCarryingNPC(),
+                "Rescue the NPC and reach the EXIT!");
 
         // Render timer top-right
         if (timer != null && timerFont != null) {
@@ -544,7 +585,8 @@ public class TestScene extends BaseScene implements GameplayScene {
     }
 
     private void updateCamera(float delta) {
-        if (player == null || camera == null) return;
+        if (player == null || camera == null)
+            return;
 
         float targetX = player.getX() + player.getWidth() / 2f;
         float targetY = player.getY() + player.getHeight() / 2f;
@@ -552,8 +594,10 @@ public class TestScene extends BaseScene implements GameplayScene {
 
         float halfViewportW = screenWidth / 2f;
         float halfViewportH = screenHeight / 2f;
-        camera.position.x = Math.max(halfViewportW, Math.min(levelConfig.worldWidth - halfViewportW, camera.position.x));
-        camera.position.y = Math.max(halfViewportH, Math.min(levelConfig.worldHeight - halfViewportH, camera.position.y));
+        camera.position.x = Math.max(halfViewportW,
+                Math.min(levelConfig.worldWidth - halfViewportW, camera.position.x));
+        camera.position.y = Math.max(halfViewportH,
+                Math.min(levelConfig.worldHeight - halfViewportH, camera.position.y));
 
         camera.update();
     }
@@ -564,7 +608,10 @@ public class TestScene extends BaseScene implements GameplayScene {
 
     @Override
     public void dispose() {
-        if (timerFont != null) { timerFont.dispose(); timerFont = null; }
+        if (timerFont != null) {
+            timerFont.dispose();
+            timerFont = null;
+        }
         super.dispose();
     }
 }

@@ -157,13 +157,11 @@ public class Scene1 extends BaseScene implements GameplayScene {
         WinBox winBox = StaticEntityFactory.createEntity(WinBox.class, "win_box", 500, 60, 50f, 50f, null);
         entityManager.addEntity(winBox);
 
-        SpriteEntity fire1 = SpriteEntityFactory.animated(
-                "hazard_fire_1",
+        Fire fire1 = StaticEntityFactory.createFire(
+                "hazard_fire_1" ,
                 3f * scaleX, 2f * scaleY,
-                "ui/sprites/fire_spritesheet.png",
-                8, 1, 0.2f,
-                2.5f, 2.5f,
-                true);
+                fire_texture, 8, 1,
+                false);
 
         entityManager.addEntity(fire1);
 
@@ -371,7 +369,10 @@ public class Scene1 extends BaseScene implements GameplayScene {
 
     @Override
     public void dispose() {
-        if (timerFont != null) { timerFont.dispose(); timerFont = null; }
+        if (timerFont != null) {
+            timerFont.dispose();
+            timerFont = null;
+        }
         super.dispose();
     }
 }
