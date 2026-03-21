@@ -187,7 +187,7 @@ public class TestScene extends BaseScene implements GameplayScene {
         player.getMovementState().reset();
         player.resetMovementRules();
         movementInput = new MovementInput(player, ioManager, playerInput);
-        groundDetector = new GroundDetector(movementManager, collisionManager, entityManager);
+        groundDetector = new GroundDetector(movementManager, entityManager);
 
         // --- Camera ---
         camera = new OrthographicCamera(screenWidth, screenHeight);

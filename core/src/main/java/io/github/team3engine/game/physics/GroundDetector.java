@@ -5,7 +5,6 @@ import com.badlogic.gdx.utils.Array;
 
 import io.github.team3engine.engine.entity.Entity;
 import io.github.team3engine.engine.entity.EntityManager;
-import io.github.team3engine.engine.collision.CollisionManager;
 import io.github.team3engine.engine.interfaces.Collidable;
 import io.github.team3engine.game.interfaces.Solid;
 import io.github.team3engine.engine.movement.MovementManager;
@@ -18,26 +17,16 @@ import io.github.team3engine.game.entities.Player;
  */
 public class GroundDetector {
     private final MovementManager movementManager;
-    private final CollisionManager collisionManager;
     private final EntityManager entityManager;
 
-    public GroundDetector(MovementManager movementManager, CollisionManager collisionManager,
-                          EntityManager entityManager) {
+    public GroundDetector(MovementManager movementManager, EntityManager entityManager) {
         this.movementManager = movementManager;
-        this.collisionManager = collisionManager;
         this.entityManager = entityManager;
     }
 
     /**
      * Check if the player is hitting a solid surface while jumping upward,
      * and cancel upward velocity if so.
-     */
-    public void checkFallCondition(Circle player) {
-        checkFallCondition(player, collisionManager.resolveCollisions());
-    }
-
-    /**
-     * Same as {@link #checkFallCondition(Circle)} but reuses a precomputed pair set.
      */
     public void checkFallCondition(Circle player, Array<Collidable[]> collisionPairs) {
         for (Collidable[] pair : collisionPairs) {
@@ -102,13 +91,6 @@ public class GroundDetector {
     /**
      * Check if the Player is hitting a solid surface while jumping upward,
      * and cancel upward velocity if so.
-     */
-    public void checkFallCondition(Player player) {
-        checkFallCondition(player, collisionManager.resolveCollisions());
-    }
-
-    /**
-     * Same as {@link #checkFallCondition(Player)} but reuses a precomputed pair set.
      */
     public void checkFallCondition(Player player, Array<Collidable[]> collisionPairs) {
         for (Collidable[] pair : collisionPairs) {
