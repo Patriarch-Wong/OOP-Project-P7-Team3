@@ -147,7 +147,7 @@ public class Main extends ApplicationAdapter {
             }
         });
 
-        audioManager.preload("walk.mp3", "jump.mp3", "collide.mp3", "victory.mp3", "bullet_hit.mp3");
+        audioManager.preload("walk.mp3", "jump.mp3", "collide.mp3", "victory.mp3", "oof.mp3" , "item_collect.mp3");
         audioManager.playMusic("title.mp3", true);
     }
 

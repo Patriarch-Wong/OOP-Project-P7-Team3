@@ -16,19 +16,22 @@ import io.github.team3engine.game.score.ScoreManager;
 import io.github.team3engine.game.ui.SceneButtonFactory;
 
 public class CongratulationScene extends BaseScene {
+
     private final SceneManager sceneManager;
-    private final BitmapFont font;
-    private final GlyphLayout titleLayout = new GlyphLayout();
+    private final BitmapFont   font;
+    private final GlyphLayout  layout = new GlyphLayout();
     private final ScoreManager scoreManager;
 
-    private Skin skin;
+    private Skin       skin;
     private TextButton menuButton;
 
-    public CongratulationScene(SpriteBatch batch, BitmapFont sharedFont, SceneManager sceneManager,
-                               int screenWidth, int screenHeight, String defaultRetrySceneId,
+    public CongratulationScene(SpriteBatch batch, BitmapFont sharedFont,
+                               SceneManager sceneManager,
+                               int screenWidth, int screenHeight,
+                               String defaultRetrySceneId,
                                ScoreManager scoreManager) {
         super(batch);
-        this.font = sharedFont;
+        this.font         = sharedFont;
         this.sceneManager = sceneManager;
         this.scoreManager = scoreManager;
     }
@@ -38,24 +41,22 @@ public class CongratulationScene extends BaseScene {
         super.onShow();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        menuButton = SceneButtonFactory.create("Main Menu", skin,
-                () -> {
-                    scoreManager.resetScore();
-                    sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
-                });
+        menuButton = SceneButtonFactory.create("Main Menu", skin, () -> {
+            scoreManager.resetScore();
+            sceneManager.setScene(SceneType.MAIN_MENU_SCENE.name());
+        });
 
         getStage().addActor(menuButton);
         layoutButtons(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     @Override
-    public void update(float delta) {
-        super.update(delta);
-    }
+    public void update(float delta) { super.update(delta); }
 
     @Override
     public void render(float delta) {
-        clearScreen(0.2f, 0f, 0f, 1f);
+        // Dark green — distinct from GameOver (red) and Scoreboard (dark blue)
+        clearScreen(0.05f, 0.12f, 0.05f, 1f);
         drawStageAndUI(delta);
     }
 
@@ -66,25 +67,28 @@ public class CongratulationScene extends BaseScene {
 
     @Override
     protected void renderUI() {
-        float centerX = Gdx.graphics.getWidth() / 2f;
-        float centerY = Gdx.graphics.getHeight() / 2f;
+        float sw      = Gdx.graphics.getWidth();
+        float sh      = Gdx.graphics.getHeight();
+        float centerX = sw / 2f;
+        float centerY = sh / 2f;
 
-        font.setColor(Color.GREEN);
+        // Title — gold
+        font.setColor(new Color(1f, 0.85f, 0.2f, 1f));
         String title = "Congratulations!";
-        titleLayout.setText(font, title);
-        float titleX = (centerX - titleLayout.width / 2f);
-        font.draw(batch, title, titleX, centerY + 120f);
+        layout.setText(font, title);
+        font.draw(batch, title, centerX - layout.width / 2f, centerY + 120f);
 
+        // Score lines
         font.setColor(Color.WHITE);
         String finalLine = "Final Score:  " + scoreManager.getFinalScore();
-        GlyphLayout scoreLayout = new GlyphLayout();
-        scoreLayout.setText(font, finalLine);
-        font.draw(batch, finalLine, centerX - scoreLayout.width / 2f, centerY + 75f);
+        layout.setText(font, finalLine);
+        font.draw(batch, finalLine, centerX - layout.width / 2f, centerY + 75f);
 
         String highLine = "High Score:   " + scoreManager.getHighScore();
-        GlyphLayout highLayout = new GlyphLayout();
-        highLayout.setText(font, highLine);
-        font.draw(batch, highLine, centerX - highLayout.width / 2f, centerY + 50f);
+        layout.setText(font, highLine);
+        font.draw(batch, highLine, centerX - layout.width / 2f, centerY + 50f);
+
+        font.setColor(Color.WHITE);
     }
 
     @Override
@@ -97,18 +101,13 @@ public class CongratulationScene extends BaseScene {
     }
 
     @Override
-    public void dispose() {
-        super.dispose();
-    }
+    public void dispose() { super.dispose(); }
 
     private void layoutButtons(int width, int height) {
-        if (menuButton == null) {
-            return;
-        }
+        if (menuButton == null) return;
         float centerX = width / 2f;
-        float btnY = height / 2f - 100f;
-        float btnX = centerX - SceneButtonFactory.BUTTON_WIDTH / 2f;
-
+        float btnY    = height / 2f - 100f;
+        float btnX    = centerX - SceneButtonFactory.BUTTON_WIDTH / 2f;
         menuButton.setPosition(btnX, btnY);
     }
 }

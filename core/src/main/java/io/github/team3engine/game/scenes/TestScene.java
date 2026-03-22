@@ -48,9 +48,9 @@ import io.github.team3engine.game.util.Timer;
 public class TestScene extends BaseScene implements GameplayScene {
     private static final String CARRY_SLOW_KEY = "slow:carry_npc";
     private static final float MAX_DELTA = 0.07f;
-    private static final float FIRE_GROW_X_PER_SEC = 0.18f;
+    private static final float FIRE_GROW_X_PER_SEC = 0.20f;
     private static final float FIRE_GROW_Y_PER_SEC = 0.06f;
-    private static final float FIRE_MAX_SCALE_X = 2f;
+    private static final float FIRE_MAX_SCALE_X = 3f;
     private static final float FIRE_MAX_SCALE_Y = 2f;
     private static final float FALL_DEATH_BUFFER = 0f;
 
