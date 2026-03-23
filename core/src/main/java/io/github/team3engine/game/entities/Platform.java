@@ -42,7 +42,7 @@ public class Platform extends CollidableEntity implements Solid {
         }
         this.width = width;
         this.height = height;
-        this.shape = new ShapeRenderer();
+        this.shape = texture == null ? new ShapeRenderer() : null;
         this.color = new Color(0.3f, 0.3f, 0.8f, 1f);
         setPos(x, y);
         updateHitbox();
@@ -58,7 +58,7 @@ public class Platform extends CollidableEntity implements Solid {
         this.ownsTexture = false;
         this.width = width;
         this.height = height;
-        this.shape = new ShapeRenderer();
+        this.shape = texture == null ? new ShapeRenderer() : null;
         this.color = new Color(0.3f, 0.3f, 0.8f, 1f);
         setPos(x, y);
         updateHitbox();
@@ -100,6 +100,10 @@ public class Platform extends CollidableEntity implements Solid {
             batch.draw(texture, position.x, position.y, width, height);
             batch.end();
         } else {
+            if (shape == null) {
+                batch.begin();
+                return;
+            }
             shape.setProjectionMatrix(batch.getProjectionMatrix());
             shape.setTransformMatrix(batch.getTransformMatrix());
             shape.begin(ShapeRenderer.ShapeType.Filled);

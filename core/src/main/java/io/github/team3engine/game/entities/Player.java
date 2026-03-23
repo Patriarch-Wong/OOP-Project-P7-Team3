@@ -1,7 +1,6 @@
 package io.github.team3engine.game.entities;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -27,7 +26,6 @@ public class Player extends CollidableEntity implements Damageable, Followable {
     private final float width;
     private final float height;
     private float baseSpeed = 220f;
-    private final Texture texture;
     private final float worldWidth;
     private final float worldHeight;
 
@@ -81,7 +79,6 @@ public class Player extends CollidableEntity implements Damageable, Followable {
         this.movementConfig = new MovementConfig(
                 WALK_SPEED, MAX_FALL_SPEED, ACCELERATION, DECELERATION, GRAVITY);
         this.statusEffects = new StatusEffectManager(this);
-        this.texture = new Texture("player.png");
         this.damageText = new FloatingText(1.2f, new Color(1f, 0.2f, 0.2f, 1f), 1.2f, new Vector2(0f, 20f));
         this.animator = new PlayerAnimator();
         setPos(x, y);
@@ -348,7 +345,6 @@ public class Player extends CollidableEntity implements Damageable, Followable {
 
     @Override
     public void dispose() {
-        texture.dispose();
         statusEffects.clearAll();
         animator.dispose();
         damageText.dispose();

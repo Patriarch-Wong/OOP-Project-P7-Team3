@@ -109,12 +109,8 @@ public class Fire extends CollidableEntity {
         if (animation != null) {
             TextureRegion frame = animation.getKeyFrame(stateTime, true);
             if (frame != null) {
-                TextureRegion drawFrame = new TextureRegion(frame);
-                if (upsideDown) {
-                    drawFrame.flip(false, true);
-                }
-                float drawY = upsideDown ? position.y - scaledHeight : position.y;
-                batch.draw(drawFrame, position.x, drawY, scaledWidth, scaledHeight);
+                batch.draw(frame, position.x, position.y, scaledWidth,
+                        upsideDown ? -scaledHeight : scaledHeight);
                 return;
             }
         }

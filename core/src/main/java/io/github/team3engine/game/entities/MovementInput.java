@@ -44,15 +44,17 @@ public class MovementInput implements IMovementInput {
 
         if (playerInput.isLeftHeld()) {
             movementAxis -= 1f;
-            broadcastMoveIfGrounded();
         }
         if (playerInput.isRightHeld()) {
             movementAxis += 1f;
-            broadcastMoveIfGrounded();
         }
 
         jumpIntent = playerInput.isSpaceHeld();
         crouchIntent = playerInput.isDownHeld();
+
+        if (io != null && isGrounded() && movementAxis != 0f) {
+            io.broadcast(GameEvents.PLAYER_MOVING);
+        }
 
         if (crouchIntent && io != null && isGrounded()) {
             io.broadcast(GameEvents.PLAYER_CROUCH);
@@ -78,12 +80,6 @@ public class MovementInput implements IMovementInput {
 
     public boolean isCrouchIntent() {
         return crouchIntent;
-    }
-
-    private void broadcastMoveIfGrounded() {
-        if (io != null && isGrounded()) {
-            io.broadcast(GameEvents.PLAYER_MOVING);
-        }
     }
 
     private boolean isGrounded() {

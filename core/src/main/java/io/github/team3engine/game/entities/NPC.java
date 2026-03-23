@@ -30,6 +30,9 @@ public class NPC extends CollidableEntity implements io.github.team3engine.game.
     private static final float HEALTH_BAR_HEIGHT = 4f;
     private static final float HEALTH_BAR_OFFSET_Y = 8f;
     private static final float INVINCIBILITY_DURATION = 0.5f;
+    private static final Color HEALTH_GOOD = new Color(0.2f, 0.8f, 0.2f, 1f);
+    private static final Color HEALTH_WARN = new Color(1f, 0.8f, 0f, 1f);
+    private static final Color HEALTH_BAD = new Color(1f, 0.2f, 0.2f, 1f);
 
     private State state = State.WAITING;
 
@@ -276,11 +279,11 @@ public class NPC extends CollidableEntity implements io.github.team3engine.game.
 
     private Color getHealthColor(float hpFrac) {
         if (hpFrac > 0.6f) {
-            return new Color(0.2f, 0.8f, 0.2f, 1f);
+            return HEALTH_GOOD;
         } else if (hpFrac > 0.3f) {
-            return new Color(1f, 0.8f, 0f, 1f);
+            return HEALTH_WARN;
         } else {
-            return new Color(1f, 0.2f, 0.2f, 1f);
+            return HEALTH_BAD;
         }
     }
 
