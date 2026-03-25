@@ -9,6 +9,23 @@ The player navigates through hazards (fire), collects items (buckets, wet towels
 - **Java 8** or newer (JDK, not just JRE)
 - No Gradle installation needed — the included Gradle wrapper handles it
 
+### IDE Setup
+
+**IntelliJ IDEA** (recommended):
+1. Open the project folder — IntelliJ will detect the Gradle build automatically
+2. Wait for the Gradle sync to finish
+3. Run `lwjgl3/src/main/java/.../Lwjgl3Launcher.java` or use the Gradle task `lwjgl3:run`
+
+**Eclipse:**
+1. Import as a Gradle project via *File → Import → Gradle → Existing Gradle Project*
+2. Run `./gradlew eclipse` to generate Eclipse project files if needed
+3. Run `Lwjgl3Launcher.java` as a Java application
+
+**VS Code:**
+1. Install the [Extension Pack for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack) and [Gradle for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle) extensions
+2. Open the project folder — the extensions will detect the Gradle build
+3. Run via the Gradle task `lwjgl3:run` in the Gradle sidebar, or run `Lwjgl3Launcher.java` directly
+
 ## How to Run
 
 **Run directly:**
