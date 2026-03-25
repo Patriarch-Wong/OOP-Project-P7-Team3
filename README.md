@@ -1,33 +1,48 @@
-# OOP Project, Lab P7 Team 3
+# OOP Project — Lab P7 Team 3
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+A 2D platformer/rescue game built with Java and [libGDX](https://libgdx.com/).
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+The player navigates through hazards (fire), collects items (buckets, wet towels, masks), rescues NPCs, and reaches the exit. Features a scoring system with time bonuses, NPC rescue points, and objective completion.
 
-## Platforms
+## Prerequisites
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
+- **Java 8** or newer (JDK, not just JRE)
+- No Gradle installation needed — the included Gradle wrapper handles it
 
-## Gradle
+## How to Run
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+**Run directly:**
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+```bash
+./gradlew lwjgl3:run
+```
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+On Windows, use `gradlew.bat lwjgl3:run` instead.
+
+**Build a JAR:**
+
+```bash
+./gradlew lwjgl3:jar
+```
+
+The runnable JAR will be at `lwjgl3/build/libs/P7-Team3-1.0.0.jar`. Run it with:
+
+```bash
+java -jar lwjgl3/build/libs/P7-Team3-1.0.0.jar
+```
+
+## Running Tests
+
+```bash
+./gradlew test
+```
+
+## Project Structure
+
+```
+core/           Main game logic
+  engine/       Reusable engine layer (entities, collision, movement, scenes, audio, I/O)
+  game/         Game-specific code (entities, scenes, UI, physics, scoring, status effects)
+lwjgl3/         Desktop launcher (LWJGL3 backend)
+assets/         Sprites, audio, backgrounds, UI images
+```
