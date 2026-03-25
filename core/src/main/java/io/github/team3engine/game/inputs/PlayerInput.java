@@ -15,15 +15,11 @@ public class PlayerInput extends InputListener {
     @Override
     public boolean onKey(int keycode, boolean pressed) {
         if (!isActive()) {
-            leftHeld = rightHeld = upHeld = downHeld = spaceHeld = false;
+            clearHeldKeys();
             return false;
         }
 
-        leftHeld  = Gdx.input.isKeyPressed(Keys.A) || Gdx.input.isKeyPressed(Keys.LEFT);
-        rightHeld = Gdx.input.isKeyPressed(Keys.D) || Gdx.input.isKeyPressed(Keys.RIGHT);
-        upHeld    = Gdx.input.isKeyPressed(Keys.W) || Gdx.input.isKeyPressed(Keys.UP);
-        downHeld  = Gdx.input.isKeyPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.DOWN);
-        spaceHeld = Gdx.input.isKeyPressed(Keys.SPACE);
+        refreshHeldKeys();
 
         if (leftHeld || rightHeld || upHeld || downHeld || spaceHeld) return true;
         return false;
@@ -37,20 +33,38 @@ public class PlayerInput extends InputListener {
     @Override
     public void update(float deltaTime) {
         if (!isActive()) {
-            leftHeld = rightHeld = upHeld = downHeld = spaceHeld = false;
+            clearHeldKeys();
             return;
         }
+
+        // Poll the actual keyboard state every frame so pause/unpause cannot
+        // leave cached key state behind.
+        refreshHeldKeys();
     }
 
     public void reset() {
-        leftHeld = rightHeld = upHeld = downHeld = false;
+        clearHeldKeys();
     }
-
-
 
     public boolean isLeftHeld() { return leftHeld; }
     public boolean isRightHeld() { return rightHeld; }
     public boolean isUpHeld() { return upHeld; }
     public boolean isDownHeld() { return downHeld; }
     public boolean isSpaceHeld() { return spaceHeld; }
+
+    private void refreshHeldKeys() {
+        leftHeld = Gdx.input.isKeyPressed(Keys.A) || Gdx.input.isKeyPressed(Keys.LEFT);
+        rightHeld = Gdx.input.isKeyPressed(Keys.D) || Gdx.input.isKeyPressed(Keys.RIGHT);
+        upHeld = Gdx.input.isKeyPressed(Keys.W) || Gdx.input.isKeyPressed(Keys.UP);
+        downHeld = Gdx.input.isKeyPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.DOWN);
+        spaceHeld = Gdx.input.isKeyPressed(Keys.SPACE);
+    }
+
+    private void clearHeldKeys() {
+        leftHeld = false;
+        rightHeld = false;
+        upHeld = false;
+        downHeld = false;
+        spaceHeld = false;
+    }
 }
