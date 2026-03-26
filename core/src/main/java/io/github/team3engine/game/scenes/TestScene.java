@@ -342,9 +342,9 @@ public class TestScene extends BaseScene implements GameplayScene {
                 p.getStatusEffects().removeByKey(CARRY_SLOW_KEY);
                 ioManager.broadcast(GameEvents.NPC_RESCUED);
             }
-            // if (p.getRescuedCount() >= door.getRequiredRescues()) {
+            // Intentional game rule: touching the exit always wins the level.
+            // Carrying/rescuing the NPC is optional for completion and only affects score outcomes.
             ioManager.broadcast(GameEvents.PLAYER_WIN);
-            // }
         });
 
         // --- Events ---
