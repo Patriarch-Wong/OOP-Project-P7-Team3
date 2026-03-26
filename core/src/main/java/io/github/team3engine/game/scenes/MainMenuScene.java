@@ -165,7 +165,7 @@ public class MainMenuScene extends BaseScene {
         drawLeftText(bodyFont, "Mission Brief", cardX + 18f, lineY + 18f, new Color(1f, 0.82f, 0.48f, 1f));
         drawLeftText(bodyFont, "The building is on fire. Your only goal is to get out alive.",
                 cardX + 18f, lineY - lineGap, Color.WHITE);
-        drawLeftText(bodyFont, "Use A / D to move, W to jump, and ESC to pause.", cardX + 18f,
+        drawLeftText(bodyFont, "Use A / D to move, Space to jump, and ESC to pause.", cardX + 18f,
                 lineY - lineGap * 2f, new Color(0.88f, 0.91f, 0.96f, 1f));
         drawLeftText(bodyFont, "Grab the wet towel and mask, they'll buy you more time.", cardX + 18f,
                 lineY - lineGap * 3f, new Color(0.88f, 0.91f, 0.96f, 1f));
