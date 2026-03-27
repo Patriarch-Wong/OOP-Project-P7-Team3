@@ -26,10 +26,6 @@ public class MovementInput implements IMovementInput {
         this(player::isGrounded, io, playerInput);
     }
 
-    public MovementInput(Circle circle, IOManager io, PlayerInput playerInput) {
-        this(circle::isGrounded, io, playerInput);
-    }
-
     private MovementInput(GroundedStateProvider groundedStateProvider, IOManager io, PlayerInput playerInput) {
         this.groundedStateProvider = groundedStateProvider;
         this.io = io;
